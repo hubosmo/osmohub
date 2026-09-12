@@ -99,8 +99,28 @@ A plataforma suporta tema **escuro** e **claro**. Ver `docs/brand.md` para palet
 
 ## Documentação Relacionada
 
+- [Guia de Construção](docs/guia-construcao.md) ← **ler primeiro para saber onde estamos**
+- [Mapa de Módulos](docs/module-map.json) ← **consultar antes de implementar qualquer módulo**
 - [Brand & Design System](docs/brand.md)
 - [Arquitetura Técnica](docs/architecture.md)
 - [Modelo de Conteúdo](docs/content-model.md)
 - [Funcionalidades](docs/features.md)
 - [Schema do Banco](docs/database-schema.md)
+
+## Regra de Ouro
+
+Antes de implementar qualquer módulo novo:
+1. Verificar status no `docs/guia-construcao.md`
+2. Consultar `docs/module-map.json` → campo `depends_on` e `used_by` do módulo
+3. Implementar sem afetar módulos com status `done`
+4. Atualizar `module-map.json` (status, files) e marcar `[x]` no guia ao concluir
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
