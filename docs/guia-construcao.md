@@ -23,25 +23,25 @@
 
 ---
 
-## Fase 1 — Design System & Layout Base
+## Fase 1 — Design System & Layout Base ✅ (concluída)
 
 ### 1.1 shadcn/ui
-- [ ] Instalar e configurar shadcn/ui
-- [ ] Adaptar tema do shadcn com tokens da Osmo (brand colors)
-- [ ] Instalar componentes base: Button, Input, Card, Badge, Dialog, Dropdown, Separator, Skeleton, Toast
+- [x] Instalar e configurar shadcn/ui
+- [x] Adaptar tema do shadcn com tokens da Osmo (brand colors)
+- [x] Instalar componentes base: Button, Input, Card, Badge, Dialog, Dropdown, Separator, Skeleton, Sonner (toast)
 
 ### 1.2 Componentes de Layout
-- [ ] `components/layout/Sidebar.tsx` — navegação lateral do aluno
-- [ ] `components/layout/Header.tsx` — barra superior (logo, busca, avatar)
-- [ ] `components/layout/StudentLayout.tsx` — layout raiz da área do aluno
-- [ ] `components/layout/AdminLayout.tsx` — layout raiz do admin
-- [ ] `components/layout/ThemeToggle.tsx` — botão dark/light
-- [ ] Drawer mobile (sidebar colapsável em telas pequenas)
+- [x] `components/layout/Sidebar.tsx` — navegação lateral com colapso
+- [x] `components/layout/Header.tsx` — barra superior (busca, avatar, notificações)
+- [x] `components/layout/StudentLayout.tsx` — layout raiz da área do aluno
+- [x] `components/layout/AdminLayout.tsx` — layout raiz do admin
+- [x] `components/layout/ThemeToggle.tsx` — botão dark/light
+- [ ] Drawer mobile (sidebar colapsável em telas pequenas) — pendente
 
 ### 1.3 Providers
-- [ ] `QueryProvider` (TanStack Query)
-- [ ] `ThemeProvider` (dark/light com persistência em localStorage)
-- [ ] Adicionar providers no `layout.tsx` raiz
+- [x] `QueryProvider` (TanStack Query)
+- [x] `ThemeProvider` (dark/light com persistência em localStorage)
+- [x] Providers adicionados no `layout.tsx` raiz
 
 ---
 

@@ -65,9 +65,14 @@
 
     "layout.root": {
       "status": "done",
-      "description": "Layout raiz com Montserrat, metadata e globals.css",
-      "files": ["src/app/layout.tsx", "src/app/globals.css"],
-      "depends_on": ["next/font/google"],
+      "description": "Layout raiz com Montserrat, metadata, globals.css, ThemeProvider, QueryProvider e Toaster",
+      "files": [
+        "src/app/layout.tsx",
+        "src/app/globals.css",
+        "src/components/providers/ThemeProvider.tsx",
+        "src/components/providers/QueryProvider.tsx"
+      ],
+      "depends_on": ["next/font/google", "ui.base", "@tanstack/react-query"],
       "used_by": ["layout.student", "layout.admin", "layout.auth"],
       "themes": ["dark (default)", "light"],
       "css_tokens": [
@@ -80,8 +85,8 @@
     },
 
     "layout.student": {
-      "status": "planned",
-      "description": "Layout da área do aluno com sidebar e header",
+      "status": "done",
+      "description": "Layout da área do aluno com sidebar colapsável, header com busca e tema",
       "files": [
         "src/components/layout/Sidebar.tsx",
         "src/components/layout/Header.tsx",
@@ -89,23 +94,23 @@
         "src/components/layout/ThemeToggle.tsx",
         "src/app/(student)/layout.tsx"
       ],
-      "depends_on": ["layout.root", "auth.hooks", "ui.base"],
+      "depends_on": ["layout.root", "ui.base"],
       "used_by": [
         "student.dashboard", "student.disciplinas",
         "student.topico", "student.progresso", "student.biblioteca",
         "student.plano"
       ],
-      "nav_items": ["Início", "Estudos", "Meu Progresso", "Biblioteca", "Configurações"]
+      "nav_items": ["Inicio", "Materias", "Simulaciones", "Plan de Estudios", "Biblioteca"]
     },
 
     "layout.admin": {
-      "status": "planned",
+      "status": "done",
       "description": "Layout do painel admin com sidebar admin",
       "files": [
-        "src/components/admin/AdminSidebar.tsx",
+        "src/components/layout/AdminLayout.tsx",
         "src/app/(admin)/layout.tsx"
       ],
-      "depends_on": ["layout.root", "auth.hooks", "ui.base"],
+      "depends_on": ["layout.root", "ui.base"],
       "used_by": ["admin.*"]
     },
 
@@ -118,16 +123,24 @@
     },
 
     "ui.base": {
-      "status": "planned",
-      "description": "Componentes shadcn/ui adaptados com tokens Osmo",
-      "files": ["src/components/ui/*"],
-      "depends_on": ["tailwindcss", "layout.root"],
-      "used_by": ["ALL"],
-      "components": [
-        "Button", "Input", "Card", "Badge", "Dialog",
-        "Dropdown", "Separator", "Skeleton", "Toast", "Avatar"
+      "status": "done",
+      "description": "Componentes shadcn/ui instalados e mapeados aos tokens Osmo",
+      "files": [
+        "src/components/ui/button.tsx",
+        "src/components/ui/input.tsx",
+        "src/components/ui/card.tsx",
+        "src/components/ui/badge.tsx",
+        "src/components/ui/dialog.tsx",
+        "src/components/ui/dropdown-menu.tsx",
+        "src/components/ui/separator.tsx",
+        "src/components/ui/skeleton.tsx",
+        "src/components/ui/sonner.tsx",
+        "components.json",
+        "src/lib/utils.ts"
       ],
-      "notes": "Instalar via CLI do shadcn. Adaptar variáveis CSS para tokens Osmo em components.json"
+      "depends_on": ["tailwindcss", "layout.root", "class-variance-authority", "clsx", "tailwind-merge"],
+      "used_by": ["ALL"],
+      "notes": "CSS vars shadcn mapeadas: --color-primary=accent, --color-background=bg-base, etc. bg-accent-brand disponível para uso direto nos componentes custom"
     },
 
     "auth.pages": {

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -10,10 +13,10 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: {
-    default: "Osmo — Ciências que Conectam",
+    default: "Osmo — Ciencias que Conectan",
     template: "%s | Osmo",
   },
-  description: "Plataforma educacional de ciências com vídeos, artigos interativos e simulações.",
+  description: "Plataforma educativa de ciencias con videos, artículos interactivos y simulaciones.",
 };
 
 export default function RootLayout({
@@ -22,9 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="es-419" suppressHydrationWarning>
       <body className={montserrat.variable}>
-        {children}
+        <QueryProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

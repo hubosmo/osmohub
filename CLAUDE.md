@@ -1,6 +1,10 @@
 # Osmo — Plataforma Educacional
 
-> "Ciências que Conectam"
+> "Ciencias que Conectan"
+
+## Idioma da Plataforma
+
+**Espanhol latino-americano** (`es-419`). Todo texto visível ao usuário — UI, mensagens, metadados, labels, erros — deve estar em espanhol. Nunca usar português ou inglês no conteúdo voltado ao aluno.
 
 ## Visão Geral
 

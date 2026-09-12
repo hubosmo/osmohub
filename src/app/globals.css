@@ -8,13 +8,12 @@
   --color-brand-accent: #00a6ff;
   --color-brand-accent-hover: #0090e0;
 
-  /* Semantic tokens — resolved by theme class */
+  /* Semantic tokens Osmo — resolved by theme */
   --color-bg-base: var(--bg-base);
   --color-bg-surface: var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-subtle: var(--bg-subtle);
 
-  --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
 
   --color-text-primary: var(--text-primary);
@@ -22,13 +21,34 @@
   --color-text-muted: var(--text-muted);
   --color-text-inverse: var(--text-inverse);
 
-  --color-accent: var(--accent);
+  --color-accent-brand: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-subtle: var(--accent-subtle);
 
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
+
+  /* shadcn/ui — mapeados aos tokens Osmo */
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-surface);
+  --color-card-foreground: var(--text-primary);
+  --color-popover: var(--bg-elevated);
+  --color-popover-foreground: var(--text-primary);
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--bg-surface);
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted: var(--bg-subtle);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--accent-subtle);
+  --color-accent-foreground: var(--accent);
+  --color-destructive: var(--error);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
 }
 
 /* ── Dark theme (padrão) ─────────────────────────── */
