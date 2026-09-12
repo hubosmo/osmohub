@@ -1,0 +1,330 @@
+# Osmo — Schema do Banco de Dados
+
+## ORM: Prisma + PostgreSQL (Supabase)
+
+---
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USUÁRIOS ──────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  nome          String
+  role          Role     @default(STUDENT)
+  avatar_url    String?
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  progresso     ProgressoTopico[]
+  tentativas    TentativaQuiz[]
+  planos        PlanoEstudos[]
+
+  @@map("users")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+// ─── ESTRUTURA DE CONTEÚDO ─────────────────────────────
+
+model Disciplina {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  nome          String
+  descricao     String?
+  capa_url      String?
+  icone         String?
+  cor_destaque  String?
+  ordem         Int      @default(0)
+  publicado     Boolean  @default(false)
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  areas         Area[]
+  simulacoes    Simulacao[]
+
+  @@map("disciplinas")
+}
+
+model Area {
+  id            String     @id @default(uuid())
+  disciplina_id String
+  slug          String
+  nome          String
+  descricao     String?
+  ordem         Int        @default(0)
+  publicado     Boolean    @default(false)
+  criado_em     DateTime   @default(now())
+  atualizado_em DateTime   @updatedAt
+
+  disciplina    Disciplina @relation(fields: [disciplina_id], references: [id])
+  topicos       Topico[]
+
+  @@unique([disciplina_id, slug])
+  @@map("areas")
+}
+
+model Topico {
+  id                    String   @id @default(uuid())
+  area_id               String
+  slug                  String
+  titulo                String
+  descricao_curta       String?
+  ordem                 Int      @default(0)
+  publicado             Boolean  @default(false)
+  duracao_estimada_min  Int?
+  criado_em             DateTime @default(now())
+  atualizado_em         DateTime @updatedAt
+
+  area              Area              @relation(fields: [area_id], references: [id])
+  video             Video?
+  artigo            Artigo?
+  quizzes           Quiz[]
+  simulacoes        TopicoSimulacao[]
+  progresso         ProgressoTopico[]
+  itens_plano       ItemPlano[]
+
+  @@unique([area_id, slug])
+  @@map("topicos")
+}
+
+// ─── CONTEÚDO ──────────────────────────────────────────
+
+model Video {
+  id               String   @id @default(uuid())
+  topico_id        String   @unique
+  titulo           String
+  mux_asset_id     String?
+  mux_playback_id  String?
+  mux_status       String?  // preparing | ready | errored
+  youtube_url      String?
+  duracao_seg      Int?
+  thumbnail_url    String?
+  transcricao      String?
+  criado_em        DateTime @default(now())
+  atualizado_em    DateTime @updatedAt
+
+  topico           Topico   @relation(fields: [topico_id], references: [id])
+
+  @@map("videos")
+}
+
+model Artigo {
+  id               String   @id @default(uuid())
+  topico_id        String   @unique
+  titulo           String
+  content          Json     // formato Tiptap JSON
+  tempo_leitura_min Int?
+  criado_em        DateTime @default(now())
+  atualizado_em    DateTime @updatedAt
+
+  topico           Topico   @relation(fields: [topico_id], references: [id])
+
+  @@map("artigos")
+}
+
+// ─── SIMULAÇÕES ────────────────────────────────────────
+
+model Simulacao {
+  id            String          @id @default(uuid())
+  slug          String          @unique
+  titulo        String
+  descricao     String?
+  tipo          TipoSimulacao
+  config        Json?           // dados configurados por tipo
+  html_url      String?         // apenas para tipo CUSTOM_HTML
+  disciplina_id String?
+  criado_em     DateTime        @default(now())
+  atualizado_em DateTime        @updatedAt
+
+  disciplina    Disciplina?     @relation(fields: [disciplina_id], references: [id])
+  topicos       TopicoSimulacao[]
+
+  @@map("simulacoes")
+}
+
+enum TipoSimulacao {
+  DRAG_DROP
+  FILL_BLANK
+  MATCHING
+  ORDERING
+  LABEL_IMAGE
+  CUSTOM_HTML
+}
+
+model TopicoSimulacao {
+  topico_id     String
+  simulacao_id  String
+  ordem         Int    @default(0)
+
+  topico        Topico    @relation(fields: [topico_id], references: [id])
+  simulacao     Simulacao @relation(fields: [simulacao_id], references: [id])
+
+  @@id([topico_id, simulacao_id])
+  @@map("topico_simulacoes")
+}
+
+// ─── QUIZ ──────────────────────────────────────────────
+
+model Quiz {
+  id               String      @id @default(uuid())
+  topico_id        String?
+  titulo           String
+  descricao        String?
+  modo             ModoQuiz    @default(PRATICA)
+  tempo_limite_seg Int?
+  criado_em        DateTime    @default(now())
+  atualizado_em    DateTime    @updatedAt
+
+  topico           Topico?     @relation(fields: [topico_id], references: [id])
+  questoes         Questao[]
+  tentativas       TentativaQuiz[]
+
+  @@map("quizzes")
+}
+
+enum ModoQuiz {
+  PRATICA
+  SIMULADO
+}
+
+model Questao {
+  id          String      @id @default(uuid())
+  quiz_id     String
+  enunciado   Json        // suporta texto e imagem
+  tipo        TipoQuestao @default(MULTIPLA_ESCOLHA)
+  explicacao  String?
+  ordem       Int         @default(0)
+
+  quiz        Quiz        @relation(fields: [quiz_id], references: [id])
+  opcoes      Opcao[]
+
+  @@map("questoes")
+}
+
+enum TipoQuestao {
+  MULTIPLA_ESCOLHA
+  VERDADEIRO_FALSO
+}
+
+model Opcao {
+  id         String  @id @default(uuid())
+  questao_id String
+  texto      String
+  correta    Boolean @default(false)
+  ordem      Int     @default(0)
+
+  questao    Questao @relation(fields: [questao_id], references: [id])
+
+  @@map("opcoes")
+}
+
+// ─── PROGRESSO ─────────────────────────────────────────
+
+model ProgressoTopico {
+  usuario_id              String
+  topico_id               String
+  video_assistido         Boolean  @default(false)
+  artigo_lido             Boolean  @default(false)
+  simulacoes_concluidas   String[] // array de simulacao IDs
+  atualizado_em           DateTime @updatedAt
+
+  usuario   User   @relation(fields: [usuario_id], references: [id])
+  topico    Topico @relation(fields: [topico_id], references: [id])
+
+  @@id([usuario_id, topico_id])
+  @@map("progresso_topicos")
+}
+
+model TentativaQuiz {
+  id              String   @id @default(uuid())
+  usuario_id      String
+  quiz_id         String
+  pontuacao       Int      // 0-100
+  respostas       Json     // { questao_id: opcao_id }
+  tempo_gasto_seg Int?
+  criado_em       DateTime @default(now())
+
+  usuario  User @relation(fields: [usuario_id], references: [id])
+  quiz     Quiz @relation(fields: [quiz_id], references: [id])
+
+  @@map("tentativas_quiz")
+}
+
+// ─── PLANO DE ESTUDOS ──────────────────────────────────
+
+model PlanoEstudos {
+  id         String      @id @default(uuid())
+  usuario_id String
+  nome       String
+  criado_em  DateTime    @default(now())
+
+  usuario    User        @relation(fields: [usuario_id], references: [id])
+  itens      ItemPlano[]
+
+  @@map("planos_estudos")
+}
+
+model ItemPlano {
+  id             String       @id @default(uuid())
+  plano_id       String
+  topico_id      String
+  ordem          Int          @default(0)
+  concluido      Boolean      @default(false)
+  data_prevista  DateTime?
+
+  plano          PlanoEstudos @relation(fields: [plano_id], references: [id])
+  topico         Topico       @relation(fields: [topico_id], references: [id])
+
+  @@map("itens_plano")
+}
+```
+
+---
+
+## Índices Recomendados
+
+```sql
+-- Busca por slug (mais comum)
+CREATE INDEX ON areas(disciplina_id, slug);
+CREATE INDEX ON topicos(area_id, slug);
+
+-- Progresso do aluno
+CREATE INDEX ON progresso_topicos(usuario_id);
+
+-- Ordenação de conteúdo
+CREATE INDEX ON areas(disciplina_id, ordem);
+CREATE INDEX ON topicos(area_id, ordem);
+```
+
+---
+
+## Row Level Security (Supabase RLS)
+
+```sql
+-- Alunos leem apenas conteúdo publicado
+ALTER TABLE topicos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "aluno lê topicos publicados" ON topicos
+  FOR SELECT USING (publicado = true);
+
+-- Aluno lê apenas seu próprio progresso
+ALTER TABLE progresso_topicos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "aluno lê seu progresso" ON progresso_topicos
+  FOR ALL USING (usuario_id = auth.uid());
+
+-- Admin tem acesso total (via service role key nas API routes)
+```

@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand */
+  --color-brand-navy: #263b4c;
+  --color-brand-accent: #00a6ff;
+  --color-brand-accent-hover: #0090e0;
+
+  /* Semantic tokens — resolved by theme class */
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-subtle: var(--bg-subtle);
+
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+}
+
+/* ── Dark theme (padrão) ─────────────────────────── */
+:root {
+  --bg-base: #0f1a24;
+  --bg-surface: #1a2b3c;
+  --bg-elevated: #263b4c;
+  --bg-subtle: #1e3347;
+
+  --border: #2f4a5e;
+  --border-subtle: #1e3347;
+
+  --text-primary: #f0f6ff;
+  --text-secondary: #94a3b8;
+  --text-muted: #546e7a;
+  --text-inverse: #0f1a24;
+
+  --accent: #00a6ff;
+  --accent-hover: #0090e0;
+  --accent-subtle: rgba(0, 166, 255, 0.12);
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
+/* ── Light theme ─────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg-base: #f0f4f8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #e8eff5;
+
+  --border: #d1dde8;
+  --border-subtle: #e8eff5;
+
+  --text-primary: #263b4c;
+  --text-secondary: #4a6278;
+  --text-muted: #8099ad;
+  --text-inverse: #ffffff;
+
+  --accent: #00a6ff;
+  --accent-hover: #0090e0;
+  --accent-subtle: rgba(0, 166, 255, 0.10);
+
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+}
+
+/* ── Base ────────────────────────────────────────── */
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
