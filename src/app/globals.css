@@ -57,6 +57,7 @@
   --bg-surface: #1a2b3c;
   --bg-elevated: #263b4c;
   --bg-subtle: #1e3347;
+  --bg-nav-bar: #263b4c;
 
   --border: #2f4a5e;
   --border-subtle: #1e3347;
@@ -73,6 +74,15 @@
   --success: #22c55e;
   --warning: #f59e0b;
   --error: #ef4444;
+
+  /*
+   * Background image da área do aluno (tema escuro).
+   * Para usar uma imagem real, substitua "none" por url('/images/bg-dark.jpg').
+   * O overlay controla quanto da imagem aparece: menor alpha = imagem mais visível.
+   */
+  --student-bg-url: none;
+  --student-bg-overlay: rgba(15, 26, 36, 0.74);
+  --capa-overlay: rgba(0, 0, 0, 0.65);
 }
 
 /* ── Light theme ─────────────────────────────────── */
@@ -81,6 +91,7 @@
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
   --bg-subtle: #e8eff5;
+  --bg-nav-bar: #dce8f4;
 
   --border: #d1dde8;
   --border-subtle: #e8eff5;
@@ -97,6 +108,14 @@
   --success: #16a34a;
   --warning: #d97706;
   --error: #dc2626;
+
+  /*
+   * Background image da área do aluno (tema claro).
+   * Para usar uma imagem real, substitua "none" por url('/images/bg-light.jpg').
+   */
+  --student-bg-url: none;
+  --student-bg-overlay: rgba(240, 244, 248, 0.78);
+  --capa-overlay: rgba(0, 80, 140, 0.72);
 }
 
 /* ── Base ────────────────────────────────────────── */
@@ -106,3 +125,241 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* ── Pontos de senha maiores ────────────────────────────────────────── */
+/*
+  Aplica-se apenas quando type="password" (dots), não quando type="text"
+  (senha visível após clicar no olho).
+*/
+/*
+  Pontos maiores sem aumentar a altura do campo:
+  - font-size 1.5rem faz os bullets ficarem grandes
+  - line-height 1 + padding ajustado mantém a altura igual aos outros campos (≈44px)
+  - ::placeholder reverte para tamanho normal do texto de dica
+*/
+/* placeholder: remove letter-spacing dos asteriscos no modo máscara */
+input.auth-password-input::placeholder {
+  font-weight: normal;
+  letter-spacing: normal;
+}
+
+/* ── Autofill — detecção via animação + override de cor ─────────────── */
+/*
+  Estratégia dupla:
+  1. Animação dummy dispara onAnimationStart no React → componente aplica
+     box-shadow inset inline com a cor exata do tema atual.
+  2. Regras CSS com !important como fallback caso a animação falhe.
+  O texto usa -webkit-text-fill-color porque o autofill ignora "color".
+*/
+
+@keyframes auth-autofill-on  { from { opacity: 1; } }
+@keyframes auth-autofill-off { from { opacity: 1; } }
+
+input:-webkit-autofill             { animation-name: auth-autofill-on;  animation-duration: 0.001s; }
+input:not(:-webkit-autofill)       { animation-name: auth-autofill-off; animation-duration: 0.001s; }
+
+/*
+  color-scheme: dark/light → Chrome usa sua UI de autofill nativa no tema certo.
+  -webkit-text-fill-color !important → fallback de cor de texto.
+  transition background-color 5000s → impede o fundo branco de aparecer.
+  box-shadow inset → aplicado via JS (onAnimationStart em AuthInput.tsx).
+*/
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  color-scheme: dark;
+  -webkit-text-fill-color: #F1F5F9 !important;
+  caret-color: #F1F5F9;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:root[data-theme="light"] input:-webkit-autofill,
+:root[data-theme="light"] input:-webkit-autofill:hover,
+:root[data-theme="light"] input:-webkit-autofill:focus,
+:root[data-theme="light"] input:-webkit-autofill:active {
+  color-scheme: light;
+  -webkit-text-fill-color: #1E293B !important;
+  caret-color: #1E293B;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) input:-webkit-autofill,
+  :root:not([data-theme="dark"]) input:-webkit-autofill:hover,
+  :root:not([data-theme="dark"]) input:-webkit-autofill:focus,
+  :root:not([data-theme="dark"]) input:-webkit-autofill:active {
+    color-scheme: light;
+    -webkit-text-fill-color: #1E293B !important;
+    caret-color: #1E293B;
+  }
+}
+
+/* ── Artigo / Editor Tiptap ────────────────────────────── */
+
+.artigo-content .tiptap {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.85;
+  outline: none;
+}
+
+.artigo-content .tiptap > * + * { margin-top: 1.1em; }
+
+.artigo-content .tiptap h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+  line-height: 1.35;
+}
+
+.artigo-content .tiptap h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 1.4em;
+  margin-bottom: 0.3em;
+  line-height: 1.4;
+}
+
+.artigo-content .tiptap strong { font-weight: 700; color: var(--text-primary); }
+.artigo-content .tiptap em { font-style: italic; }
+
+.artigo-content .tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+.artigo-content .tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+.artigo-content .tiptap li { margin-bottom: 0.25em; }
+.artigo-content .tiptap li > p { margin: 0; }
+
+.artigo-content .tiptap blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1em;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 1.2em 0;
+}
+
+.artigo-content .tiptap code {
+  background-color: var(--bg-elevated);
+  border-radius: 0.25em;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  font-family: ui-monospace, monospace;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.artigo-content .tiptap pre {
+  background-color: var(--bg-elevated);
+  border-radius: 0.5em;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  margin: 1em 0;
+}
+.artigo-content .tiptap pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+.artigo-content .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+
+.artigo-content .tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.artigo-content .tiptap a:hover { opacity: 0.8; }
+
+.artigo-content .tiptap mark {
+  background-color: color-mix(in srgb, #F59E0B 28%, transparent);
+  border-radius: 0.15em;
+  padding: 0.05em 0.2em;
+  color: inherit;
+}
+
+/* Placeholder (editor only) */
+.artigo-content .tiptap p.is-editor-empty:first-child::before,
+.mini-editor-content .tiptap p.is-editor-empty:first-child::before {
+  color: var(--text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ── Mini Editor (campos de texto ricos no admin) ───────── */
+
+/* Scrollbar estilizado — mini editor */
+.mini-editor-content::-webkit-scrollbar { width: 5px; }
+.mini-editor-content::-webkit-scrollbar-track { background: transparent; }
+.mini-editor-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.mini-editor-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Firefox */
+.mini-editor-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+.mini-editor-content .tiptap {
+  outline: none;
+  line-height: 1.7;
+}
+
+.mini-editor-content .tiptap > * + * { margin-top: 0.6em; }
+
+.mini-editor-content .tiptap strong { font-weight: 700; color: var(--text-primary); }
+.mini-editor-content .tiptap em { font-style: italic; }
+.mini-editor-content .tiptap u { text-decoration: underline; }
+
+.mini-editor-content .tiptap mark {
+  background-color: color-mix(in srgb, #F59E0B 28%, transparent);
+  border-radius: 0.15em;
+  padding: 0.05em 0.2em;
+  color: inherit;
+}
+
+.mini-editor-content .tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Breadcrumb links ───────────────────────────────────── */
+.breadcrumb-link { color: var(--text-secondary); transition: color 0.15s; }
+.breadcrumb-link:hover { color: var(--accent); }
+
+/* ── Renderização de rich text na página do aluno ───────── */
+
+.rich-content { line-height: 1.85; }
+.rich-content > * + * { margin-top: 0.6em; }
+.rich-content strong { font-weight: 700; color: var(--text-primary); }
+.rich-content em { font-style: italic; }
+.rich-content u { text-decoration: underline; }
+.rich-content h3 { font-size: 1em; font-weight: 700; color: var(--text-primary); line-height: 1.4; margin-bottom: 0.2em; }
+.rich-content h4 { font-size: 0.9em; font-weight: 600; color: var(--text-secondary); line-height: 1.4; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2em; }
+.rich-content mark {
+  background-color: color-mix(in srgb, #F59E0B 28%, transparent);
+  border-radius: 0.15em;
+  padding: 0.05em 0.2em;
+  color: inherit;
+}
+.rich-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-content a:hover { opacity: 0.8; }

@@ -33,32 +33,57 @@ enum Role {
 
 // ─── ESTRUTURA DE CONTEÚDO ─────────────────────────────
 
-model Disciplina {
-  id            String   @id @default(uuid())
-  slug          String   @unique
-  nome          String
-  descricao     String?
-  capa_url      String?
-  icone         String?
+model Curso {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  nome            String
+  descricao       String?
+  capa_url        String?
+  capa_url_light  String?
+  icone           String?
   cor_destaque  String?
   ordem         Int      @default(0)
   publicado     Boolean  @default(false)
   criado_em     DateTime @default(now())
   atualizado_em DateTime @updatedAt
 
+  disciplinas Disciplina[]
+
+  @@map("cursos")
+}
+
+model Disciplina {
+  id              String   @id @default(uuid())
+  curso_id        String
+  slug            String
+  nome            String
+  descricao       String?
+  capa_url        String?
+  capa_url_light  String?
+  icone           String?
+  cor_destaque  String?
+  ordem         Int      @default(0)
+  publicado     Boolean  @default(false)
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  curso      Curso      @relation(fields: [curso_id], references: [id])
   areas      Area[]
   simulacoes Simulacao[]
 
+  @@unique([curso_id, slug])
   @@map("disciplinas")
 }
 
 model Area {
-  id            String     @id @default(uuid())
-  disciplina_id String
-  slug          String
-  nome          String
-  descricao     String?
-  ordem         Int        @default(0)
+  id              String   @id @default(uuid())
+  disciplina_id   String
+  slug            String
+  nome            String
+  descricao       String?
+  capa_url        String?
+  capa_url_light  String?
+  ordem           Int      @default(0)
   publicado     Boolean    @default(false)
   criado_em     DateTime   @default(now())
   atualizado_em DateTime   @updatedAt
@@ -76,15 +101,23 @@ model Topico {
   slug                 String
   titulo               String
   descricao_curta      String?
+  objetivo             String?
   ordem                Int      @default(0)
   publicado            Boolean  @default(false)
   duracao_estimada_min Int?
+  video_ativo          Boolean  @default(false)
+  artigo_ativo         Boolean  @default(false)
+  atlas_ativo          Boolean  @default(false)
+  tabelas_ativo        Boolean  @default(false)
   criado_em            DateTime @default(now())
   atualizado_em        DateTime @updatedAt
 
   area        Area              @relation(fields: [area_id], references: [id])
   video       Video?
   artigo      Artigo?
+  imagens        ImagemTopico[]
+  grupos_imagens GrupoImagensTopico[]
+  tabelas        TabelaTopico[]
   quizzes     Quiz[]
   simulacoes  TopicoSimulacao[]
   progresso   ProgressoTopico[]
@@ -100,6 +133,8 @@ model Video {
   id              String   @id @default(uuid())
   topico_id       String   @unique
   titulo          String
+  descricao       String?  // texto introdutório antes do vídeo
+  legenda         String?  // texto curto na caixa caption abaixo do vídeo
   mux_asset_id    String?
   mux_playback_id String?
   mux_status      String?
@@ -127,6 +162,66 @@ model Artigo {
   topico Topico @relation(fields: [topico_id], references: [id])
 
   @@map("artigos")
+}
+
+// ─── IMAGENS DO TÓPICO ─────────────────────────────────
+
+model GrupoImagensTopico {
+  id           String  @id @default(uuid())
+  topico_id    String
+  titulo       String?
+  legenda      String?
+  modo_legenda String  @default("individual")
+  ordem        Int     @default(0)
+
+  topico  Topico         @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  imagens ImagemTopico[]
+
+  @@map("grupos_imagens_topico")
+}
+
+model ImagemTopico {
+  id        String  @id @default(uuid())
+  topico_id String
+  grupo_id  String?
+  url       String
+  legenda   String?
+  ordem     Int     @default(0)
+  hotspots  Json?
+
+  topico Topico              @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  grupo  GrupoImagensTopico? @relation(fields: [grupo_id], references: [id], onDelete: SetNull)
+
+  @@map("imagens_topico")
+}
+
+// ─── TABELAS DE RESUMO ─────────────────────────────────
+
+model TabelaTopico {
+  id         String       @id @default(uuid())
+  topico_id  String
+  titulo     String
+  tipo       String       @default("resumen") // resumen | estudio
+  ordem      Int          @default(0)
+  cabecalhos Json         @default("[]") // string[] extra column headers beyond Categoría+Contenido
+
+  topico Topico       @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  linhas TabelaLinha[]
+
+  @@map("tabelas_topico")
+}
+
+model TabelaLinha {
+  id           String @id @default(uuid())
+  tabela_id    String
+  categoria    String
+  conteudo     String @db.Text
+  ordem        Int    @default(0)
+  valores_extra Json  @default("[]") // string[] extra column values
+
+  tabela TabelaTopico @relation(fields: [tabela_id], references: [id], onDelete: Cascade)
+
+  @@map("tabelas_linhas")
 }
 
 // ─── SIMULAÇÕES ────────────────────────────────────────

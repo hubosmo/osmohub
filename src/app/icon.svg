@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!--
+    Arco externo: 270° de 180° (esquerda) até 90° (baixo), sentido horário
+    Centro (32,32), R=25
+  -->
+  <path
+    d="M 7 32 A 25 25 0 1 1 32 57"
+    stroke="#00A6FF"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+  <!--
+    Arco interno: 90° de 90° (baixo) até 180° (esquerda), sentido horário — preenche o gap
+    Centro (32,32), r=14
+  -->
+  <path
+    d="M 32 46 A 14 14 0 0 1 18 32"
+    stroke="#00A6FF"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+  <!-- Núcleo -->
+  <circle cx="32" cy="32" r="5" fill="#00A6FF" />
+</svg>

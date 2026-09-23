@@ -47,42 +47,44 @@
 
 ## Fase 2 — Autenticação
 
-- [ ] Página `/login` — form com email/senha
-- [ ] Página `/cadastro` — form de registro
+- [x] Página `/login` — form com email/senha
+- [x] Página `/cadastro` — form de registro
 - [ ] Página `/recuperar-senha`
-- [ ] Server Actions de auth (login, cadastro, logout)
-- [ ] Callback de OAuth do Supabase (`/auth/callback`)
-- [ ] Sincronizar usuário Supabase Auth → tabela `users` (trigger ou hook)
+- [x] Server Actions de auth (login, cadastro, logout)
+- [x] Página `/verificar-email` — aviso pós-cadastro para confirmar e-mail
+- [x] Callback de OAuth do Supabase (`/auth/callback`)
+- [x] Sincronizar usuário Supabase Auth → tabela `users` (trigger + upsert nas actions)
 - [ ] Proteção de rotas no middleware validando role (STUDENT/ADMIN)
-- [ ] Hook `useUser()` para acesso ao usuário no client
+- [x] Hook `useUser()` para acesso ao usuário no client
 
 ---
 
 ## Fase 3 — Área do Aluno (Conteúdo)
 
 ### 3.1 Dashboard
-- [ ] Página `/dashboard`
-- [ ] Card de boas-vindas com nome do aluno
+- [x] Página `/dashboard`
+- [x] Card de boas-vindas com nome do aluno (com ícone por hora do dia)
 - [ ] Bloco "Continue de onde parou" (último tópico acessado)
 - [ ] Grid de disciplinas com progresso
 - [ ] Bloco do plano de estudos (próximos itens)
 - [ ] Stats rápidas (vídeos, artigos, simulações, pontuação)
 
 ### 3.2 Navegação de Conteúdo
-- [ ] Página `/disciplinas` — grid de todas as disciplinas
-- [ ] Página `/disciplinas/[disciplina]` — lista de áreas
-- [ ] Página `/disciplinas/[disciplina]/[area]` — lista de tópicos
-- [ ] Componente `DisciplinaCard` com capa, nome e progresso
-- [ ] Componente `TopicoCard` com indicadores (vídeo/artigo/sim ✓)
-- [ ] Breadcrumb de navegação
+- [x] Hierarquia: Curso → Disciplina → Área → Tópico (modelo Kenhub)
+- [x] Página `/cursos` — grid de todos os cursos
+- [x] Página `/cursos/[curso]` — disciplinas do curso
+- [x] Página `/cursos/[curso]/[disciplina]` — áreas da disciplina
+- [x] Página `/cursos/[curso]/[disciplina]/[area]` — tópicos da área
+- [x] Breadcrumb de navegação em todas as páginas
+- [x] `lib/db/cursos.ts` — queries: listarCursos, getCursoPorSlug, getDisciplinaPorSlug, getAreaPorSlug, getTopicoPorSlug
 
 ### 3.3 Página de Tópico (unificada)
-- [ ] Página `/disciplinas/[disciplina]/[area]/[topico]`
-- [ ] Seção de vídeo (player)
-- [ ] Seção de artigo (renderizador de blocos)
+- [x] Página `/cursos/[curso]/[disciplina]/[area]/[topico]`
+- [x] Seção de vídeo (YouTube embed / placeholder se sem vídeo)
+- [x] Seção de artigo (placeholder — editor Tiptap na Fase 5)
 - [ ] Seção de simulações vinculadas
 - [ ] Seção de quiz
-- [ ] Navegação anterior/próximo tópico
+- [x] Navegação anterior/próximo tópico
 - [ ] Marcação automática de progresso
 
 ---

@@ -57,7 +57,7 @@
       "depends_on": ["foundation.supabase", "@supabase/ssr"],
       "used_by": [],
       "protects": {
-        "student_routes": ["/dashboard", "/disciplinas", "/plano-de-estudos", "/biblioteca"],
+        "student_routes": ["/dashboard", "/cursos", "/plano-de-estudos", "/biblioteca"],
         "admin_routes": ["/admin"]
       },
       "notes": "TODO: adicionar verificação de role ADMIN via banco após auth.user estar disponível"

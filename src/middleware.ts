@@ -30,10 +30,14 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Rotas protegidas — exigem autenticação
-  const isStudentRoute = pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/disciplinas") ||
+  const isStudentRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/cursos") ||
     pathname.startsWith("/plano-de-estudos") ||
-    pathname.startsWith("/biblioteca");
+    pathname.startsWith("/plan-de-estudios") ||
+    pathname.startsWith("/simulaciones") ||
+    pathname.startsWith("/biblioteca") ||
+    pathname.startsWith("/configuracion");
 
   const isAdminRoute = pathname.startsWith("/admin");
 

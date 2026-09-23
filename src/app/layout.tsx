@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TopLoader } from "@/components/layout/TopLoader";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es-419" suppressHydrationWarning>
       <body className={montserrat.variable}>
+        <TopLoader />
         <QueryProvider>
           <ThemeProvider>
             {children}
