@@ -236,7 +236,7 @@ export function DisciplinaAreas({
             >
               {capaDisplay && (
                 <div
-                  className="w-full sm:w-36 shrink-0 aspect-[16/7] sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
+                  className="w-full sm:w-36 shrink-0 aspect-[4/3] sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
                   style={{ borderColor: "var(--border)" }}
                 >
                   <img src={capaDisplay} alt={selectedArea.nome} className="w-full h-full object-cover object-top" />
