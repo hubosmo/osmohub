@@ -231,46 +231,78 @@ export function DisciplinaAreas({
           {/* Card de destaque da unidade selecionada */}
           {!search && selectedArea && firstTopico && (
             <div
-              className="rounded-2xl overflow-hidden mb-8 flex flex-col sm:flex-row"
+              className="rounded-2xl overflow-hidden mb-6 flex flex-row"
               style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
             >
-              {capaDisplay && (
-                <div
-                  className="w-full sm:w-36 shrink-0 sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
-                  style={{
-                    borderColor: "var(--border)",
-                    aspectRatio: isMobile ? "16/9" : undefined,
-                  }}
-                >
+              {/* Imagem — quadrada no mobile, altura livre no desktop */}
+              <div
+                className="shrink-0 overflow-hidden border-r"
+                style={{
+                  borderColor: "var(--border)",
+                  width: isMobile ? 88 : 144,
+                  aspectRatio: isMobile ? "1/1" : undefined,
+                  backgroundColor: `color-mix(in srgb, ${accentColor} 12%, var(--bg-elevated))`,
+                }}
+              >
+                {capaDisplay ? (
                   <img src={capaDisplay} alt={selectedArea.nome} className="w-full h-full object-cover object-top" />
-                </div>
-              )}
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <BookOpen className="h-8 w-8 opacity-40" style={{ color: accentColor }} />
+                  </div>
+                )}
+              </div>
 
               {/* Conteúdo */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 sm:p-5"
-                style={{ padding: isMobile ? "10px 14px" : undefined }}>
+              <div
+                className="flex-1 min-w-0 flex flex-col justify-between"
+                style={{ padding: isMobile ? "10px 12px" : "20px" }}
+              >
                 <div>
-                  <p className="font-bold text-sm sm:text-base mb-0.5 truncate" style={{ color: accentColor }}>
+                  <p
+                    className="font-bold mb-1"
+                    style={{
+                      color: accentColor,
+                      fontSize: isMobile ? "13px" : "15px",
+                      lineHeight: 1.3,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical" as const,
+                      overflow: "hidden",
+                    }}
+                  >
                     {selectedArea.nome}
                   </p>
-                  {selectedArea.descricao && !isMobile && (
-                    <p className="text-xs sm:text-sm line-clamp-2" style={{ color: "var(--text-secondary)" }}>
+                  {selectedArea.descricao && (
+                    <p
+                      className="line-clamp-2"
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: isMobile ? "11px" : "13px",
+                        lineHeight: 1.5,
+                        display: isMobile ? "-webkit-box" : undefined,
+                        WebkitLineClamp: isMobile ? 2 : undefined,
+                        WebkitBoxOrient: isMobile ? "vertical" as const : undefined,
+                        overflow: isMobile ? "hidden" : undefined,
+                      }}
+                    >
                       {selectedArea.descricao}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="flex-1 rounded-full h-1" style={{ backgroundColor: "var(--bg-elevated)" }}>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <div className="flex-1 rounded-full" style={{ height: 3, backgroundColor: "var(--bg-elevated)" }}>
                       <div className="h-full w-0 rounded-full" style={{ backgroundColor: accentColor }} />
                     </div>
-                    <span className="text-xs whitespace-nowrap shrink-0" style={{ color: "var(--text-muted)" }}>
+                    <span className="shrink-0 tabular-nums" style={{ color: "var(--text-muted)", fontSize: "10px" }}>
                       0/{selectedArea.topicos.length}
                     </span>
                   </div>
                   <Link
                     href={`${basePath}/${selectedArea.slug}/${firstTopico.slug}`}
-                    className="shrink-0 rounded-lg font-semibold transition-opacity hover:opacity-90"
+                    className="shrink-0 rounded-lg font-semibold transition-opacity hover:opacity-90 whitespace-nowrap"
                     style={{
                       backgroundColor: accentColor,
                       color: "#fff",
@@ -278,7 +310,7 @@ export function DisciplinaAreas({
                       padding: isMobile ? "5px 10px" : "6px 16px",
                     }}
                   >
-                    Comenzar
+                    {isMobile ? "Comenzar" : "Comenzar curso"}
                   </Link>
                 </div>
               </div>
