@@ -47,11 +47,13 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
   const openMega = () => {
     if (megaTimeout.current) clearTimeout(megaTimeout.current);
     setMegaOpen(true);
-    if (!hoveredCursoId && cursos.length > 0) setHoveredCursoId(cursos[0].id);
   };
 
   const closeMega = () => {
-    megaTimeout.current = setTimeout(() => setMegaOpen(false), 100);
+    megaTimeout.current = setTimeout(() => {
+      setMegaOpen(false);
+      setHoveredCursoId(null);
+    }, 100);
   };
 
   const cursosActive = pathname === "/cursos" || pathname.startsWith("/cursos/");
