@@ -22,6 +22,7 @@ type TopicoData = {
   objetivo: string | null;
   descricao_curta: string | null;
   duracao_estimada_min: number | null;
+  ordem: number;
   publicado: boolean;
   video_ativo: boolean;
   artigo_ativo: boolean;
@@ -101,18 +102,18 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Objetivo de aprendizaje</label>
               <MiniEditor name="objetivo" defaultValue={data.objetivo} placeholder="Al finalizar, el alumno podrá..." minRows={5} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2">
                 <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Descripción corta</label>
                 <input name="descricao_curta" defaultValue={data.descricao_curta ?? ""}
                   className="w-full h-9 px-3 rounded-lg text-sm outline-none"
                   style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
               </div>
               <div>
-                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Duración (min)</label>
-                <input name="duracao_estimada_min" type="number" min={1}
-                  defaultValue={data.duracao_estimada_min ?? ""}
-                  placeholder="ej. 15"
+                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Orden</label>
+                <input name="ordem" type="number" min={0}
+                  defaultValue={data.ordem ?? 0}
+                  placeholder="0"
                   className="w-full h-9 px-3 rounded-lg text-sm outline-none"
                   style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
               </div>

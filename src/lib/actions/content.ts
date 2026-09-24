@@ -148,6 +148,7 @@ export async function atualizarTopicoContent(id: string, formData: FormData) {
       objetivo: s(formData.get("objetivo")) || null,
       descricao_curta: s(formData.get("descricao_curta")) || null,
       duracao_estimada_min: isNaN(durMin) ? null : durMin,
+      ordem: parseInt(s(formData.get("ordem")) || "0") || 0,
       publicado: formData.get("publicado") === "on",
     },
   });
