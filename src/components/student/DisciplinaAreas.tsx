@@ -348,8 +348,8 @@ export function DisciplinaAreas({
                         <span className="font-medium text-sm truncate block" style={{ color: "var(--accent)" }}>
                           {topico.titulo}
                         </span>
-                        {topico.descricao_curta && !isMobile && (
-                          <p className="text-xs mt-0.5 line-clamp-1" style={{ color: "var(--text-muted)" }}>
+                        {topico.descricao_curta && (
+                          <p className="text-xs mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
                             {topico.descricao_curta}
                           </p>
                         )}
