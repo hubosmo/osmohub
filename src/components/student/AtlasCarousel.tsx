@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
@@ -16,19 +16,35 @@ type Props = {
 
 export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props) {
   const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
   const [showList, setShowList] = useState(false);
   const total = imagens.length;
   const current = imagens[idx];
 
   if (total === 0) return null;
 
-  function prev() { setIdx((i) => (i > 0 ? i - 1 : total - 1)); setShowList(false); }
-  function next() { setIdx((i) => (i < total - 1 ? i + 1 : 0)); setShowList(false); }
+  const goTo = useCallback((newIdx: number) => {
+    setVisible(false);
+    setTimeout(() => {
+      setIdx(newIdx);
+      setVisible(true);
+      setShowList(false);
+    }, 180);
+  }, []);
+
+  function prev() { goTo(idx > 0 ? idx - 1 : total - 1); }
+  function next() { goTo(idx < total - 1 ? idx + 1 : 0); }
 
   return (
     <figure className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
       {/* Imagem principal */}
-      <div className="relative">
+      <div
+        className="relative"
+        style={{
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.18s ease",
+        }}
+      >
         <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
 
         {/* Setas de navegação (só quando mais de 1 imagem) */}
@@ -113,7 +129,7 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               <button
                 key={img.id}
                 type="button"
-                onClick={() => { setIdx(i); setShowList(false); }}
+                onClick={() => goTo(i)}
                 className="flex items-center gap-3 px-3 py-2 text-left transition-colors"
                 style={{
                   backgroundColor: i === idx
