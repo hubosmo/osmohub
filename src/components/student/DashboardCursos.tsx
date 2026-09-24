@@ -18,8 +18,37 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
   if (cursos.length === 0) return null;
 
   return (
-    <section className="max-w-5xl mx-auto px-4 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-5">
+    <section className="max-w-5xl mx-auto py-8">
+      <style>{`
+        .dc-header { padding: 0 1rem; }
+        .dc-list {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+          gap: 20px;
+          padding: 0 1rem;
+        }
+        .dc-card { flex: none; }
+        @media (max-width: 639px) {
+          .dc-list {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            gap: 12px;
+            padding: 0 16px 8px;
+            scrollbar-width: none;
+          }
+          .dc-list::-webkit-scrollbar { display: none; }
+          .dc-card { flex: 0 0 160px; scroll-snap-align: start; }
+        }
+        @media (min-width: 1024px) {
+          .dc-header { padding: 0 2rem; }
+          .dc-list { padding: 0 2rem; gap: 20px; }
+        }
+      `}</style>
+
+      <div className="dc-header flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
           Cursos disponibles
         </h2>
@@ -32,16 +61,14 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-5"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
-      >
+      <div className="dc-list">
         {cursos.map((curso) => {
           const hasCapa = !!(curso.capa_url || curso.capa_url_light);
           return (
             <Link
               key={curso.id}
               href={`/cursos/${curso.slug}`}
-              className="group flex flex-col rounded-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1.5"
+              className="dc-card group flex flex-col rounded-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1.5"
               style={{
                 border: "1px solid var(--border)",
                 backgroundColor: "var(--bg-surface)",
