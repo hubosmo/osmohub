@@ -1,4 +1,5 @@
-import { getDashboardCursos } from "@/lib/db/cursos";
+import { getDashboardCursos, getUltimoTopico } from "@/lib/db/cursos";
+import { createClient } from "@/lib/supabase/server";
 import { DashboardWelcome } from "@/components/student/DashboardWelcome";
 import { DashboardCursos } from "@/components/student/DashboardCursos";
 import { TopicSearch } from "@/components/student/TopicSearch";
@@ -7,7 +8,13 @@ import { ContinuarUnidad } from "@/components/student/ContinuarUnidad";
 export const metadata = { title: "Mi panel" };
 
 export default async function DashboardPage() {
-  const cursos = await getDashboardCursos().catch(() => []);
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const [cursos, ultimoTopico] = await Promise.all([
+    getDashboardCursos().catch(() => []),
+    user?.id ? getUltimoTopico(user.id).catch(() => null) : null,
+  ]);
 
   return (
     <div className="-mx-4 lg:-mx-8 -mt-6">
@@ -37,7 +44,7 @@ export default async function DashboardPage() {
           <h2 className="text-base font-semibold mb-3" style={{ color: "var(--accent)" }}>
             Continuar tu última unidad de estudio...
           </h2>
-          <ContinuarUnidad />
+          <ContinuarUnidad serverData={ultimoTopico} />
         </section>
 
       </div>

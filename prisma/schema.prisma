@@ -12,13 +12,14 @@ datasource db {
 // ─── USUÁRIOS ──────────────────────────────────────────
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  nome          String
-  role          Role     @default(STUDENT)
-  avatar_url    String?
-  criado_em     DateTime @default(now())
-  atualizado_em DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  nome               String
+  role               Role     @default(STUDENT)
+  avatar_url         String?
+  ultimo_topico_id   String?
+  criado_em          DateTime @default(now())
+  atualizado_em      DateTime @updatedAt
 
   progresso  ProgressoTopico[]
   tentativas TentativaQuiz[]

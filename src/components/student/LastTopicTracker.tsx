@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { salvarUltimoTopico } from "@/lib/actions/progresso";
 
 export type LastTopicData = {
+  topicoId: string;
   path: string;
   titulo: string;
   descricao: string | null;
@@ -19,7 +21,8 @@ export function LastTopicTracker({ data }: { data: LastTopicData }) {
     try {
       localStorage.setItem("osmo_last_topic", JSON.stringify(data));
     } catch {}
-  }, [data]);
+    salvarUltimoTopico(data.topicoId).catch(() => {});
+  }, [data.topicoId]);
 
   return null;
 }

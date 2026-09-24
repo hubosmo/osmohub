@@ -50,6 +50,7 @@ export default async function TopicoPage({ params }: PageProps) {
     // Escapa o padding do StudentLayout (px-4 lg:px-8 py-6)
     <div className="-mx-4 lg:-mx-8 -mt-6">
       <LastTopicTracker data={{
+        topicoId: topico.id,
         path: `/cursos/${cursoSlug}/${disciplinaSlug}/${areaSlug}/${topicoSlug}`,
         titulo: topico.titulo,
         descricao: topico.descricao_curta ?? null,

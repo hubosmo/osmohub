@@ -262,3 +262,56 @@ export function getTopicoPorSlug(
     },
   });
 }
+
+export async function getUltimoTopico(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { ultimo_topico_id: true } as any,
+  });
+
+  const topicoId = (user as any)?.ultimo_topico_id as string | null;
+  if (!topicoId) return null;
+
+  const topico = await prisma.topico.findUnique({
+    where: { id: topicoId },
+    select: {
+      id: true,
+      slug: true,
+      titulo: true,
+      descricao_curta: true,
+      area: {
+        select: {
+          slug: true,
+          nome: true,
+          capa_url: true,
+          capa_url_light: true,
+          _count: { select: { topicos: true } },
+          disciplina: {
+            select: {
+              slug: true,
+              nome: true,
+              curso: { select: { slug: true, nome: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!topico) return null;
+
+  const { area } = topico;
+  const { disciplina } = area;
+  return {
+    topicoId: topico.id,
+    path: `/cursos/${disciplina.curso.slug}/${disciplina.slug}/${area.slug}/${topico.slug}`,
+    titulo: topico.titulo,
+    descricao: topico.descricao_curta ?? null,
+    areaNome: area.nome,
+    disciplinaNome: disciplina.nome,
+    cursoNome: disciplina.curso.nome,
+    thumbnail: area.capa_url ?? null,
+    thumbnailLight: area.capa_url_light ?? null,
+    totalTopicos: area._count.topicos,
+  };
+}

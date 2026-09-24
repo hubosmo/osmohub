@@ -6,19 +6,22 @@ import { BookOpen } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import type { LastTopicData } from "./LastTopicTracker";
 
-export function ContinuarUnidad() {
-  const [topic, setTopic] = useState<LastTopicData | null>(null);
-  const [mounted, setMounted] = useState(false);
+export function ContinuarUnidad({ serverData }: { serverData?: LastTopicData | null }) {
+  const [topic, setTopic] = useState<LastTopicData | null>(serverData ?? null);
+  const [mounted, setMounted] = useState(!!serverData);
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const raw = localStorage.getItem("osmo_last_topic");
-      if (raw) setTopic(JSON.parse(raw) as LastTopicData);
-    } catch {}
-  }, []);
+    // Só usa localStorage se o servidor não trouxe dados
+    if (!serverData) {
+      try {
+        const raw = localStorage.getItem("osmo_last_topic");
+        if (raw) setTopic(JSON.parse(raw) as LastTopicData);
+      } catch {}
+    }
+  }, [serverData]);
 
   if (!mounted) return <ContinuarSkeleton />;
 
