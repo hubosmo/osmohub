@@ -25,6 +25,23 @@ function revalidate() {
   revalidatePath("/cursos", "layout");
 }
 
+// ─── REORDENAÇÃO ───────────────────────────────────────
+
+export async function reordenarItens(
+  tipo: "curso" | "disciplina" | "area" | "topico",
+  items: { id: string; ordem: number }[]
+) {
+  await prisma.$transaction(
+    items.map(({ id, ordem }) => {
+      if (tipo === "curso") return prisma.curso.update({ where: { id }, data: { ordem } });
+      if (tipo === "disciplina") return prisma.disciplina.update({ where: { id }, data: { ordem } });
+      if (tipo === "area") return prisma.area.update({ where: { id }, data: { ordem } });
+      return prisma.topico.update({ where: { id }, data: { ordem } });
+    })
+  );
+  revalidate();
+}
+
 // ─── CURSOS ────────────────────────────────────────────
 
 export async function criarCursoContent(formData: FormData) {
