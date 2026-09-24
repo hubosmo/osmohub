@@ -48,14 +48,14 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
                 boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
               }}
             >
-              {/* Capa — 2:3 em mobile, 9:16 em telas maiores */}
-              <div className="relative w-full overflow-hidden aspect-[2/3] sm:aspect-[9/16]">
+              {/* Capa — proporção natural da imagem */}
+              <div className="relative w-full overflow-hidden">
                 {hasCapa ? (
                   <ThemeAwareCapa
                     capaUrlDark={curso.capa_url}
                     capaUrlLight={curso.capa_url_light}
                     alt={curso.nome}
-                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+                    className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 ) : (
                   <div
