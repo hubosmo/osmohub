@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search, ChevronRight, BookOpen, PlayCircle, FileText,
+  Search, ChevronRight, ChevronLeft, BookOpen, PlayCircle, FileText,
   Clock, Circle,
 } from "lucide-react";
 
@@ -74,20 +74,42 @@ export function AreaTopicos({
         className="sticky top-0 z-20 w-full border-b"
         style={{ height: 48, backgroundColor: "var(--bg-nav-bar)", borderColor: "var(--border)" }}
       >
-        <div className="flex items-center gap-3 h-full px-4 lg:px-8 max-w-5xl mx-auto">
-          {/* Breadcrumb — no mobile mostra só o pai imediato */}
-          <nav className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden" style={{ color: "var(--text-muted)" }}>
-            <Link href="/cursos" className="breadcrumb-link hidden sm:inline">Cursos</Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
-            <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link hidden sm:inline truncate max-w-[72px]">{cursoNome}</Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
-            <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[90px] sm:max-w-[80px]">{disciplinaNome}</Link>
+        <div className="flex items-center h-full px-4 lg:px-8 max-w-5xl mx-auto gap-2">
+
+          {/* Mobile: botão voltar */}
+          <Link
+            href={`/cursos/${cursoSlug}/${disciplinaSlug}`}
+            className="md:hidden flex items-center gap-1 shrink-0 text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            <span className="truncate max-w-[110px] font-medium">{disciplinaNome}</span>
+          </Link>
+
+          {/* Mobile: nome da área centralizado */}
+          <span
+            className="md:hidden flex-1 text-center text-sm font-semibold truncate"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {areaNome}
+          </span>
+
+          {/* Desktop: breadcrumb completo */}
+          <nav
+            className="hidden md:flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <Link href="/cursos" className="breadcrumb-link shrink-0">Cursos</Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link truncate max-w-[72px]">{cursoNome}</Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[80px]">{disciplinaNome}</Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate font-semibold" style={{ color: "var(--text-primary)" }}>{areaNome}</span>
           </nav>
 
-          {/* Search */}
-          <div className="relative shrink-0 w-28 sm:w-44">
+          {/* Search — apenas desktop */}
+          <div className="relative hidden md:block shrink-0 w-44">
             <input
               type="text"
               value={search}
@@ -104,7 +126,7 @@ export function AreaTopicos({
       </div>
 
       {/* Layout 2 colunas */}
-      <div className="flex max-w-5xl mx-auto px-4 lg:px-8">
+      <div className="flex max-w-5xl mx-auto px-4 lg:px-8 overflow-hidden">
 
         {/* Sidebar esquerda */}
         <aside
@@ -132,12 +154,27 @@ export function AreaTopicos({
           className="flex-1 min-w-0 py-8 lg:pl-8 lg:border-l"
           style={{ borderColor: "var(--border)" }}
         >
-          {/* Título da área — fora do card, igual ao Kenhub */}
+          {/* Título da área */}
           {!search && (
             <h1 className="text-2xl font-bold mb-6" style={{ color: accentColor }}>
               {areaNome}
             </h1>
           )}
+
+          {/* Search — mobile inline (logo abaixo do título ou do card) */}
+          <div className="md:hidden mb-5 relative">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar tema..."
+              className="w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm outline-none transition-colors"
+              style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: "var(--text-muted)" }} />
+          </div>
 
           {/* Card de destaque */}
           {!search && firstTopico && (
