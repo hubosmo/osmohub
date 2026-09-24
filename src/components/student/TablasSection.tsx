@@ -127,29 +127,66 @@ function TablaCard({ tabela, isMobile }: { tabela: TablaData; isMobile: boolean 
                   {linha.categoria}
                 </div>
 
-                {/* Conteúdo */}
-                <div
-                  className="px-4 py-3 text-xs leading-relaxed transition-all"
-                  style={{
-                    color: "var(--text-secondary)",
-                    filter: isRowRevealed ? "none" : "blur(5px)",
-                    userSelect: isRowRevealed ? "text" : "none",
-                    opacity: isRowRevealed ? 1 : 0.6,
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {linha.conteudo}
-                  {extras.map((v, ci) => v ? (
-                    <div key={ci} className="mt-1.5">
-                      {extraHeaders[ci] && (
-                        <span className="font-semibold" style={{ color: "var(--text-muted)" }}>
-                          {extraHeaders[ci]}:{" "}
-                        </span>
-                      )}
-                      {v}
+                {/* Conteúdo — 2 colunas: bloco único; 3+ colunas: cada col com label */}
+                {extraHeaders.length === 0 ? (
+                  <div
+                    className="px-4 py-3 text-xs leading-relaxed transition-all"
+                    style={{
+                      color: "var(--text-secondary)",
+                      filter: isRowRevealed ? "none" : "blur(5px)",
+                      userSelect: isRowRevealed ? "text" : "none",
+                      opacity: isRowRevealed ? 1 : 0.6,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {linha.conteudo}
+                  </div>
+                ) : (
+                  <div
+                    className="transition-all"
+                    style={{
+                      filter: isRowRevealed ? "none" : "blur(5px)",
+                      userSelect: isRowRevealed ? "text" : "none",
+                      opacity: isRowRevealed ? 1 : 0.6,
+                    }}
+                  >
+                    {/* Descrição */}
+                    <div
+                      className="px-4 py-2.5 text-xs leading-relaxed"
+                      style={{
+                        color: "var(--text-secondary)",
+                        borderBottom: "1px solid var(--border)",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      <span className="text-[10px] font-semibold uppercase tracking-wide block mb-1"
+                        style={{ color: "var(--text-muted)" }}>
+                        Descripción
+                      </span>
+                      {linha.conteudo}
                     </div>
-                  ) : null)}
-                </div>
+                    {/* Colunas extras — cada uma em seu bloco */}
+                    {extras.map((v, ci) => (
+                      <div
+                        key={ci}
+                        className="px-4 py-2.5 text-xs leading-relaxed"
+                        style={{
+                          color: "var(--text-secondary)",
+                          borderBottom: ci < extras.length - 1 ? "1px solid var(--border)" : "none",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {extraHeaders[ci] && (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide block mb-1"
+                            style={{ color: "var(--text-muted)" }}>
+                            {extraHeaders[ci]}
+                          </span>
+                        )}
+                        {v || "—"}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           }
