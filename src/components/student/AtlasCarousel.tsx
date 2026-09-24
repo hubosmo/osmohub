@@ -15,7 +15,13 @@ type Props = {
   imagens: Imagem[];
 };
 
-const SLIDE = 60; // % de deslocamento no slide
+const SLIDE = 60;
+
+const slideVariants = {
+  enter: (d: number) => ({ x: `${d * SLIDE}%`, opacity: 0 }),
+  center: { x: "0%", opacity: 1 },
+  exit: (d: number) => ({ x: `${d * -SLIDE}%`, opacity: 0 }),
+};
 
 export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props) {
   const [idx, setIdx] = useState(0);
@@ -50,9 +56,10 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
           <motion.div
             key={idx}
             custom={dir}
-            initial={(d) => ({ x: `${d * SLIDE}%`, opacity: 0 })}
-            animate={{ x: "0%", opacity: 1 }}
-            exit={(d) => ({ x: `${d * -SLIDE}%`, opacity: 0 })}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
           >
             <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
