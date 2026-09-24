@@ -15,14 +15,22 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   let isAdmin = false;
   if (user?.id) {
-    try {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { role: true },
-      });
-      isAdmin = dbUser?.role === "ADMIN";
-    } catch {
-      // Falha silenciosa — usuário continua como STUDENT
+    // 1) Verificar app_metadata do Supabase Auth (não depende do banco)
+    if (user.app_metadata?.role === "ADMIN") {
+      isAdmin = true;
+    } else {
+      // 2) Fallback via Prisma
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true },
+        });
+        isAdmin = dbUser?.role === "ADMIN";
+      } catch {
+        // 3) Fallback via env var (email do admin definido no Vercel)
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail && user.email === adminEmail) isAdmin = true;
+      }
     }
   }
 
