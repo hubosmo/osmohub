@@ -353,20 +353,22 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                 CURSOS
               </Link>
 
-              {/* Disciplines listed in mobile drawer */}
-              {allDiscs.length > 0 && (
+              {/* Cursos e disciplinas no mobile drawer */}
+              {cursos.length > 0 && (
                 <div className="ml-3 flex flex-col gap-0.5 mb-1">
-                  {allDiscs.map((disc) => (
-                    <Link
-                      key={disc.id}
-                      href={`/cursos/${disc.cursoSlug}/${disc.slug}`}
-                      onClick={() => setMobileOpen(false)}
-                      className="px-3 py-2 text-sm rounded-lg transition-colors no-underline"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {disc.nome}
-                    </Link>
-                  ))}
+                  {cursos.flatMap((curso) =>
+                    curso.disciplinas.map((disc) => (
+                      <Link
+                        key={disc.id}
+                        href={`/cursos/${curso.slug}/${disc.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        className="px-3 py-2 text-sm rounded-lg transition-colors no-underline"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {disc.nome}
+                      </Link>
+                    ))
+                  )}
                 </div>
               )}
 
