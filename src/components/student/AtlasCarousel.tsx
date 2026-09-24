@@ -16,41 +16,74 @@ type Props = {
 
 export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props) {
   const [idx, setIdx] = useState(0);
+  const [prevIdx, setPrevIdx] = useState<number | null>(null);
+  const [dir, setDir] = useState<1 | -1>(1);
   const [showList, setShowList] = useState(false);
   const total = imagens.length;
   const current = imagens[idx];
 
   if (total === 0) return null;
 
-  function prev() {
-    setIdx((i) => (i > 0 ? i - 1 : total - 1));
+  function navigate(newIdx: number, direction: 1 | -1) {
+    if (prevIdx !== null) return; // bloqueia durante animação
+    setPrevIdx(idx);
+    setDir(direction);
+    setIdx(newIdx);
     setShowList(false);
   }
-  function next() {
-    setIdx((i) => (i < total - 1 ? i + 1 : 0));
-    setShowList(false);
-  }
-  function goTo(i: number) {
-    setIdx(i);
-    setShowList(false);
-  }
+
+  function prev() { navigate(idx > 0 ? idx - 1 : total - 1, -1); }
+  function next() { navigate(idx < total - 1 ? idx + 1 : 0, 1); }
+  function goTo(i: number) { if (i !== idx) navigate(i, i > idx ? 1 : -1); }
+
+  const enterAnim = dir === 1 ? "atlas-enter-right" : "atlas-enter-left";
+  const exitAnim  = dir === 1 ? "atlas-exit-left"  : "atlas-exit-right";
 
   return (
     <figure className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+      <style>{`
+        @keyframes atlas-enter-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes atlas-enter-left  { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes atlas-exit-left   { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+        @keyframes atlas-exit-right  { from { transform: translateX(0); } to { transform: translateX(100%); } }
+      `}</style>
+
       {/* Imagem principal */}
       <div className="relative overflow-hidden">
-        <style>{`@keyframes atlas-fade{from{opacity:0}to{opacity:1}}`}</style>
-        <div key={idx} style={{ animation: "atlas-fade 0.22s ease" }}>
+
+        {/* Imagem entrando — posição normal, mantém a altura do container */}
+        <div
+          key={idx}
+          style={prevIdx !== null ? {
+            animation: `${enterAnim} 0.3s cubic-bezier(0.4,0,0.2,1) both`,
+          } : undefined}
+        >
           <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
         </div>
 
-        {/* Setas de navegação (só quando mais de 1 imagem) */}
+        {/* Imagem saindo — sobreposição absoluta, não afeta layout */}
+        {prevIdx !== null && (
+          <div
+            key={`exit-${prevIdx}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              animation: `${exitAnim} 0.3s cubic-bezier(0.4,0,0.2,1) both`,
+            }}
+            onAnimationEnd={() => setPrevIdx(null)}
+          >
+            <AtlasImageViewer src={imagens[prevIdx].url} alt={imagens[prevIdx].legenda ?? ""} />
+          </div>
+        )}
+
+        {/* Setas de navegação */}
         {total > 1 && (
           <>
             <button
               type="button"
               onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
               style={{ backgroundColor: "rgba(0,0,0,0.45)", color: "#fff" }}
               aria-label="Imagen anterior"
             >
@@ -59,7 +92,7 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
             <button
               type="button"
               onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
               style={{ backgroundColor: "rgba(0,0,0,0.45)", color: "#fff" }}
               aria-label="Imagen siguiente"
             >
@@ -71,7 +104,6 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
 
       {/* Barra inferior: título/legenda + contador + lista */}
       <div style={{ backgroundColor: "var(--bg-elevated)", borderTop: "1px solid var(--border)" }}>
-        {/* Linha de controles — só renderiza se tem título ou múltiplas imagens */}
         {(titulo || total > 1) && (
           <div className="flex items-center gap-2 px-3 py-2.5">
             {titulo ? (
@@ -104,7 +136,6 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
           </div>
         )}
 
-        {/* Caption: única para o grupo ou individual por imagem */}
         {(() => {
           const captionHtml = modo_legenda === "unica" ? legenda : current.legenda;
           if (!captionHtml) return null;
@@ -116,7 +147,6 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
           );
         })()}
 
-        {/* Lista de thumbnails (expandível) */}
         {showList && total > 1 && (
           <div
             className="flex flex-col gap-0 overflow-y-auto"
