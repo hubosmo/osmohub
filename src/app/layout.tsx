@@ -42,10 +42,10 @@ export default function RootLayout({
   return (
     <html lang="es-419" suppressHydrationWarning>
       <body className={montserrat.variable}>
-        <SplashScreen />
         <TopLoader />
         <QueryProvider>
           <ThemeProvider>
+            <SplashScreen />
             {children}
             <Toaster />
           </ThemeProvider>
