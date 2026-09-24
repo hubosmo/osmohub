@@ -270,34 +270,40 @@ function VideoSection({ video }: {
       )}
 
       {embedUrl ? (
-        <>
-          <div className="rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+          {/* Player */}
+          <div style={{ aspectRatio: "16/9" }}>
             <iframe
               src={embedUrl}
-              className="w-full h-full"
+              className="w-full h-full block"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
             />
           </div>
 
-          {/* Caption box abaixo do vídeo — estilo Kenhub */}
-          <div
-            className="rounded-xl p-4"
-            style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)" }}
-          >
-            <p className="font-semibold text-sm leading-snug" style={{ color: "var(--accent)" }}>
-              {video!.titulo}
+          {/* Legenda colapsável com título do vídeo — ou barra simples se não houver legenda */}
+          {video?.legenda ? (
+            <CollapsibleCaption
+              html={video.legenda}
+              title={video!.titulo}
+              meta={video!.duracao_seg ? formatDuration(video!.duracao_seg) : undefined}
+            />
+          ) : (
+            <div
+              className="flex items-center gap-3 px-4 py-2.5"
+              style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}
+            >
+              <p className="flex-1 text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                {video!.titulo}
+              </p>
               {video!.duracao_seg && (
-                <span className="font-normal ml-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                  [{formatDuration(video!.duracao_seg)}]
+                <span className="shrink-0 text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
+                  {formatDuration(video!.duracao_seg)}
                 </span>
               )}
-            </p>
-            {video?.legenda && (
-              <RichOrPlain text={video.legenda} className="text-xs mt-1.5 leading-relaxed" color="var(--text-secondary)" />
-            )}
-          </div>
-        </>
+            </div>
+          )}
+        </div>
       ) : (
         <div
           className="rounded-xl flex flex-col items-center justify-center gap-3 py-16"

@@ -5,6 +5,8 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 type Props = {
   html: string;
+  title?: string;
+  meta?: string;
 };
 
 function extractTitle(html: string): { title: string; hasHeading: boolean } {
@@ -20,11 +22,12 @@ function extractTitle(html: string): { title: string; hasHeading: boolean } {
   return { title: "Leyenda", hasHeading: false };
 }
 
-export function CollapsibleCaption({ html }: Props) {
+export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
   const [open, setOpen] = useState(false);
-  const { title, hasHeading } = extractTitle(html);
-  // Remove the first heading from the body so it doesn't duplicate the bar title
-  const bodyHtml = hasHeading ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "") : html;
+  const { title: extractedTitle, hasHeading } = extractTitle(html);
+  const title = titleProp ?? extractedTitle;
+  // Remove heading from body only when auto-extracted (not when title is passed explicitly)
+  const bodyHtml = (!titleProp && hasHeading) ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "") : html;
 
   return (
     <div style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}>
@@ -35,8 +38,9 @@ export function CollapsibleCaption({ html }: Props) {
         className="w-full flex items-center justify-between px-5 py-2.5 transition-colors"
         style={{ color: open ? "var(--text-primary)" : "var(--text-secondary)" }}
       >
-        <span className="text-xs font-medium text-left leading-snug">
-          {title}
+        <span className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-xs font-medium text-left leading-snug truncate">{title}</span>
+          {meta && <span className="text-xs shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>{meta}</span>}
         </span>
         {open
           ? <ChevronUp className="h-3.5 w-3.5 shrink-0 ml-3" style={{ color: "var(--text-muted)" }} />
