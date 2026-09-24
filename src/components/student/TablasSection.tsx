@@ -1,29 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type TablaRow = { id: string; categoria: string; conteudo: string; valores_extra: unknown };
 type TablaData = { id: string; titulo: string; tipo: string; cabecalhos: unknown; linhas: TablaRow[] };
 
 export function TablasSection({ tabelas }: { tabelas: TablaData[] }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   return (
     <div className="flex flex-col gap-5">
       {tabelas.map((tabela) => (
-        <TablaCard key={tabela.id} tabela={tabela} />
+        <TablaCard key={tabela.id} tabela={tabela} isMobile={isMobile} />
       ))}
     </div>
   );
 }
 
-function TablaCard({ tabela }: { tabela: TablaData }) {
+function TablaCard({ tabela, isMobile }: { tabela: TablaData; isMobile: boolean }) {
   const [revealed, setRevealed] = useState(false);
   const [revealedRows, setRevealedRows] = useState<Set<string>>(new Set());
 
   const extraHeaders: string[] = Array.isArray(tabela.cabecalhos) ? (tabela.cabecalhos as string[]) : [];
-  const contentCols = 1 + extraHeaders.length; // "Contenido" + extras
+  const contentCols = 1 + extraHeaders.length;
 
   function toggleRow(id: string) {
-    if (revealed) return; // all already shown
+    if (revealed) return;
     setRevealedRows((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -41,11 +49,9 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
     setRevealedRows(new Set());
   }
 
-  const allShown = revealed;
-
   return (
     <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-      {/* Table title header */}
+      {/* Cabeçalho do card */}
       <div
         className="flex items-center justify-between px-4 py-2.5"
         style={{
@@ -57,16 +63,16 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
           {tabela.titulo}
         </p>
         <button
-          onClick={allShown ? handleHide : handleRevealAll}
+          onClick={revealed ? handleHide : handleRevealAll}
           className="text-xs font-medium transition-colors shrink-0 ml-4"
           style={{ color: "var(--accent)" }}
         >
-          {allShown ? "Ocultar" : "Mostrar todo"}
+          {revealed ? "Ocultar" : "Mostrar todo"}
         </button>
       </div>
 
-      {/* Column headers (only when extra columns exist) */}
-      {extraHeaders.length > 0 && (
+      {/* Cabeçalhos de colunas — só no desktop e só quando há colunas extras */}
+      {!isMobile && extraHeaders.length > 0 && (
         <div
           className="grid"
           style={{
@@ -92,13 +98,63 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
         </div>
       )}
 
-      {/* Rows */}
+      {/* Linhas */}
       <div>
         {tabela.linhas.map((linha, li) => {
           const isRowRevealed = revealedRows.has(linha.id) || revealed;
           const extras: string[] = Array.isArray(linha.valores_extra) ? (linha.valores_extra as string[]) : [];
           const isLast = li === tabela.linhas.length - 1;
 
+          /* ── Layout mobile: empilhado ── */
+          if (isMobile) {
+            return (
+              <div
+                key={linha.id}
+                className="cursor-pointer transition-colors"
+                style={{ borderBottom: isLast ? "none" : "1px solid var(--border)" }}
+                onClick={() => toggleRow(linha.id)}
+                title={isRowRevealed ? undefined : "Toca para revelar"}
+              >
+                {/* Categoria como label */}
+                <div
+                  className="px-4 py-2 text-[11px] font-semibold"
+                  style={{
+                    color: "var(--text-primary)",
+                    backgroundColor: "var(--bg-elevated)",
+                    borderBottom: "1px solid var(--border)",
+                  }}
+                >
+                  {linha.categoria}
+                </div>
+
+                {/* Conteúdo */}
+                <div
+                  className="px-4 py-3 text-xs leading-relaxed transition-all"
+                  style={{
+                    color: "var(--text-secondary)",
+                    filter: isRowRevealed ? "none" : "blur(5px)",
+                    userSelect: isRowRevealed ? "text" : "none",
+                    opacity: isRowRevealed ? 1 : 0.6,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {linha.conteudo}
+                  {extras.map((v, ci) => v ? (
+                    <div key={ci} className="mt-1.5">
+                      {extraHeaders[ci] && (
+                        <span className="font-semibold" style={{ color: "var(--text-muted)" }}>
+                          {extraHeaders[ci]}:{" "}
+                        </span>
+                      )}
+                      {v}
+                    </div>
+                  ) : null)}
+                </div>
+              </div>
+            );
+          }
+
+          /* ── Layout desktop: grid 2 colunas ── */
           return (
             <div
               key={linha.id}
@@ -110,15 +166,21 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
               onClick={() => toggleRow(linha.id)}
               title={isRowRevealed ? undefined : "Clic para revelar"}
             >
-              {/* Key column */}
+              {/* Coluna de categoria — stretch para borda completar a linha */}
               <div
-                className="px-4 py-3 text-xs font-semibold align-top self-start"
-                style={{ color: "var(--text-primary)", borderRight: "1px solid var(--border)" }}
+                className="px-4 py-3 text-xs font-semibold"
+                style={{
+                  color: "var(--text-primary)",
+                  borderRight: "1px solid var(--border)",
+                  alignSelf: "stretch",
+                  display: "flex",
+                  alignItems: "flex-start",
+                }}
               >
                 {linha.categoria}
               </div>
 
-              {/* Content column */}
+              {/* Coluna de conteúdo */}
               <div
                 className="px-4 py-3 text-xs leading-relaxed self-start transition-all"
                 style={{
@@ -133,7 +195,7 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
                 {linha.conteudo}
               </div>
 
-              {/* Extra columns */}
+              {/* Colunas extras */}
               {extraHeaders.map((_, ci) => (
                 <div
                   key={ci}
