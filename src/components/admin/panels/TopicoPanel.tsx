@@ -31,7 +31,7 @@ type TopicoData = {
   artigo: { id: string; content: unknown; tempo_leitura_min: number | null } | null;
   imagens: { id: string; url: string; legenda: string | null; ordem: number }[];
   grupos_imagens: { id: string; titulo: string | null; legenda: string | null; modo_legenda: string; ordem: number; imagens: { id: string; url: string; legenda: string | null }[] }[];
-  tabelas: { id: string; titulo: string; tipo: string; cabecalhos: string[]; linhas: { id: string; categoria: string; conteudo: string; valores_extra: string[] }[] }[];
+  tabelas: { id: string; titulo: string; tipo: string; cabecalhos: unknown; linhas: { id: string; categoria: string; conteudo: string; valores_extra: unknown }[] }[];
 };
 
 function SectionHeader({

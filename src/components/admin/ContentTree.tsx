@@ -214,7 +214,7 @@ export function ContentTree({ tree, selectedId, selectedType }: Props) {
     router.push(`/admin/content?${type}=${id}`);
   };
 
-  const startCreate = (type: CreateMode["type"] & string, parentId?: string) => {
+  const startCreate = (type: NonNullable<CreateMode>["type"], parentId?: string) => {
     setCreating({ type: type as "disciplina" | "area" | "topico" | "curso", parentId });
     if (parentId) {
       setExpanded((prev) => new Set([...prev, parentId]));

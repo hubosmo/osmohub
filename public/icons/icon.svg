@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fundo com cantos arredondados — estilo iOS/Android -->
+  <rect width="512" height="512" rx="115" fill="#0F1117"/>
+  <!-- Arco externo: 270° sentido horário, gap no canto inferior-esquerdo -->
+  <path d="M 118 256 A 138 138 0 1 1 256 394" stroke="#00A6FF" stroke-width="26" stroke-linecap="round"/>
+  <!-- Arco interno: 90° preenche o gap -->
+  <path d="M 256 333 A 77 77 0 0 1 179 256" stroke="#00A6FF" stroke-width="26" stroke-linecap="round"/>
+  <!-- Núcleo central -->
+  <circle cx="256" cy="256" r="24" fill="#00A6FF"/>
+</svg>

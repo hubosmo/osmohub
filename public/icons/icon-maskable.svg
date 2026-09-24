@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fundo sólido sem arredondamento — maskable: o SO aplica a máscara -->
+  <rect width="512" height="512" fill="#0F1117"/>
+  <!-- Mark um pouco maior para preencher a safe zone do maskable -->
+  <path d="M 96 256 A 160 160 0 1 1 256 416" stroke="#00A6FF" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 256 346 A 90 90 0 0 1 166 256" stroke="#00A6FF" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="28" fill="#00A6FF"/>
+</svg>
