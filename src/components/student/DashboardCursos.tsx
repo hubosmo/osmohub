@@ -32,9 +32,8 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
         </Link>
       </div>
 
-      <div
-        className="grid gap-5"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
       >
         {cursos.map((curso) => {
           const hasCapa = !!(curso.capa_url || curso.capa_url_light);
@@ -49,8 +48,8 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
                 boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
               }}
             >
-              {/* Capa 9:16 */}
-              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "9/16" }}>
+              {/* Capa — 2:3 em mobile, 9:16 em telas maiores */}
+              <div className="relative w-full overflow-hidden aspect-[2/3] sm:aspect-[9/16]">
                 {hasCapa ? (
                   <ThemeAwareCapa
                     capaUrlDark={curso.capa_url}
