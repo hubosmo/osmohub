@@ -9,7 +9,6 @@ import { OsmoLogo } from "@/components/brand/OsmoLogo";
 import { logoutAction } from "@/lib/actions/auth";
 import type { NavCurso } from "@/types/nav";
 
-type NavDisciplinaFlat = { id: string; slug: string; nome: string; cor_destaque: string | null; cursoSlug: string; areas: { id: string; slug: string; nome: string }[] };
 
 interface StudentHeaderProps {
   userName?: string;
@@ -30,7 +29,7 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [megaOpen, setMegaOpen] = useState(false);
-  const [hoveredDiscId, setHoveredDiscId] = useState<string | null>(null);
+  const [hoveredCursoId, setHoveredCursoId] = useState<string | null>(null);
   const megaTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const initials = userName
@@ -42,17 +41,13 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
 
   const closeAll = () => { setShowUser(false); setShowNotif(false); };
 
-  // Flatten disciplines with their parent course slug
-  const allDiscs: NavDisciplinaFlat[] = (navData ?? []).flatMap((curso) =>
-    curso.disciplinas.map((d) => ({ ...d, cursoSlug: curso.slug }))
-  );
-
-  const hoveredDisc = allDiscs.find((d) => d.id === hoveredDiscId) ?? null;
+  const cursos = navData ?? [];
+  const hoveredCurso = cursos.find((c) => c.id === hoveredCursoId) ?? null;
 
   const openMega = () => {
     if (megaTimeout.current) clearTimeout(megaTimeout.current);
     setMegaOpen(true);
-    if (!hoveredDiscId && allDiscs.length > 0) setHoveredDiscId(allDiscs[0].id);
+    if (!hoveredCursoId && cursos.length > 0) setHoveredCursoId(cursos[0].id);
   };
 
   const closeMega = () => {
@@ -190,8 +185,8 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-0.5 flex-1">
 
-            {/* CURSOS — mega-menu */}
-            {allDiscs.length > 0 ? (
+            {/* CURSOS — mega-menu estilo Kenhub */}
+            {cursos.length > 0 ? (
               <div
                 className="relative"
                 onMouseEnter={openMega}
@@ -217,47 +212,46 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   >
                     <div
                       className="flex rounded-xl shadow-2xl overflow-hidden"
-                      style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", minWidth: 380 }}
+                      style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", minWidth: 360 }}
                     >
-                      {/* Coluna 1: disciplinas */}
+                      {/* Coluna 1: Cursos */}
                       <div className="w-44 py-1.5 shrink-0" style={{ borderRight: "1px solid var(--border)" }}>
-                        {allDiscs.map((disc) => {
-                          const isHovered = hoveredDiscId === disc.id;
+                        {cursos.map((curso) => {
+                          const isHovered = hoveredCursoId === curso.id;
                           return (
-                            <Link
-                              key={disc.id}
-                              href={`/cursos/${disc.cursoSlug}/${disc.slug}`}
-                              className="flex items-center justify-between px-4 py-2.5 text-sm transition-colors no-underline"
+                            <button
+                              key={curso.id}
+                              type="button"
+                              className="flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors text-left"
                               style={{
                                 color: isHovered ? "var(--accent)" : "var(--text-secondary)",
                                 backgroundColor: isHovered ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "transparent",
                                 fontWeight: isHovered ? 600 : 400,
                               }}
-                              onMouseEnter={() => setHoveredDiscId(disc.id)}
-                              onClick={() => setMegaOpen(false)}
+                              onMouseEnter={() => setHoveredCursoId(curso.id)}
                             >
-                              {disc.nome}
-                              {disc.areas.length > 0 && (
+                              {curso.nome}
+                              {curso.disciplinas.length > 0 && (
                                 <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" />
                               )}
-                            </Link>
+                            </button>
                           );
                         })}
                       </div>
 
-                      {/* Coluna 2: áreas da disciplina hovada */}
-                      {hoveredDisc && hoveredDisc.areas.length > 0 && (
+                      {/* Coluna 2: Disciplinas do curso hovado */}
+                      {hoveredCurso && hoveredCurso.disciplinas.length > 0 && (
                         <div className="py-1.5 flex-1" style={{ minWidth: 200 }}>
                           <p
                             className="px-4 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider"
                             style={{ color: "var(--text-muted)" }}
                           >
-                            {hoveredDisc.nome}
+                            {hoveredCurso.nome}
                           </p>
-                          {hoveredDisc.areas.map((area) => (
+                          {hoveredCurso.disciplinas.map((disc) => (
                             <Link
-                              key={area.id}
-                              href={`/cursos/${hoveredDisc.cursoSlug}/${hoveredDisc.slug}/${area.slug}`}
+                              key={disc.id}
+                              href={`/cursos/${hoveredCurso.slug}/${disc.slug}`}
                               className="flex items-center px-4 py-2 text-sm transition-colors no-underline"
                               style={{ color: "var(--text-secondary)" }}
                               onMouseEnter={(e) => {
@@ -270,7 +264,7 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                               }}
                               onClick={() => setMegaOpen(false)}
                             >
-                              {area.nome}
+                              {disc.nome}
                             </Link>
                           ))}
                         </div>
