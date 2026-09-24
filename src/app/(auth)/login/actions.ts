@@ -22,21 +22,25 @@ export async function loginAction(email: string, password: string): Promise<Logi
     return { error: "Ocurrió un error al iniciar sesión. Intenta nuevamente." };
   }
 
-  // Sync auth user → tabela users do Prisma (cobre logins existentes antes do trigger)
+  // Sync auth user → tabela users do Prisma (falha silenciosa — login não depende disso)
   if (data.user) {
-    await prisma.user.upsert({
-      where: { id: data.user.id },
-      create: {
-        id: data.user.id,
-        email: data.user.email!,
-        nome:
-          (data.user.user_metadata?.full_name as string | undefined) ??
-          email.split("@")[0],
-      },
-      update: {
-        email: data.user.email!,
-      },
-    });
+    try {
+      await prisma.user.upsert({
+        where: { id: data.user.id },
+        create: {
+          id: data.user.id,
+          email: data.user.email!,
+          nome:
+            (data.user.user_metadata?.full_name as string | undefined) ??
+            email.split("@")[0],
+        },
+        update: {
+          email: data.user.email!,
+        },
+      });
+    } catch {
+      // DB indisponível — o login com Supabase já foi bem-sucedido, continua
+    }
   }
 
   return {};
