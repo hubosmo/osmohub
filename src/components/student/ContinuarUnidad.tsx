@@ -53,68 +53,59 @@ export function ContinuarUnidad() {
     );
   }
 
+  const src = (!isDark && topic.thumbnailLight) ? topic.thumbnailLight : topic.thumbnail;
+
   return (
     <div
-      className="rounded-xl border overflow-hidden"
-      style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
+      className="rounded-xl border overflow-hidden flex"
+      style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)", minHeight: 110 }}
     >
-      {/* Breadcrumb + contador */}
-      <div
-        className="flex items-center justify-between px-4 py-2.5 border-b text-xs"
-        style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
-      >
-        <div className="flex items-center gap-1.5 min-w-0" style={{ color: "var(--text-muted)" }}>
+      {/* Imagem — ocupa toda a altura à esquerda */}
+      <div className="shrink-0 w-28 sm:w-36" style={{ backgroundColor: "var(--bg-elevated)" }}>
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={src} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <BookOpen className="h-7 w-7" style={{ color: "var(--text-muted)" }} />
+          </div>
+        )}
+      </div>
+
+      {/* Lado direito: dois blocos empilhados */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Bloco 1: breadcrumb */}
+        <div
+          className="flex items-center gap-1.5 px-4 py-2.5 border-b text-xs shrink-0"
+          style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+        >
           <span className="truncate">{topic.areaNome}</span>
           <span>›</span>
-          <span className="font-medium truncate" style={{ color: "var(--accent)" }}>
+          <span className="font-semibold truncate" style={{ color: "var(--accent)" }}>
             {topic.disciplinaNome}
           </span>
         </div>
-        <span className="shrink-0 ml-3 tabular-nums" style={{ color: "var(--text-muted)" }}>
-          {topic.totalTopicos} {topic.totalTopicos === 1 ? "unidad" : "unidades"}
-        </span>
-      </div>
 
-      {/* Conteúdo principal */}
-      <div className="flex items-center gap-4 p-4">
-        {/* Thumbnail */}
-        <div
-          className="shrink-0 h-16 w-20 rounded-lg overflow-hidden"
-          style={{ backgroundColor: "var(--bg-elevated)" }}
-        >
-          {(() => {
-            const src = (!isDark && topic.thumbnailLight) ? topic.thumbnailLight : topic.thumbnail;
-            return src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={src} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center">
-                <BookOpen className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold leading-snug truncate" style={{ color: "var(--accent)" }}>
-            {topic.titulo}
-          </p>
-          {topic.descricao && (
-            <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>
-              {topic.descricao}
+        {/* Bloco 2: título + descrição + botão */}
+        <div className="flex items-center gap-3 px-4 py-3 flex-1">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold leading-snug" style={{ color: "var(--accent)" }}>
+              {topic.titulo}
             </p>
-          )}
+            {topic.descricao && (
+              <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>
+                {topic.descricao}
+              </p>
+            )}
+          </div>
+          <Link
+            href={topic.path}
+            className="shrink-0 px-4 py-2 rounded-lg text-xs font-bold text-white uppercase tracking-wide transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            Continuar
+          </Link>
         </div>
-
-        {/* Botão */}
-        <Link
-          href={topic.path}
-          className="shrink-0 px-4 py-2 rounded-lg text-xs font-bold text-white uppercase tracking-wide transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--accent)" }}
-        >
-          Continuar
-        </Link>
       </div>
     </div>
   );
