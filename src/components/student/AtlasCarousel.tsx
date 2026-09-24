@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
 
@@ -14,38 +15,49 @@ type Props = {
   imagens: Imagem[];
 };
 
+const SLIDE = 60; // % de deslocamento no slide
+
 export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props) {
   const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
+  const [dir, setDir] = useState(1);
   const [showList, setShowList] = useState(false);
   const total = imagens.length;
   const current = imagens[idx];
 
   if (total === 0) return null;
 
-  const goTo = useCallback((newIdx: number) => {
-    setVisible(false);
-    setTimeout(() => {
-      setIdx(newIdx);
-      setVisible(true);
-      setShowList(false);
-    }, 180);
-  }, []);
-
-  function prev() { goTo(idx > 0 ? idx - 1 : total - 1); }
-  function next() { goTo(idx < total - 1 ? idx + 1 : 0); }
+  function prev() {
+    setDir(-1);
+    setIdx((i) => (i > 0 ? i - 1 : total - 1));
+    setShowList(false);
+  }
+  function next() {
+    setDir(1);
+    setIdx((i) => (i < total - 1 ? i + 1 : 0));
+    setShowList(false);
+  }
+  function goTo(i: number) {
+    setDir(i > idx ? 1 : -1);
+    setIdx(i);
+    setShowList(false);
+  }
 
   return (
     <figure className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
       {/* Imagem principal */}
-      <div
-        className="relative"
-        style={{
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.18s ease",
-        }}
-      >
-        <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
+      <div className="relative overflow-hidden">
+        <AnimatePresence initial={false} custom={dir} mode="popLayout">
+          <motion.div
+            key={idx}
+            custom={dir}
+            initial={(d) => ({ x: `${d * SLIDE}%`, opacity: 0 })}
+            animate={{ x: "0%", opacity: 1 }}
+            exit={(d) => ({ x: `${d * -SLIDE}%`, opacity: 0 })}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
+          </motion.div>
+        </AnimatePresence>
 
         {/* Setas de navegação (só quando mais de 1 imagem) */}
         {total > 1 && (
@@ -129,7 +141,7 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               <button
                 key={img.id}
                 type="button"
-                onClick={() => goTo(i)}
+                onClick={() => { goTo(i); }}
                 className="flex items-center gap-3 px-3 py-2 text-left transition-colors"
                 style={{
                   backgroundColor: i === idx

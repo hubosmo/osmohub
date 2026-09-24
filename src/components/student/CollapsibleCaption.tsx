@@ -9,24 +9,29 @@ type Props = {
   meta?: string;
 };
 
-function extractTitle(html: string): { title: string; hasHeading: boolean } {
+function extractTitle(html: string): { title: string; tag: "heading" | "para" | "none" } {
   const headingMatch = html.match(/<h[34][^>]*>(.*?)<\/h[34]>/i);
   if (headingMatch) {
-    return { title: headingMatch[1].replace(/<[^>]+>/g, "").trim(), hasHeading: true };
+    return { title: headingMatch[1].replace(/<[^>]+>/g, "").trim(), tag: "heading" };
   }
   const paraMatch = html.match(/<p[^>]*>(.*?)<\/p>/i);
   if (paraMatch) {
     const text = paraMatch[1].replace(/<[^>]+>/g, "").trim();
-    return { title: text.length > 60 ? text.slice(0, 60).trimEnd() + "…" : text, hasHeading: false };
+    return { title: text.length > 60 ? text.slice(0, 60).trimEnd() + "…" : text, tag: "para" };
   }
-  return { title: "Leyenda", hasHeading: false };
+  return { title: "Leyenda", tag: "none" };
 }
 
 export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
   const [open, setOpen] = useState(false);
-  const { title: extractedTitle, hasHeading } = extractTitle(html);
+  const { title: extractedTitle, tag } = extractTitle(html);
   const title = titleProp ?? extractedTitle;
-  const bodyHtml = hasHeading ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "") : html;
+  // Remove do corpo o mesmo elemento que virou título para não duplicar
+  const bodyHtml = tag === "heading"
+    ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "")
+    : tag === "para" && !titleProp
+      ? html.replace(/<p[^>]*>.*?<\/p>/i, "")
+      : html;
 
   return (
     <div style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}>
