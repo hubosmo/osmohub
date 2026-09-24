@@ -26,8 +26,7 @@ export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
   const [open, setOpen] = useState(false);
   const { title: extractedTitle, hasHeading } = extractTitle(html);
   const title = titleProp ?? extractedTitle;
-  // Remove heading from body only when auto-extracted (not when title is passed explicitly)
-  const bodyHtml = (!titleProp && hasHeading) ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "") : html;
+  const bodyHtml = hasHeading ? html.replace(/<h[34][^>]*>.*?<\/h[34]>/i, "") : html;
 
   return (
     <div style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}>
