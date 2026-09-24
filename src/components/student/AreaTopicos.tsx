@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Search, ChevronRight, BookOpen, PlayCircle, FileText,
-  Clock, CheckCircle2, Circle,
+  Clock, Circle,
 } from "lucide-react";
 
 type Topico = {
@@ -129,8 +129,8 @@ export function AreaTopicos({
 
         {/* Conteúdo principal */}
         <div
-          className="flex-1 min-w-0 py-8 lg:pl-8"
-          style={{ borderLeft: "1px solid var(--border)" }}
+          className="flex-1 min-w-0 py-8 lg:pl-8 lg:border-l"
+          style={{ borderColor: "var(--border)" }}
         >
           {/* Título da área — fora do card, igual ao Kenhub */}
           {!search && (
@@ -145,20 +145,15 @@ export function AreaTopicos({
               className="rounded-2xl overflow-hidden mb-8 flex flex-col sm:flex-row"
               style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
             >
-              {/* Imagem — banner no mobile, lateral no desktop */}
-              <div
-                className="w-full sm:w-36 shrink-0 aspect-[16/7] sm:aspect-auto flex items-center justify-center border-b sm:border-b-0 sm:border-r"
-                style={{
-                  backgroundColor: `color-mix(in srgb, ${accentColor} 12%, var(--bg-elevated))`,
-                  borderColor: "var(--border)",
-                }}
-              >
-                {capaDisplay ? (
+              {/* Imagem — só exibe se existir */}
+              {capaDisplay && (
+                <div
+                  className="w-full sm:w-36 shrink-0 aspect-[16/7] sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
+                  style={{ borderColor: "var(--border)" }}
+                >
                   <img src={capaDisplay} alt={areaNome} className="w-full h-full object-cover object-top" />
-                ) : (
-                  <BookOpen className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: accentColor, opacity: 0.5 }} />
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Conteúdo */}
               <div className="flex-1 min-w-0 flex flex-col justify-between gap-3 p-4 sm:p-5">
@@ -208,25 +203,20 @@ export function AreaTopicos({
           ) : (
             <div className="flex flex-col gap-2">
               {filtered.map((topico) => (
-                <div
+                <Link
                   key={topico.id}
-                  className="group flex items-center gap-4 px-4 py-3.5 rounded-xl transition-colors hover:bg-[var(--bg-elevated)]"
+                  href={`${basePath}/${topico.slug}`}
+                  className="group flex items-center gap-3 sm:gap-4 px-4 py-3.5 rounded-xl transition-colors hover:bg-[var(--bg-elevated)] no-underline"
                   style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
                 >
                   {/* Ícone de progresso */}
-                  <div className="shrink-0">
-                    <Circle className="h-5 w-5" style={{ color: "var(--border)" }} />
-                  </div>
+                  <Circle className="shrink-0 h-5 w-5" style={{ color: "var(--border)" }} />
 
                   {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <Link
-                      href={`${basePath}/${topico.slug}`}
-                      className="font-medium text-sm no-underline"
-                      style={{ color: "var(--accent)" }}
-                    >
+                    <span className="font-medium text-sm" style={{ color: "var(--accent)" }}>
                       {topico.titulo}
-                    </Link>
+                    </span>
                     {topico.descricao_curta && (
                       <p className="text-xs mt-0.5 line-clamp-1" style={{ color: "var(--text-muted)" }}>
                         {topico.descricao_curta}
@@ -234,7 +224,7 @@ export function AreaTopicos({
                     )}
                   </div>
 
-                  {/* Badges */}
+                  {/* Badges — desktop only */}
                   <div className="hidden sm:flex items-center gap-2 shrink-0">
                     {topico.video && (
                       <span
@@ -262,27 +252,20 @@ export function AreaTopicos({
                     )}
                   </div>
 
-                  {/* Botão ESTUDIAR */}
-                  <Link
-                    href={`${basePath}/${topico.slug}`}
-                    className="shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border"
+                  {/* Botão ESTUDIAR — desktop only */}
+                  <span
+                    className="hidden sm:inline-flex shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border transition-colors group-hover:text-white"
                     style={{
                       borderColor: accentColor,
                       color: accentColor,
-                      backgroundColor: "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = accentColor;
-                      e.currentTarget.style.color = "#fff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = accentColor;
                     }}
                   >
                     Estudiar
-                  </Link>
-                </div>
+                  </span>
+
+                  {/* Seta — mobile only */}
+                  <ChevronRight className="sm:hidden shrink-0 h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                </Link>
               ))}
             </div>
           )}
