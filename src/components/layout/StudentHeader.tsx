@@ -214,7 +214,7 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   >
                     <div
                       className="flex rounded-xl shadow-2xl overflow-hidden"
-                      style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", minWidth: 360 }}
+                      style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}
                     >
                       {/* Coluna 1: Cursos */}
                       <div className="w-44 py-1.5 shrink-0" style={{ borderRight: "1px solid var(--border)" }}>
