@@ -8,6 +8,7 @@ import { CollapsibleCaption } from "@/components/student/CollapsibleCaption";
 import { AtlasImageViewer } from "@/components/student/AtlasImageViewer";
 import { AtlasCarousel } from "@/components/student/AtlasCarousel";
 import { MobileIndiceBar } from "@/components/student/MobileIndiceBar";
+import { LastTopicTracker } from "@/components/student/LastTopicTracker";
 import type { JSONContent } from "@tiptap/react";
 
 interface PageProps {
@@ -48,6 +49,16 @@ export default async function TopicoPage({ params }: PageProps) {
   return (
     // Escapa o padding do StudentLayout (px-4 lg:px-8 py-6)
     <div className="-mx-4 lg:-mx-8 -mt-6">
+      <LastTopicTracker data={{
+        path: `/cursos/${cursoSlug}/${disciplinaSlug}/${areaSlug}/${topicoSlug}`,
+        titulo: topico.titulo,
+        descricao: topico.descricao_curta ?? null,
+        areaNome: area.nome,
+        disciplinaNome: disciplina.nome,
+        cursoNome: disciplina.curso.nome,
+        thumbnail: topico.video?.thumbnail_url ?? null,
+        totalTopicos: area.topicos.length,
+      }} />
 
       {/* ── Breadcrumb sticky ── */}
       <div
