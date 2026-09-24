@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import type { LastTopicData } from "./LastTopicTracker";
 
 export function ContinuarUnidad() {
   const [topic, setTopic] = useState<LastTopicData | null>(null);
   const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     setMounted(true);
@@ -79,14 +82,17 @@ export function ContinuarUnidad() {
           className="shrink-0 h-16 w-20 rounded-lg overflow-hidden"
           style={{ backgroundColor: "var(--bg-elevated)" }}
         >
-          {topic.thumbnail ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={topic.thumbnail} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center">
-              <BookOpen className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
-            </div>
-          )}
+          {(() => {
+            const src = (!isDark && topic.thumbnailLight) ? topic.thumbnailLight : topic.thumbnail;
+            return src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={src} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center">
+                <BookOpen className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
+              </div>
+            );
+          })()}
         </div>
 
         {/* Info */}

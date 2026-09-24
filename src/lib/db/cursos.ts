@@ -208,6 +208,8 @@ export function getTopicoPorSlug(
         select: {
           slug: true,
           nome: true,
+          capa_url: true,
+          capa_url_light: true,
           disciplina: {
             select: {
               slug: true,

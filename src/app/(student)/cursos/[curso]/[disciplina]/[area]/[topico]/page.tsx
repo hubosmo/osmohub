@@ -56,7 +56,8 @@ export default async function TopicoPage({ params }: PageProps) {
         areaNome: area.nome,
         disciplinaNome: disciplina.nome,
         cursoNome: disciplina.curso.nome,
-        thumbnail: await resolveVideoThumbnail(topico.video?.youtube_url, topico.video?.thumbnail_url),
+        thumbnail: area.capa_url ?? await resolveVideoThumbnail(topico.video?.youtube_url, topico.video?.thumbnail_url),
+        thumbnailLight: area.capa_url_light ?? null,
         totalTopicos: area.topicos.length,
       }} />
 

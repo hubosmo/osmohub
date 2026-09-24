@@ -10,6 +10,7 @@ export type LastTopicData = {
   disciplinaNome: string;
   cursoNome: string;
   thumbnail: string | null;
+  thumbnailLight: string | null;
   totalTopicos: number;
 };
 
