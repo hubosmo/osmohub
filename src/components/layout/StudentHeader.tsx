@@ -31,6 +31,8 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
   const [megaOpen, setMegaOpen] = useState(false);
   const [hoveredCursoId, setHoveredCursoId] = useState<string | null>(null);
   const megaTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false);
+  const [mobileExpandedCurso, setMobileExpandedCurso] = useState<string | null>(null);
 
   const initials = userName
     .split(" ")
@@ -343,37 +345,92 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
               </button>
             </div>
 
-            <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
-              <Link
-                href="/cursos"
-                onClick={() => setMobileOpen(false)}
-                className="px-3 py-2.5 text-sm font-bold tracking-widest rounded-lg transition-colors"
-                style={{
-                  color: cursosActive ? "var(--accent)" : "var(--text-secondary)",
-                  backgroundColor: cursosActive ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
-                }}
-              >
-                CURSOS
-              </Link>
+            <nav className="flex flex-col gap-0.5 p-3 flex-1 overflow-y-auto">
 
-              {/* Cursos e disciplinas no mobile drawer */}
-              {cursos.length > 0 && (
-                <div className="ml-3 flex flex-col gap-0.5 mb-1">
-                  {cursos.flatMap((curso) =>
-                    curso.disciplinas.map((disc) => (
-                      <Link
-                        key={disc.id}
-                        href={`/cursos/${curso.slug}/${disc.slug}`}
-                        onClick={() => setMobileOpen(false)}
-                        className="px-3 py-2 text-sm rounded-lg transition-colors no-underline"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {disc.nome}
-                      </Link>
-                    ))
-                  )}
-                </div>
-              )}
+              {/* CURSOS — accordion nível 1 */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setMobileCoursesOpen((v) => !v)}
+                  className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-colors text-left"
+                  style={{
+                    color: cursosActive ? "var(--accent)" : "var(--text-secondary)",
+                    backgroundColor: cursosActive || mobileCoursesOpen
+                      ? "color-mix(in srgb, var(--accent) 12%, transparent)"
+                      : "transparent",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  CURSOS
+                  <ChevronDown
+                    className="h-4 w-4 shrink-0 transition-transform duration-200"
+                    style={{ transform: mobileCoursesOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                  />
+                </button>
+
+                {mobileCoursesOpen && cursos.length > 0 && (
+                  <div className="mt-0.5 flex flex-col gap-0.5">
+                    {cursos.map((curso) => {
+                      const expanded = mobileExpandedCurso === curso.id;
+                      return (
+                        <div key={curso.id}>
+                          {/* Linha do curso: nome (link) + seta (expand) */}
+                          <div
+                            className="flex items-center rounded-lg overflow-hidden ml-2"
+                            style={{
+                              backgroundColor: expanded
+                                ? "color-mix(in srgb, var(--accent) 8%, transparent)"
+                                : "transparent",
+                            }}
+                          >
+                            <Link
+                              href={`/cursos/${curso.slug}`}
+                              onClick={() => setMobileOpen(false)}
+                              className="flex-1 px-3 py-2 text-sm no-underline truncate"
+                              style={{ color: expanded ? "var(--accent)" : "var(--text-secondary)", fontWeight: expanded ? 600 : 400 }}
+                            >
+                              {curso.nome}
+                            </Link>
+                            {curso.disciplinas.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setMobileExpandedCurso((v) => v === curso.id ? null : curso.id)}
+                                className="shrink-0 px-2.5 py-2 transition-colors"
+                                style={{ color: expanded ? "var(--accent)" : "var(--text-muted)" }}
+                                aria-label={expanded ? "Colapsar" : "Expandir"}
+                              >
+                                <ChevronRight
+                                  className="h-3.5 w-3.5 transition-transform duration-200"
+                                  style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+                                />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Disciplinas — nível 2 */}
+                          {expanded && (
+                            <div className="ml-5 mt-0.5 flex flex-col gap-0.5 mb-1">
+                              {curso.disciplinas.map((disc) => (
+                                <Link
+                                  key={disc.id}
+                                  href={`/cursos/${curso.slug}/${disc.slug}`}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="px-3 py-2 text-xs rounded-lg no-underline truncate"
+                                  style={{ color: "var(--text-muted)" }}
+                                >
+                                  {disc.nome}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {OTHER_NAV.map(({ href, label }) => {
                 const active = pathname === href || pathname.startsWith(href + "/");
