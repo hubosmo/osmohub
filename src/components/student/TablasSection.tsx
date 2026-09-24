@@ -127,6 +127,7 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
                   filter: isRowRevealed ? "none" : "blur(5px)",
                   userSelect: isRowRevealed ? "text" : "none",
                   opacity: isRowRevealed ? 1 : 0.6,
+                  whiteSpace: "pre-wrap",
                 }}
               >
                 {linha.conteudo}
@@ -143,6 +144,7 @@ function TablaCard({ tabela }: { tabela: TablaData }) {
                     filter: isRowRevealed ? "none" : "blur(5px)",
                     userSelect: isRowRevealed ? "text" : "none",
                     opacity: isRowRevealed ? 1 : 0.6,
+                    whiteSpace: "pre-wrap",
                   }}
                 >
                   {extras[ci] ?? ""}

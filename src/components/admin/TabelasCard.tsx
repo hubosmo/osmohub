@@ -254,9 +254,9 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
                 borderBottom: li < tabela.linhas.length - 1 ? "1px solid var(--border)" : "none",
               }}>
               <p className="text-xs font-semibold pt-0.5" style={{ color: "var(--text-primary)" }}>{linha.categoria}</p>
-              <p className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6 }}>{linha.conteudo}</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{linha.conteudo}</p>
               {extraHeaders.map((_, ci) => (
-                <p key={ci} className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6 }}>{extraVals[ci] ?? ""}</p>
+                <p key={ci} className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{extraVals[ci] ?? ""}</p>
               ))}
               <button type="button"
                 onClick={() => runDeleteRow(() => deletarLinhaContent(linha.id, topicoId))}
@@ -284,9 +284,10 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
           </div>
           <div>
             <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Contenido *</label>
-            <input name="conteudo" required placeholder="..."
-              className="w-full h-8 px-2.5 rounded text-xs outline-none"
-              style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
+            <textarea name="conteudo" required placeholder="Un ítem por línea..."
+              rows={3}
+              className="w-full px-2.5 py-1.5 rounded text-xs outline-none resize-none"
+              style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)", lineHeight: 1.5 }} />
           </div>
           {extraHeaders.map((col, ci) => (
             <div key={ci}>
