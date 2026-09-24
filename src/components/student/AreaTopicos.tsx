@@ -74,35 +74,31 @@ export function AreaTopicos({
         className="sticky top-0 z-20 w-full border-b"
         style={{ height: 48, backgroundColor: "var(--bg-nav-bar)", borderColor: "var(--border)" }}
       >
-        <div className="flex items-center justify-between gap-4 h-full px-4 lg:px-8 max-w-5xl mx-auto">
-          <nav className="flex items-center gap-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
-            <Link href="/cursos" className="breadcrumb-link">
-              Cursos
-            </Link>
+        <div className="flex items-center gap-3 h-full px-4 lg:px-8 max-w-5xl mx-auto">
+          {/* Breadcrumb — no mobile mostra só o pai imediato */}
+          <nav className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden" style={{ color: "var(--text-muted)" }}>
+            <Link href="/cursos" className="breadcrumb-link hidden sm:inline">Cursos</Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
+            <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link hidden sm:inline truncate max-w-[72px]">{cursoNome}</Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
+            <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[90px] sm:max-w-[80px]">{disciplinaNome}</Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link truncate max-w-[80px]">
-              {cursoNome}
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[80px]">
-              {disciplinaNome}
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate max-w-[120px] font-semibold" style={{ color: "var(--text-primary)" }}>{areaNome}</span>
+            <span className="truncate font-semibold" style={{ color: "var(--text-primary)" }}>{areaNome}</span>
           </nav>
 
-          <div className="relative w-52 shrink-0">
+          {/* Search */}
+          <div className="relative shrink-0 w-28 sm:w-44">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Busca..."
-              className="w-full rounded-md border py-1.5 pl-3 pr-8 text-sm outline-none transition-colors"
+              placeholder="Buscar..."
+              className="w-full rounded-md border py-1.5 pl-3 pr-7 text-xs outline-none transition-colors"
               style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", color: "var(--text-primary)" }}
               onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
             />
-            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none" style={{ color: "var(--text-muted)" }} />
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none" style={{ color: "var(--text-muted)" }} />
           </div>
         </div>
       </div>
@@ -146,39 +142,38 @@ export function AreaTopicos({
           {/* Card de destaque */}
           {!search && firstTopico && (
             <div
-              className="rounded-2xl overflow-hidden mb-8 flex"
-              style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", height: 148 }}
+              className="rounded-2xl overflow-hidden mb-8 flex flex-col sm:flex-row"
+              style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
             >
-              {/* Imagem — flush, quadrada (largura = altura do card) */}
+              {/* Imagem — banner no mobile, lateral no desktop */}
               <div
-                className="hidden sm:flex shrink-0 items-center justify-center"
+                className="w-full sm:w-36 shrink-0 aspect-[16/7] sm:aspect-auto flex items-center justify-center border-b sm:border-b-0 sm:border-r"
                 style={{
-                  width: 148,
                   backgroundColor: `color-mix(in srgb, ${accentColor} 12%, var(--bg-elevated))`,
-                  borderRight: `1px solid var(--border)`,
+                  borderColor: "var(--border)",
                 }}
               >
                 {capaDisplay ? (
-                  <img src={capaDisplay} alt={areaNome} className="w-full h-full object-cover" />
+                  <img src={capaDisplay} alt={areaNome} className="w-full h-full object-cover object-top" />
                 ) : (
-                  <BookOpen className="h-10 w-10" style={{ color: accentColor, opacity: 0.6 }} />
+                  <BookOpen className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: accentColor, opacity: 0.5 }} />
                 )}
               </div>
 
               {/* Conteúdo */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between gap-3 p-5">
+              <div className="flex-1 min-w-0 flex flex-col justify-between gap-3 p-4 sm:p-5">
                 <div>
-                  <p className="font-bold text-base mb-1" style={{ color: "var(--text-primary)" }}>
+                  <p className="font-bold text-sm sm:text-base mb-1" style={{ color: "var(--text-primary)" }}>
                     {firstTopico.titulo}
                   </p>
                   {(areaDescricao || firstTopico.descricao_curta) && (
-                    <p className="text-sm line-clamp-3" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-xs sm:text-sm line-clamp-2" style={{ color: "var(--text-secondary)" }}>
                       {areaDescricao ?? firstTopico.descricao_curta}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 flex-1 min-w-[100px]">
                     <div className="flex-1 rounded-full h-1.5" style={{ backgroundColor: "var(--bg-elevated)" }}>
                       <div className="h-full w-0 rounded-full" style={{ backgroundColor: accentColor }} />
                     </div>
@@ -188,7 +183,7 @@ export function AreaTopicos({
                   </div>
                   <Link
                     href={`${basePath}/${firstTopico.slug}`}
-                    className="shrink-0 px-5 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
+                    className="shrink-0 px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-opacity hover:opacity-90"
                     style={{ backgroundColor: accentColor, color: "#fff" }}
                   >
                     Comenzar curso
