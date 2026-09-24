@@ -1,4 +1,5 @@
 import { Play, Image, FileText, Gamepad2 } from "lucide-react";
+import { DuracaoInput } from "@/components/admin/DuracaoInput";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { SectionToggle } from "@/components/admin/SectionToggle";
 import { ArtigoEditor } from "@/components/editor/ArtigoEditor";
@@ -171,13 +172,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
                   className="w-full h-9 px-3 rounded-lg text-sm outline-none"
                   style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
               </div>
-              <div>
-                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Duración (seg)</label>
-                <input name="duracao_seg" type="number" min={1} defaultValue={data.video?.duracao_seg ?? ""}
-                  placeholder="ej. 716"
-                  className="w-full h-9 px-3 rounded-lg text-sm outline-none"
-                  style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-              </div>
+              <DuracaoInput defaultSecs={data.video?.duracao_seg ?? null} />
             </div>
             <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>URL del video (YouTube o Vimeo)</label>
