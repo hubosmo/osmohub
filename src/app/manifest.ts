@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Osmo — Ciencias que Conectan",
     short_name: "Osmo",
     description: "Plataforma educativa de ciencias con videos, artículos interactivos y simulaciones.",
-    start_url: "/dashboard",
+    start_url: "/login",
     display: "standalone",
     orientation: "portrait",
     background_color: "#0F1117",

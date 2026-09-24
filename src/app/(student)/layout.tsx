@@ -26,7 +26,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     }
   }
 
-  const navData = await getNavData();
+  const navData = await getNavData().catch(() => []);
 
   return (
     <StudentLayout userName={userName} userEmail={userEmail} isAdmin={isAdmin} navData={navData}>
