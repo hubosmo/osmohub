@@ -55,7 +55,7 @@ export function DashboardCursos({ cursos }: { cursos: Curso[] }) {
                     capaUrlDark={curso.capa_url}
                     capaUrlLight={curso.capa_url_light}
                     alt={curso.nome}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 ) : (
                   <div
