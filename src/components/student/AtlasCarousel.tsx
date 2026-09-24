@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
 
@@ -15,17 +14,8 @@ type Props = {
   imagens: Imagem[];
 };
 
-const SLIDE = 60;
-
-const slideVariants = {
-  enter: (d: number) => ({ x: `${d * SLIDE}%`, opacity: 0 }),
-  center: { x: "0%", opacity: 1 },
-  exit: (d: number) => ({ x: `${d * -SLIDE}%`, opacity: 0 }),
-};
-
 export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props) {
   const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState(1);
   const [showList, setShowList] = useState(false);
   const total = imagens.length;
   const current = imagens[idx];
@@ -33,17 +23,14 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
   if (total === 0) return null;
 
   function prev() {
-    setDir(-1);
     setIdx((i) => (i > 0 ? i - 1 : total - 1));
     setShowList(false);
   }
   function next() {
-    setDir(1);
     setIdx((i) => (i < total - 1 ? i + 1 : 0));
     setShowList(false);
   }
   function goTo(i: number) {
-    setDir(i > idx ? 1 : -1);
     setIdx(i);
     setShowList(false);
   }
@@ -52,19 +39,10 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
     <figure className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
       {/* Imagem principal */}
       <div className="relative overflow-hidden">
-        <AnimatePresence initial={false} custom={dir} mode="popLayout">
-          <motion.div
-            key={idx}
-            custom={dir}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
-          </motion.div>
-        </AnimatePresence>
+        <style>{`@keyframes atlas-fade{from{opacity:0}to{opacity:1}}`}</style>
+        <div key={idx} style={{ animation: "atlas-fade 0.22s ease" }}>
+          <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
+        </div>
 
         {/* Setas de navegação (só quando mais de 1 imagem) */}
         {total > 1 && (
