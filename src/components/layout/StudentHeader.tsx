@@ -221,22 +221,23 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                         {cursos.map((curso) => {
                           const isHovered = hoveredCursoId === curso.id;
                           return (
-                            <button
+                            <Link
                               key={curso.id}
-                              type="button"
-                              className="flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors text-left"
+                              href={`/cursos/${curso.slug}`}
+                              className="flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors no-underline"
                               style={{
                                 color: isHovered ? "var(--accent)" : "var(--text-secondary)",
                                 backgroundColor: isHovered ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "transparent",
                                 fontWeight: isHovered ? 600 : 400,
                               }}
                               onMouseEnter={() => setHoveredCursoId(curso.id)}
+                              onClick={() => setMegaOpen(false)}
                             >
                               {curso.nome}
                               {curso.disciplinas.length > 0 && (
                                 <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" />
                               )}
-                            </button>
+                            </Link>
                           );
                         })}
                       </div>
