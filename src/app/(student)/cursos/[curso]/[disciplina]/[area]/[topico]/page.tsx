@@ -56,7 +56,7 @@ export default async function TopicoPage({ params }: PageProps) {
         areaNome: area.nome,
         disciplinaNome: disciplina.nome,
         cursoNome: disciplina.curso.nome,
-        thumbnail: topico.video?.thumbnail_url ?? null,
+        thumbnail: await resolveVideoThumbnail(topico.video?.youtube_url, topico.video?.thumbnail_url),
         totalTopicos: area.topicos.length,
       }} />
 
@@ -417,13 +417,29 @@ function RichOrPlain({ text, className = "", color }: { text: string; className?
   );
 }
 
-/* ── Utilitário ──────────────────────────────────────────────────── */
+/* ── Utilitários ─────────────────────────────────────────────────── */
 function toVideoEmbed(url: string): string {
-  // YouTube
   const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
   if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  // Vimeo
   const vimeo = url.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/);
   if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?color=6C63FF&title=0&byline=0&portrait=0`;
   return url;
+}
+
+async function resolveVideoThumbnail(url: string | null | undefined, saved: string | null | undefined): Promise<string | null> {
+  if (saved) return saved;
+  if (!url) return null;
+  // YouTube
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
+  if (yt) return `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`;
+  // Vimeo
+  const vimeo = url.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/);
+  if (vimeo) {
+    try {
+      const res = await fetch(`https://vimeo.com/api/v2/video/${vimeo[1]}.json`, { next: { revalidate: 86400 } });
+      const data = await res.json() as Array<{ thumbnail_large?: string }>;
+      return data[0]?.thumbnail_large ?? null;
+    } catch { return null; }
+  }
+  return null;
 }
