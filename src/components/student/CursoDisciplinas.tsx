@@ -137,7 +137,7 @@ export function CursoDisciplinas({ cursoSlug, cursoNome, accentColor, disciplina
                   <div className="flex flex-col justify-between px-4 py-3 flex-1 min-w-0">
                     <div className="flex flex-col gap-1">
                       <p
-                        className="font-bold text-base leading-snug group-hover:underline"
+                        className="font-bold text-base leading-snug"
                         style={{ color: accentColor }}
                       >
                         {disciplina.nome}
