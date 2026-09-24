@@ -236,40 +236,49 @@ export function DisciplinaAreas({
             >
               {capaDisplay && (
                 <div
-                  className="w-full sm:w-36 shrink-0 aspect-[4/3] sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
-                  style={{ borderColor: "var(--border)" }}
+                  className="w-full sm:w-36 shrink-0 sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
+                  style={{
+                    borderColor: "var(--border)",
+                    aspectRatio: isMobile ? "16/9" : undefined,
+                  }}
                 >
                   <img src={capaDisplay} alt={selectedArea.nome} className="w-full h-full object-cover object-top" />
                 </div>
               )}
 
               {/* Conteúdo */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between gap-3 p-4 sm:p-5">
+              <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 sm:p-5"
+                style={{ padding: isMobile ? "10px 14px" : undefined }}>
                 <div>
-                  <p className="font-bold text-sm sm:text-base mb-1" style={{ color: accentColor }}>
+                  <p className="font-bold text-sm sm:text-base mb-0.5 truncate" style={{ color: accentColor }}>
                     {selectedArea.nome}
                   </p>
-                  {selectedArea.descricao && (
+                  {selectedArea.descricao && !isMobile && (
                     <p className="text-xs sm:text-sm line-clamp-2" style={{ color: "var(--text-secondary)" }}>
                       {selectedArea.descricao}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 flex-1 min-w-[100px]">
-                    <div className="flex-1 rounded-full h-1.5" style={{ backgroundColor: "var(--bg-elevated)" }}>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex-1 rounded-full h-1" style={{ backgroundColor: "var(--bg-elevated)" }}>
                       <div className="h-full w-0 rounded-full" style={{ backgroundColor: accentColor }} />
                     </div>
-                    <span className="text-xs whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                      0 / {selectedArea.topicos.length}
+                    <span className="text-xs whitespace-nowrap shrink-0" style={{ color: "var(--text-muted)" }}>
+                      0/{selectedArea.topicos.length}
                     </span>
                   </div>
                   <Link
                     href={`${basePath}/${selectedArea.slug}/${firstTopico.slug}`}
-                    className="shrink-0 px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: accentColor, color: "#fff" }}
+                    className="shrink-0 rounded-lg font-semibold transition-opacity hover:opacity-90"
+                    style={{
+                      backgroundColor: accentColor,
+                      color: "#fff",
+                      fontSize: isMobile ? "11px" : "13px",
+                      padding: isMobile ? "5px 10px" : "6px 16px",
+                    }}
                   >
-                    Comenzar curso
+                    Comenzar
                   </Link>
                 </div>
               </div>
@@ -304,10 +313,10 @@ export function DisciplinaAreas({
                       <Circle className="shrink-0 h-5 w-5" style={{ color: "var(--border)" }} />
 
                       <div className="min-w-0 flex-1">
-                        <span className="font-medium text-sm" style={{ color: "var(--accent)" }}>
+                        <span className="font-medium text-sm truncate block" style={{ color: "var(--accent)" }}>
                           {topico.titulo}
                         </span>
-                        {topico.descricao_curta && (
+                        {topico.descricao_curta && !isMobile && (
                           <p className="text-xs mt-0.5 line-clamp-1" style={{ color: "var(--text-muted)" }}>
                             {topico.descricao_curta}
                           </p>
