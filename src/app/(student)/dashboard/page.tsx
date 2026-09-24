@@ -4,7 +4,7 @@ import { DashboardCursos } from "@/components/student/DashboardCursos";
 import { TopicSearch } from "@/components/student/TopicSearch";
 import { ContinuarUnidad } from "@/components/student/ContinuarUnidad";
 
-export const metadata = { title: "Mi Osmo | Osmo" };
+export const metadata = { title: "Mi panel" };
 
 export default async function DashboardPage() {
   const cursos = await getDashboardCursos().catch(() => []);

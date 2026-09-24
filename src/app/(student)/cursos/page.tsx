@@ -1,7 +1,7 @@
 import { getDashboardCursos } from "@/lib/db/cursos";
 import { TodosCursos } from "@/components/student/TodosCursos";
 
-export const metadata = { title: "Cursos | Osmo" };
+export const metadata = { title: "Cursos" };
 
 export default async function CursosPage() {
   const cursos = await getDashboardCursos().catch(() => []);
