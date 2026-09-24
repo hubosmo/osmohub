@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, type ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
@@ -28,61 +28,12 @@ export function AuthInput({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [showPassword, setShowPassword] = useState(false);
-  const autofilled = useRef(false);
-  const inputRef   = useRef<HTMLInputElement>(null);
 
-  const isPassword    = type === "password";
-  const isShowingMask = isPassword && !showPassword;
-  // Sempre type="text" para campos de senha — controlamos a máscara manualmente.
-  // Isso permite usar asteriscos (*) em negrito em vez dos dots do browser.
-  const inputType  = isPassword ? "text" : type;
+  const isPassword = type === "password";
+  const inputType  = isPassword && !showPassword ? "password" : isPassword ? "text" : type;
   const inputBg    = isDark ? "#17263A" : "#FFFFFF";
   const textColor  = isDark ? "#F1F5F9" : "#1E293B";
   const borderDefault = isDark ? "#1E3A5F" : "#DDE4EE";
-
-  useEffect(() => {
-    if (autofilled.current && inputRef.current) {
-      inputRef.current.style.setProperty("-webkit-text-fill-color", textColor, "important");
-    }
-  }, [textColor]);
-
-  function buildShadow(focused: boolean, filled: boolean) {
-    const cover = filled ? `0 0 0 1000px ${inputBg} inset` : null;
-    const glow  = focused ? "0 0 0 3px rgba(0,166,255,0.12)" : null;
-    return [cover, glow].filter(Boolean).join(", ") || "";
-  }
-
-  // Quando em modo máscara: intercepta teclado para manter o valor real no estado.
-  function handleKeyDownMasked(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (!isShowingMask) return;
-    const key = e.key;
-
-    if (key === "Backspace") {
-      e.preventDefault();
-      autofilled.current = false;
-      onChange(value.slice(0, -1));
-    } else if (key === "Delete") {
-      e.preventDefault();
-      autofilled.current = false;
-      onChange(value.slice(0, -1));
-    } else if (key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      autofilled.current = false;
-      onChange(value + key);
-    }
-    // Tab, Enter, setas, Ctrl+Z etc. passam normalmente
-  }
-
-  function handlePasteMasked(e: React.ClipboardEvent<HTMLInputElement>) {
-    if (!isShowingMask) return;
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text");
-    autofilled.current = false;
-    onChange(value + pasted);
-  }
-
-  // Valor exibido: asteriscos em máscara, texto real caso contrário
-  const displayValue = isShowingMask ? "*".repeat(value.length) : value;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -100,22 +51,13 @@ export function AuthInput({
           style={{ color: isDark ? "#475569" : "#94A3B8" }}
         />
         <input
-          ref={inputRef}
           id={id}
           type={inputType}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          value={displayValue}
-          onChange={(e) => {
-            // Em modo máscara o onKeyDown controla tudo; em modo visível age normalmente.
-            if (!isShowingMask) {
-              autofilled.current = false;
-              onChange(e.target.value);
-            }
-          }}
-          onKeyDown={handleKeyDownMasked}
-          onPaste={handlePasteMasked}
-          className={["w-full rounded-2xl pl-10 py-3 outline-none transition-colors", isPassword ? "auth-password-input" : ""].join(" ")}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-2xl pl-10 py-3 outline-none transition-colors"
           style={{
             paddingRight: isPassword ? "2.75rem" : "1.25rem",
             backgroundColor: inputBg,
@@ -124,32 +66,14 @@ export function AuthInput({
             colorScheme: isDark ? "dark" : "light",
             fontSize: "0.875rem",
             lineHeight: "1.25rem",
-            letterSpacing: isShowingMask ? "0.25em" : "normal",
-            fontWeight: isShowingMask ? "bold" : "normal",
-          }}
-          onAnimationStart={(e) => {
-            if (e.animationName === "auth-autofill-on") {
-              autofilled.current = true;
-              const el = e.currentTarget;
-              el.style.boxShadow = buildShadow(false, true);
-              el.style.setProperty("-webkit-text-fill-color", textColor, "important");
-              requestAnimationFrame(() => {
-                el.style.setProperty("-webkit-text-fill-color", textColor, "important");
-              });
-            }
-            if (e.animationName === "auth-autofill-off") {
-              autofilled.current = false;
-              e.currentTarget.style.removeProperty("-webkit-text-fill-color");
-              e.currentTarget.style.boxShadow = buildShadow(false, false);
-            }
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = "#00A6FF";
-            e.currentTarget.style.boxShadow = buildShadow(true, autofilled.current);
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,166,255,0.12)";
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = borderDefault;
-            e.currentTarget.style.boxShadow = buildShadow(false, autofilled.current);
+            e.currentTarget.style.boxShadow = "";
           }}
         />
         {isPassword && (
