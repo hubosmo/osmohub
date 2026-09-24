@@ -45,13 +45,22 @@ export function AreaTopicos({
   accentColor,
 }: Props) {
   const [isLight, setIsLight] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const html = document.documentElement;
-    const update = () => setIsLight(html.getAttribute("data-theme") === "light");
-    update();
-    const observer = new MutationObserver(update);
+    const updateTheme = () => setIsLight(html.getAttribute("data-theme") === "light");
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
     observer.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
+
+    const updateViewport = () => setIsMobile(window.innerWidth < 768);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateViewport);
+    };
   }, []);
   const capaDisplay = (isLight && capaUrlLight) ? capaUrlLight : capaUrl;
   const [search, setSearch] = useState("");
@@ -75,53 +84,54 @@ export function AreaTopicos({
         style={{ height: 48, backgroundColor: "var(--bg-nav-bar)", borderColor: "var(--border)" }}
       >
         <div className="flex items-center h-full px-4 lg:px-8 max-w-5xl mx-auto gap-2">
-
-          {/* Mobile: botão voltar */}
-          <Link
-            href={`/cursos/${cursoSlug}/${disciplinaSlug}`}
-            className="md:hidden flex items-center gap-1 shrink-0 text-sm"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <ChevronLeft className="h-4 w-4 shrink-0" />
-            <span className="truncate max-w-[110px] font-medium">{disciplinaNome}</span>
-          </Link>
-
-          {/* Mobile: nome da área centralizado */}
-          <span
-            className="md:hidden flex-1 text-center text-sm font-semibold truncate"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {areaNome}
-          </span>
-
-          {/* Desktop: breadcrumb completo */}
-          <nav
-            className="hidden md:flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <Link href="/cursos" className="breadcrumb-link shrink-0">Cursos</Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link truncate max-w-[72px]">{cursoNome}</Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[80px]">{disciplinaNome}</Link>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate font-semibold" style={{ color: "var(--text-primary)" }}>{areaNome}</span>
-          </nav>
-
-          {/* Search — apenas desktop */}
-          <div className="relative hidden md:block shrink-0 w-44">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar..."
-              className="w-full rounded-md border py-1.5 pl-3 pr-7 text-xs outline-none transition-colors"
-              style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", color: "var(--text-primary)" }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
-            />
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none" style={{ color: "var(--text-muted)" }} />
-          </div>
+          {isMobile ? (
+            <>
+              {/* Mobile: botão voltar + nome da área */}
+              <Link
+                href={`/cursos/${cursoSlug}/${disciplinaSlug}`}
+                className="flex items-center gap-1 shrink-0 text-sm"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <ChevronLeft className="h-4 w-4 shrink-0" />
+                <span className="truncate max-w-[110px] font-medium">{disciplinaNome}</span>
+              </Link>
+              <span
+                className="flex-1 text-center text-sm font-semibold truncate px-1"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {areaNome}
+              </span>
+            </>
+          ) : (
+            <>
+              {/* Desktop: breadcrumb completo + busca */}
+              <nav
+                className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <Link href="/cursos" className="breadcrumb-link shrink-0">Cursos</Link>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                <Link href={`/cursos/${cursoSlug}`} className="breadcrumb-link truncate max-w-[72px]">{cursoNome}</Link>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                <Link href={`/cursos/${cursoSlug}/${disciplinaSlug}`} className="breadcrumb-link truncate max-w-[80px]">{disciplinaNome}</Link>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate font-semibold" style={{ color: "var(--text-primary)" }}>{areaNome}</span>
+              </nav>
+              <div className="relative shrink-0 w-44">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar..."
+                  className="w-full rounded-md border py-1.5 pl-3 pr-7 text-xs outline-none transition-colors"
+                  style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+                />
+                <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none" style={{ color: "var(--text-muted)" }} />
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -261,47 +271,45 @@ export function AreaTopicos({
                     )}
                   </div>
 
-                  {/* Badges — desktop only */}
-                  <div className="hidden sm:flex items-center gap-2 shrink-0">
-                    {topico.video && (
+                  {/* Badges + botão — desktop; seta — mobile */}
+                  {isMobile ? (
+                    <ChevronRight className="shrink-0 h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {topico.video && (
+                          <span
+                            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded"
+                            style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-muted)" }}
+                          >
+                            <PlayCircle className="h-3 w-3" />
+                            Video
+                          </span>
+                        )}
+                        {topico.artigo && (
+                          <span
+                            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded"
+                            style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-muted)" }}
+                          >
+                            <FileText className="h-3 w-3" />
+                            Artículo
+                          </span>
+                        )}
+                        {topico.duracao_estimada_min && (
+                          <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-muted)" }}>
+                            <Clock className="h-3 w-3" />
+                            {topico.duracao_estimada_min} min
+                          </span>
+                        )}
+                      </div>
                       <span
-                        className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded"
-                        style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-muted)" }}
+                        className="shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border"
+                        style={{ borderColor: accentColor, color: accentColor }}
                       >
-                        <PlayCircle className="h-3 w-3" />
-                        Video
+                        Estudiar
                       </span>
-                    )}
-                    {topico.artigo && (
-                      <span
-                        className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded"
-                        style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-muted)" }}
-                      >
-                        <FileText className="h-3 w-3" />
-                        Artículo
-                      </span>
-                    )}
-                    {topico.duracao_estimada_min && (
-                      <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-muted)" }}>
-                        <Clock className="h-3 w-3" />
-                        {topico.duracao_estimada_min} min
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Botão ESTUDIAR — desktop only */}
-                  <span
-                    className="hidden sm:inline-flex shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border transition-colors group-hover:text-white"
-                    style={{
-                      borderColor: accentColor,
-                      color: accentColor,
-                    }}
-                  >
-                    Estudiar
-                  </span>
-
-                  {/* Seta — mobile only */}
-                  <ChevronRight className="sm:hidden shrink-0 h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                    </>
+                  )}
                 </Link>
               ))}
             </div>
