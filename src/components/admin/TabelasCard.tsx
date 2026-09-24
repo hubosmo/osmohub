@@ -9,6 +9,7 @@ import {
   deletarTabelaContent,
   adicionarLinhaContent,
   deletarLinhaContent,
+  atualizarLinhaContent,
   adicionarColunaTabela,
   removerColunaTabela,
   atualizarTituloTabela,
@@ -115,14 +116,16 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(tabela.titulo);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const extraHeaders: string[] = Array.isArray(tabela.cabecalhos) ? (tabela.cabecalhos as string[]) : [];
-  const gridCols = `repeat(${2 + extraHeaders.length}, 1fr) 28px`;
+  const gridCols = `repeat(${2 + extraHeaders.length}, 1fr) 56px`;
   const gridColsForm = `repeat(${2 + extraHeaders.length}, 1fr) auto`;
 
   const { run: runDelete } = useAction("Tabla eliminada");
   const { run: runAddRow } = useAction("¡Fila agregada!");
   const { run: runDeleteRow } = useAction("Fila eliminada");
+  const { run: runEditRow } = useAction("¡Fila actualizada!");
   const { run: runAddCol } = useAction("Columna agregada");
   const { run: runRemoveCol } = useAction("Columna eliminada");
   const { run: runSaveTitle } = useAction("¡Título guardado!");
@@ -247,23 +250,76 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
       <div style={{ backgroundColor: "var(--bg-surface)" }}>
         {tabela.linhas.map((linha, li) => {
           const extraVals: string[] = Array.isArray(linha.valores_extra) ? (linha.valores_extra as string[]) : [];
+          const isEditing = editingRowId === linha.id;
+          const isLast = li === tabela.linhas.length - 1;
+
+          if (isEditing) {
+            return (
+              <form key={linha.id}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  runEditRow(async () => {
+                    await atualizarLinhaContent(linha.id, topicoId, fd);
+                    setEditingRowId(null);
+                  });
+                }}
+                className="grid gap-2 items-start px-4 py-3"
+                style={{
+                  gridTemplateColumns: gridCols,
+                  borderBottom: isLast ? "none" : "1px solid var(--border)",
+                  backgroundColor: "color-mix(in srgb, var(--accent) 5%, var(--bg-surface))",
+                }}>
+                <textarea name="categoria" required defaultValue={linha.categoria} rows={3}
+                  className="w-full px-2.5 py-1.5 rounded text-xs outline-none resize-none font-semibold"
+                  style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--accent)", color: "var(--text-primary)", lineHeight: 1.5 }} />
+                <textarea name="conteudo" required defaultValue={linha.conteudo} rows={3}
+                  className="w-full px-2.5 py-1.5 rounded text-xs outline-none resize-none"
+                  style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--accent)", color: "var(--text-primary)", lineHeight: 1.5 }} />
+                {extraHeaders.map((_, ci) => (
+                  <textarea key={ci} name={`extra_${ci}`} defaultValue={extraVals[ci] ?? ""} rows={3}
+                    className="w-full px-2.5 py-1.5 rounded text-xs outline-none resize-none"
+                    style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--accent)", color: "var(--text-primary)", lineHeight: 1.5 }} />
+                ))}
+                <div className="flex flex-col gap-1">
+                  <button type="submit" className="h-6 w-6 flex items-center justify-center rounded"
+                    style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+                    <Check className="h-3 w-3" />
+                  </button>
+                  <button type="button" onClick={() => setEditingRowId(null)}
+                    className="h-6 w-6 flex items-center justify-center rounded"
+                    style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                    <span className="text-xs">✕</span>
+                  </button>
+                </div>
+              </form>
+            );
+          }
+
           return (
             <div key={linha.id} className="grid gap-2 items-start px-4 py-2.5"
               style={{
                 gridTemplateColumns: gridCols,
-                borderBottom: li < tabela.linhas.length - 1 ? "1px solid var(--border)" : "none",
+                borderBottom: isLast ? "none" : "1px solid var(--border)",
               }}>
-              <p className="text-xs font-semibold pt-0.5" style={{ color: "var(--text-primary)" }}>{linha.categoria}</p>
+              <p className="text-xs font-semibold pt-0.5" style={{ color: "var(--text-primary)", whiteSpace: "pre-wrap" }}>{linha.categoria}</p>
               <p className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{linha.conteudo}</p>
               {extraHeaders.map((_, ci) => (
                 <p key={ci} className="text-xs" style={{ color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{extraVals[ci] ?? ""}</p>
               ))}
-              <button type="button"
-                onClick={() => runDeleteRow(() => deletarLinhaContent(linha.id, topicoId))}
-                className="h-6 w-6 flex items-center justify-center rounded"
-                style={{ color: "var(--text-muted)" }}>
-                <Trash2 className="h-3 w-3" />
-              </button>
+              <div className="flex gap-1">
+                <button type="button" onClick={() => setEditingRowId(linha.id)}
+                  className="h-6 w-6 flex items-center justify-center rounded"
+                  style={{ color: "var(--text-muted)" }}>
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button type="button"
+                  onClick={() => runDeleteRow(() => deletarLinhaContent(linha.id, topicoId))}
+                  className="h-6 w-6 flex items-center justify-center rounded"
+                  style={{ color: "var(--text-muted)" }}>
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           );
         })}

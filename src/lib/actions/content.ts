@@ -410,6 +410,21 @@ export async function deletarLinhaContent(id: string, topicoId: string) {
   revalidate();
 }
 
+export async function atualizarLinhaContent(id: string, topicoId: string, formData: FormData) {
+  const categoria = s(formData.get("categoria"));
+  const conteudo = s(formData.get("conteudo"));
+  if (!categoria || !conteudo) return;
+  const extras = Array.from(formData.entries())
+    .filter(([k]) => k.startsWith("extra_"))
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, v]) => String(v));
+  await prisma.tabelaLinha.update({
+    where: { id },
+    data: { categoria, conteudo, valores_extra: extras },
+  });
+  revalidate();
+}
+
 export async function atualizarTituloTabela(tabelaId: string, topicoId: string, formData: FormData) {
   const titulo = s(formData.get("titulo"));
   if (!titulo) return;
