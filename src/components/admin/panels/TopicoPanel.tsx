@@ -1,20 +1,19 @@
-import { Play, Image, FileText, Gamepad2 } from "lucide-react";
+import { Play, Image, FileText, Gamepad2, BookOpen, HelpCircle } from "lucide-react";
 import { DuracaoInput } from "@/components/admin/DuracaoInput";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { SectionToggle } from "@/components/admin/SectionToggle";
+import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
 import { ArtigoEditor } from "@/components/editor/ArtigoEditor";
 import { MiniEditor } from "@/components/editor/MiniEditor";
 import { TabelasCard } from "@/components/admin/TabelasCard";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 import { AtlasBlocksManager } from "@/components/admin/AtlasBlocksManager";
-import {
-  atualizarTopicoContent,
-  deletarTopicoContent,
-  upsertVideoContent,
-  deletarVideoContent,
-  adicionarImagemContent,
-  criarGrupoImagens,
-} from "@/lib/actions/content";
+import { QuizLinker } from "@/components/admin/QuizLinker";
+import { atualizarTopicoContent, deletarTopicoContent } from "@/lib/actions/content-structure";
+import { upsertVideoContent, deletarVideoContent } from "@/lib/actions/content-media";
+import { adicionarImagemContent, criarGrupoImagens } from "@/lib/actions/content-atlas";
+
+type QuizResumido = { id: string; titulo: string; _count: { questoes: number } };
 
 type TopicoData = {
   id: string;
@@ -34,28 +33,9 @@ type TopicoData = {
   imagens: { id: string; url: string; legenda: string | null; ordem: number }[];
   grupos_imagens: { id: string; titulo: string | null; legenda: string | null; modo_legenda: string; ordem: number; imagens: { id: string; url: string; legenda: string | null }[] }[];
   tabelas: { id: string; titulo: string; tipo: string; cabecalhos: unknown; linhas: { id: string; categoria: string; conteudo: string; valores_extra: unknown }[] }[];
+  quizzesVinculados: { quiz: QuizResumido }[];
+  todosQuizzes: QuizResumido[];
 };
-
-function SectionHeader({
-  icon, label, color,
-  topicoId, section, ativo, hasContent,
-}: {
-  icon: React.ReactNode; label: string; color: string;
-  topicoId: string;
-  section: "video_ativo" | "artigo_ativo" | "atlas_ativo" | "tabelas_ativo";
-  ativo: boolean;
-  hasContent: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + "22" }}>
-        <span style={{ color }}>{icon}</span>
-      </div>
-      <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{label}</h3>
-      <SectionToggle topicoId={topicoId} section={section} initialValue={ativo} hasContent={hasContent} />
-    </div>
-  );
-}
 
 export function TopicoPanel({ data }: { data: TopicoData }) {
   const saveAction = atualizarTopicoContent.bind(null, data.id);
@@ -64,6 +44,8 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
   const removeVideoAction = deletarVideoContent.bind(null, data.id);
   const addImagemAction = adicionarImagemContent.bind(null, data.id);
   const addGrupoAction = criarGrupoImagens.bind(null, data.id);
+
+  const totalImgs = data.imagens.length + data.grupos_imagens.reduce((acc, g) => acc + g.imagens.length, 0);
 
   return (
     <div>
@@ -85,20 +67,24 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
         </span>
       </div>
 
-      {/* Fila 1: Info básica + Video */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+      {/* Secciones colapsables */}
+      <div className="flex flex-col gap-3 mb-3">
 
         {/* Info básica */}
-        <div className="rounded-xl p-5 flex flex-col" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
-          <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-primary)" }}>Información básica</h3>
-          <AdminSaveForm id="form-topico-panel" action={saveAction} className="flex flex-col gap-3 flex-1">
+        <CollapsibleCard
+          storageKey={`info-${data.id}`}
+          icon={<BookOpen className="h-4 w-4" />}
+          iconColor="#6366F1"
+          label="Información básica"
+        >
+          <AdminSaveForm id="form-topico-panel" action={saveAction} className="flex flex-col gap-3">
             <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Título *</label>
               <input name="titulo" required defaultValue={data.titulo}
                 className="w-full h-9 px-3 rounded-lg text-sm outline-none"
                 style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
             </div>
-            <div className="flex-1">
+            <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Objetivo de aprendizaje</label>
               <MiniEditor name="objetivo" defaultValue={data.objetivo} placeholder="Al finalizar, el alumno podrá..." minRows={5} />
             </div>
@@ -139,13 +125,18 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
               </button>
             </div>
           </div>
-        </div>
+        </CollapsibleCard>
 
         {/* Video */}
-        <div className="rounded-xl p-5 flex flex-col" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
-          <SectionHeader icon={<Play className="h-4 w-4" />} label="Video" color="#EF4444"
-            topicoId={data.id} section="video_ativo" ativo={data.video_ativo} hasContent={!!data.video} />
-
+        <CollapsibleCard
+          storageKey={`video-${data.id}`}
+          icon={<Play className="h-4 w-4" />}
+          iconColor="#EF4444"
+          label="Video"
+          action={
+            <SectionToggle topicoId={data.id} section="video_ativo" initialValue={data.video_ativo} hasContent={!!data.video} />
+          }
+        >
           {data.video && (
             <div className="mb-3 p-3 rounded-lg flex items-center justify-between"
               style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
@@ -164,7 +155,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
             </div>
           )}
 
-          <form action={saveVideoAction} className="flex flex-col gap-3 flex-1">
+          <form action={saveVideoAction} className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>Título</label>
@@ -189,43 +180,35 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
               <MiniEditor name="descricao" defaultValue={data.video?.descricao}
                 placeholder="ej. Los anatomistas usan términos específicos..." minRows={4} />
             </div>
-            <div className="flex-1">
+            <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>
                 Leyenda (texto en el caption bajo el video)
               </label>
               <MiniEditor name="legenda" defaultValue={data.video?.legenda}
                 placeholder="ej. Resumen breve del contenido del video..." minRows={3} />
             </div>
-            <div className="flex justify-end mt-auto">
+            <div className="flex justify-end mt-1">
               <button type="submit" className="px-5 py-2 rounded-lg text-sm font-medium text-white"
                 style={{ backgroundColor: "var(--accent)" }}>
                 {data.video ? "Actualizar video" : "Agregar video"}
               </button>
             </div>
           </form>
-        </div>
+        </CollapsibleCard>
       </div>
 
-      {/* Fila 2: Imágenes + Tablas */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+      <div className="flex flex-col gap-3 mb-3">
 
         {/* Imágenes */}
-        <div className="rounded-xl p-5" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
-          {(() => {
-            const totalImgs = data.imagens.length + data.grupos_imagens.reduce((acc, g) => acc + g.imagens.length, 0);
-            return (
-              <SectionHeader
-                icon={<Image className="h-4 w-4" />}
-                label={`Imágenes / Atlas (${totalImgs})`}
-                color="#6C63FF"
-                topicoId={data.id}
-                section="atlas_ativo"
-                ativo={data.atlas_ativo}
-                hasContent={totalImgs > 0}
-              />
-            );
-          })()}
-
+        <CollapsibleCard
+          storageKey={`imagenes-${data.id}`}
+          icon={<Image className="h-4 w-4" />}
+          iconColor="#6C63FF"
+          label={`Imágenes / Atlas (${totalImgs})`}
+          action={
+            <SectionToggle topicoId={data.id} section="atlas_ativo" initialValue={data.atlas_ativo} hasContent={totalImgs > 0} />
+          }
+        >
           <AtlasBlocksManager
             key={[
               ...data.grupos_imagens.flatMap(g => [g.id, ...g.imagens.map(i => i.id)]),
@@ -237,28 +220,42 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
             addImagemAction={addImagemAction}
             addGrupoAction={addGrupoAction}
           />
-        </div>
+        </CollapsibleCard>
 
         {/* Tablas */}
         <TabelasCard topicoId={data.id} tabelas_ativo={data.tabelas_ativo} tabelas={data.tabelas} />
       </div>
 
       {/* Artículo — full width */}
-      <div className="rounded-xl p-5 mb-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
-        <SectionHeader
-          icon={<FileText className="h-4 w-4" />}
-          label="Artículo"
-          color="#F59E0B"
-          topicoId={data.id}
-          section="artigo_ativo"
-          ativo={data.artigo_ativo}
-          hasContent={!!data.artigo}
-        />
+      <CollapsibleCard
+        storageKey={`articulo-${data.id}`}
+        icon={<FileText className="h-4 w-4" />}
+        iconColor="#F59E0B"
+        label="Artículo"
+        action={
+          <SectionToggle topicoId={data.id} section="artigo_ativo" initialValue={data.artigo_ativo} hasContent={!!data.artigo} />
+        }
+        className="mb-4"
+      >
         <ArtigoEditor
           topicoId={data.id}
           initialContent={(data.artigo?.content as import("@tiptap/react").JSONContent) ?? null}
         />
-      </div>
+      </CollapsibleCard>
+
+      {/* Cuestionarios vinculados */}
+      <CollapsibleCard
+        storageKey={`quizzes-${data.id}`}
+        icon={<HelpCircle className="h-4 w-4" />}
+        iconColor="#F59E0B"
+        label={`Cuestionarios (${data.quizzesVinculados.length})`}
+      >
+        <QuizLinker
+          topicoId={data.id}
+          quizzesVinculados={data.quizzesVinculados}
+          todosQuizzes={data.todosQuizzes}
+        />
+      </CollapsibleCard>
 
       {/* Simulaciones placeholder */}
       <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", opacity: 0.6 }}>

@@ -37,40 +37,35 @@ Referência de experiência: **Kenhub**.
 ```
 src/
 ├── app/
-│   ├── (marketing)/        # landing page pública
-│   ├── (auth)/             # login, cadastro, recuperação de senha
+│   ├── (auth)/             # login, cadastro, verificar-email
 │   ├── (student)/          # área do aluno
 │   │   ├── dashboard/
-│   │   ├── disciplinas/
-│   │   │   └── [disciplina]/
-│   │   │       └── [area]/
-│   │   │           └── [topico]/   # página unificada: vídeo + artigo + simulação
-│   │   ├── plano-de-estudos/
-│   │   └── simulacoes/
+│   │   └── cursos/
+│   │       └── [curso]/
+│   │           └── [disciplina]/
+│   │               └── [area]/
+│   │                   └── [topico]/   # página unificada: vídeo + artigo + atlas + simulação
 │   ├── (admin)/            # painel administrativo
-│   │   ├── disciplinas/
-│   │   ├── artigos/
-│   │   ├── simulacoes/
-│   │   ├── quizzes/
-│   │   └── usuarios/
+│   │   └── admin/
+│   │       ├── content/    # ContentTree — gestão completa de conteúdo
+│   │       ├── simulacoes/ # (pendente)
+│   │       ├── quizzes/    # (pendente)
+│   │       └── usuarios/   # (pendente)
 │   └── api/
 ├── components/
 │   ├── ui/                 # shadcn/ui base
 │   ├── layout/             # header, sidebar, nav
 │   ├── student/            # componentes da área do aluno
 │   ├── admin/              # componentes do painel admin
+│   │   └── panels/         # painéis inline do ContentTree
 │   ├── editor/             # editor Tiptap + extensões de bloco
-│   └── simulations/        # tipos de simulação renderizáveis
-│       ├── DragAndDrop.tsx
-│       ├── FillInBlank.tsx
-│       ├── Matching.tsx
-│       └── CustomHtml.tsx  # simulações avançadas via iframe sandboxed
+│   └── simulations/        # tipos de simulação renderizáveis (pendente)
 ├── lib/
 │   ├── db/                 # queries Prisma por entidade
-│   ├── auth/
-│   ├── video/              # integração Mux
+│   ├── actions/            # server actions por domínio
+│   ├── supabase/           # clientes Supabase (browser, server, admin)
 │   └── utils/
-├── hooks/
+├── hooks/                  # hooks compartilhados (useIsMobile, etc.)
 ├── types/
 └── prisma/
     └── schema.prisma
@@ -103,8 +98,9 @@ A plataforma suporta tema **escuro** e **claro**. Ver `docs/brand.md` para palet
 
 ## Documentação Relacionada
 
-- [Guia de Construção](docs/guia-construcao.md) ← **ler primeiro para saber onde estamos**
-- [Mapa de Módulos](docs/module-map.json) ← **consultar antes de implementar qualquer módulo**
+- [Mapa do Sistema](docs/system-map.md) ← **ler primeiro: rotas reais, fluxos, componentes, arquivos**
+- [Guia de Construção](docs/guia-construcao.md) ← checklist de fases (o que está done/pendente)
+- [Mapa de Módulos](docs/module-map.json) ← dependências detalhadas por módulo
 - [Brand & Design System](docs/brand.md)
 - [Arquitetura Técnica](docs/architecture.md)
 - [Modelo de Conteúdo](docs/content-model.md)
@@ -118,6 +114,69 @@ Antes de implementar qualquer módulo novo:
 2. Consultar `docs/module-map.json` → campo `depends_on` e `used_by` do módulo
 3. Implementar sem afetar módulos com status `done`
 4. Atualizar `module-map.json` (status, files) e marcar `[x]` no guia ao concluir
+
+---
+
+## Padrões de Código — Regras de Crescimento
+
+Estas regras evitam acúmulo silencioso. Aplicar **durante** a escrita, não depois.
+
+### Viewport responsivo
+
+Tailwind `md:` / `sm:` / `lg:` **não funcionam** neste projeto (Tailwind CSS v4).
+Toda lógica responsiva usa o hook:
+
+```ts
+import { useIsMobile } from "@/hooks/useIsMobile";
+const isMobile = useIsMobile();        // padrão: < 768px
+const isMobile = useIsMobile(640);     // breakpoint customizado
+```
+
+- Nunca recriar o `useEffect` de viewport manualmente em um componente
+- `@media` em `<style>` JSX funciona — usar apenas para CSS puro (não lógica)
+
+### Server Actions — um arquivo por domínio
+
+```
+lib/actions/
+  content-structure.ts   → CRUD curso / disciplina / area / topico / capas
+  content-atlas.ts       → imagens standalone e grupos de imagens
+  content-tabelas.ts     → tabelas e linhas
+  content-media.ts       → video e artigo
+  content-quizzes.ts     → (criar quando implementar quizzes)
+  content-simulacoes.ts  → (criar quando implementar simulações)
+```
+
+- Cada domínio novo → arquivo novo, nunca adicionar em arquivo de outro domínio
+- Utilitários locais (`s()`, `revalidate()`) são duplicados por arquivo — são pequenos demais para extrair
+
+### Seções da página de tópico — componentes separados
+
+Cada tipo de seção tem seu arquivo em `components/student/`:
+
+```
+TopicVideoSection.tsx    ✓
+TopicAtlasSection.tsx    ✓
+TopicQuizSection.tsx     → criar ao implementar quiz
+TopicSimSection.tsx      → criar ao implementar simulação
+```
+
+- A página `[topico]/page.tsx` apenas orquestra — sem lógica visual inline
+- Funções auxiliares (formatDuration, toVideoEmbed) ficam no arquivo do componente que as usa
+
+### Limites de tamanho — agir antes de ultrapassar
+
+| Arquivo | Limite | Ação |
+|---|---|---|
+| Qualquer `page.tsx` | ~200 linhas | Extrair seções para `components/` |
+| `lib/actions/*.ts` | ~300 linhas | Dividir por subdomínio |
+| `lib/db/*.ts` | ~400 linhas | Dividir por entidade |
+| `components/layout/*.tsx` | ~400 linhas | Extrair sub-componentes |
+
+### Padrão repetido = hook ou componente
+
+- Mesmo bloco de código em 2 arquivos → extrair antes do 3º
+- Mesmo JSX estrutural em 2 lugares → componente compartilhado em `components/student/` ou `components/ui/`
 
 <!-- BEGIN:nextjs-agent-rules -->
 

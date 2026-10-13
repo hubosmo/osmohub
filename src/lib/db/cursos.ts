@@ -258,6 +258,21 @@ export function getTopicoPorSlug(
           },
         },
       },
+      quizzes: {
+        orderBy: { ordem: "asc" },
+        include: {
+          quiz: {
+            select: {
+              id: true,
+              titulo: true,
+              capa_url: true,
+              termos: true,
+              publicado: true,
+              _count: { select: { questoes: true } },
+            },
+          },
+        },
+      },
       _count: { select: { quizzes: true, imagens: true, grupos_imagens: true } },
     },
   });

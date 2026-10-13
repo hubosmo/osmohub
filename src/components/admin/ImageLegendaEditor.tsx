@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { MiniEditor } from "@/components/editor/MiniEditor";
-import { atualizarLegendaImagem } from "@/lib/actions/content";
+import { atualizarLegendaImagem } from "@/lib/actions/content-atlas";
 
 type Props = {
   imgId: string;

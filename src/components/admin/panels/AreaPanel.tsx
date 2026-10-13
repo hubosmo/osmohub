@@ -1,5 +1,5 @@
 import { FolderOpen } from "lucide-react";
-import { atualizarAreaContent, deletarAreaContent, uploadCapaArea } from "@/lib/actions/content";
+import { atualizarAreaContent, deletarAreaContent, uploadCapaArea } from "@/lib/actions/content-structure";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { CapaUploadSection } from "@/components/admin/panels/CapaUploadSection";
 

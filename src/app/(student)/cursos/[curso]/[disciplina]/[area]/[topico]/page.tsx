@@ -4,11 +4,15 @@ import { ChevronRight, ChevronLeft, PlayCircle, Target, Bookmark, BookOpen, Help
 import { getTopicoPorSlug } from "@/lib/db/cursos";
 import { ArtigoRenderer } from "@/components/editor/ArtigoRenderer";
 import { TablasSection } from "@/components/student/TablasSection";
-import { CollapsibleCaption } from "@/components/student/CollapsibleCaption";
-import { AtlasImageViewer } from "@/components/student/AtlasImageViewer";
-import { AtlasCarousel } from "@/components/student/AtlasCarousel";
 import { MobileIndiceBar } from "@/components/student/MobileIndiceBar";
 import { LastTopicTracker } from "@/components/student/LastTopicTracker";
+import { TopicTour } from "@/components/student/TopicTour";
+import { TopicSidebarNav } from "@/components/student/TopicSidebarNav";
+import { TopicVideoSection } from "@/components/student/TopicVideoSection";
+import { TopicAtlasSection } from "@/components/student/TopicAtlasSection";
+import { TopicQuizSection } from "@/components/student/TopicQuizSection";
+import { RichOrPlain } from "@/components/student/RichOrPlain";
+import type { AtlasBlock } from "@/components/student/TopicAtlasSection";
 import type { JSONContent } from "@tiptap/react";
 
 interface PageProps {
@@ -49,6 +53,7 @@ export default async function TopicoPage({ params }: PageProps) {
   return (
     // Escapa o padding do StudentLayout (px-4 lg:px-8 py-6)
     <div className="-mx-4 lg:-mx-8 -mt-6">
+      <TopicTour />
       <LastTopicTracker data={{
         topicoId: topico.id,
         path: `/cursos/${cursoSlug}/${disciplinaSlug}/${areaSlug}/${topicoSlug}`,
@@ -101,28 +106,7 @@ export default async function TopicoPage({ params }: PageProps) {
           className="hidden lg:flex flex-col shrink-0 w-52 sticky self-start py-8 pr-6 gap-0.5"
           style={{ top: 48 }}
         >
-          {sections.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="flex items-center gap-2 text-sm py-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)]"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              <span style={{ color: "var(--text-muted)" }}>{s.icon}</span>
-              {s.label}
-            </a>
-          ))}
-          {sections.length > 0 && (
-            <div className="my-2 border-t" style={{ borderColor: "var(--border)" }} />
-          )}
-          <a
-            href="#continua"
-            className="flex items-center gap-2 text-sm py-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)]"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            <ChevronRight className="h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
-            Continúa tu aprendizaje
-          </a>
+          <TopicSidebarNav sections={sections} />
         </aside>
 
         {/* Conteúdo principal */}
@@ -158,6 +142,7 @@ export default async function TopicoPage({ params }: PageProps) {
           {/* Objetivos de aprendizaje */}
           {topico.objetivo && (
             <div
+              id="objetivo"
               className="rounded-xl p-5 mb-8"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--accent) 8%, var(--bg-surface))",
@@ -196,21 +181,30 @@ export default async function TopicoPage({ params }: PageProps) {
                   </h2>
                 </div>
 
-                {/* Conteúdo */}
-                {section.id === "video" && <VideoSection video={topico.video} />}
-                {section.id === "articulo" && <ArticuloSection content={(topico.artigo?.content as JSONContent) ?? null} />}
+                {/* Conteúdo — IDs prefixados com "-tour" para o TopicTour não conflitar com os IDs de âncora das seções */}
+                {section.id === "video" && <TopicVideoSection video={topico.video} playerId="video-tour" />}
+                {section.id === "articulo" && (
+                  topico.artigo?.content
+                    ? <ArtigoRenderer content={topico.artigo.content as JSONContent} />
+                    : <div className="rounded-xl p-6 min-h-[120px] flex items-center justify-center" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Artículo no disponible aún.</p>
+                      </div>
+                )}
                 {section.id === "tablas" && <TablasSection tabelas={topico.tabelas ?? []} />}
-                {section.id === "cuestionario" && <CuestionarioSection />}
+                {section.id === "cuestionario" && (
+                  <div id="cuestionario-tour">
+                    <TopicQuizSection
+                      quizzes={(topico.quizzes ?? []).map((j) => j.quiz)}
+                      backUrl={`/cursos/${cursoSlug}/${disciplinaSlug}/${areaSlug}/${topicoSlug}`}
+                    />
+                  </div>
+                )}
                 {section.id === "atlas" && (() => {
-                  // Merge groups + standalone images sorted by shared `ordem`
-                  type Block =
-                    | { type: "imagem"; ordem: number; id: string; url: string; legenda: string | null }
-                    | { type: "grupo"; ordem: number; id: string; titulo: string | null; legenda: string | null; modo_legenda: string; imagens: ImgItem[] };
-                  const allBlocks: Block[] = [
+                  const allBlocks: AtlasBlock[] = [
                     ...(topico.imagens ?? []).map(img => ({ type: "imagem" as const, ...img })),
                     ...(topico.grupos_imagens ?? []).map(g => ({ type: "grupo" as const, ...g })),
                   ].sort((a, b) => a.ordem - b.ordem);
-                  return <AtlasSection blocks={allBlocks} />;
+                  return <TopicAtlasSection blocks={allBlocks} firstItemId="atlas-tour" />;
                 })()}
               </section>
             ))}
@@ -255,177 +249,6 @@ export default async function TopicoPage({ params }: PageProps) {
       </div>
     </div>
   );
-}
-
-/* ── Seção: Vídeo ────────────────────────────────────────────────── */
-function VideoSection({ video }: {
-  video: {
-    titulo: string;
-    descricao: string | null;
-    legenda: string | null;
-    youtube_url: string | null;
-    duracao_seg: number | null;
-  } | null
-}) {
-  const embedUrl = video?.youtube_url ? toVideoEmbed(video.youtube_url) : null;
-
-  function formatDuration(seg: number) {
-    const m = Math.floor(seg / 60);
-    const s = seg % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Texto introdutório antes do vídeo */}
-      {video?.descricao && (
-        <RichOrPlain text={video.descricao} className="text-base" color="var(--text-secondary)" />
-      )}
-
-      {embedUrl ? (
-        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-          {/* Player */}
-          <div style={{ aspectRatio: "16/9" }}>
-            <iframe
-              src={embedUrl}
-              className="w-full h-full block"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          </div>
-
-          {/* Legenda colapsável com título do vídeo — ou barra simples se não houver legenda */}
-          {video?.legenda ? (
-            <CollapsibleCaption
-              html={video.legenda}
-              title={video!.titulo}
-              meta={video!.duracao_seg ? formatDuration(video!.duracao_seg) : undefined}
-            />
-          ) : (
-            <div
-              className="flex items-center gap-3 px-4 py-2.5"
-              style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}
-            >
-              <p className="flex-1 text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>
-                {video!.titulo}
-              </p>
-              {video!.duracao_seg && (
-                <span className="shrink-0 text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
-                  {formatDuration(video!.duracao_seg)}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div
-          className="rounded-xl flex flex-col items-center justify-center gap-3 py-16"
-          style={{ backgroundColor: "var(--bg-elevated)", border: "1px dashed var(--border)" }}
-        >
-          <PlayCircle className="h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>Video no disponible aún</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── Seção: Artigo ───────────────────────────────────────────────── */
-function ArticuloSection({ content }: { content: JSONContent | null }) {
-  if (!content) {
-    return (
-      <div
-        className="rounded-xl p-6 min-h-[120px] flex items-center justify-center"
-        style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}
-      >
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          Artículo no disponible aún.
-        </p>
-      </div>
-    );
-  }
-  return <ArtigoRenderer content={content} />;
-}
-
-/* ── Seção: Quiz ─────────────────────────────────────────────────── */
-function CuestionarioSection() {
-  return (
-    <div
-      className="rounded-xl p-6 min-h-[160px] flex items-center justify-center"
-      style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}
-    >
-      <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-        Cuestionario disponible próximamente.
-      </p>
-    </div>
-  );
-}
-
-/* ── Seção: Atlas / Imagens ──────────────────────────────────────── */
-type ImgItem = { id: string; url: string; legenda: string | null; ordem?: number };
-type AtlasBlock =
-  | { type: "imagem"; id: string; url: string; legenda: string | null; ordem: number }
-  | { type: "grupo"; id: string; titulo: string | null; legenda: string | null; modo_legenda: string; imagens: ImgItem[]; ordem: number };
-
-function AtlasSection({ blocks }: { blocks: AtlasBlock[] }) {
-  if (blocks.length === 0) return null;
-
-  return (
-    <div className="flex flex-col gap-8">
-      {blocks.map((block) =>
-        block.type === "grupo" ? (
-          <AtlasCarousel key={block.id} titulo={block.titulo} legenda={block.legenda} modo_legenda={block.modo_legenda} imagens={block.imagens} />
-        ) : (
-          <figure
-            key={block.id}
-            className="rounded-xl overflow-hidden"
-            style={{ border: "1px solid var(--border)" }}
-          >
-            <AtlasImageViewer src={block.url} alt={block.legenda ?? ""} />
-            {block.legenda && (
-              <CollapsibleCaption html={
-                block.legenda.trimStart().startsWith("<")
-                  ? block.legenda
-                  : `<p>${block.legenda}</p>`
-              } />
-            )}
-          </figure>
-        )
-      )}
-    </div>
-  );
-}
-
-/* ── RichOrPlain — renderiza HTML do MiniEditor ou texto simples ─── */
-function RichOrPlain({ text, className = "", color }: { text: string; className?: string; color?: string }) {
-  const isHtml = text.trimStart().startsWith("<");
-  if (isHtml) {
-    return (
-      <div
-        className={`rich-content ${className}`}
-        style={color ? { color } : undefined}
-        dangerouslySetInnerHTML={{ __html: text }}
-      />
-    );
-  }
-  return (
-    <div className={`flex flex-col gap-4 ${className}`}>
-      {text.split(/\n\n+/).map((para, i) => (
-        <p key={i} className="leading-[1.85]" style={color ? { color } : undefined}>
-          {para.trim()}
-        </p>
-      ))}
-    </div>
-  );
-}
-
-/* ── Utilitários ─────────────────────────────────────────────────── */
-function toVideoEmbed(url: string): string {
-  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  const vimeo = url.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/);
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?color=6C63FF&title=0&byline=0&portrait=0`;
-  return url;
 }
 
 async function resolveVideoThumbnail(url: string | null | undefined, saved: string | null | undefined): Promise<string | null> {

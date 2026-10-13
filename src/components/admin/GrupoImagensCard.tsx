@@ -11,7 +11,7 @@ import {
   deletarImagemContent,
   reordenarImagensGrupo,
   atualizarModoLegendaGrupo,
-} from "@/lib/actions/content";
+} from "@/lib/actions/content-atlas";
 import { MiniEditor } from "@/components/editor/MiniEditor";
 
 type Imagem = { id: string; url: string; legenda: string | null };
@@ -198,7 +198,10 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
 
           {/* Lista de imagens (com DnD) */}
           {localImagens.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <div
+              className="flex flex-col gap-2"
+              style={localImagens.length > 4 ? { maxHeight: 272, overflowY: "auto", paddingRight: 2 } : undefined}
+            >
               {localImagens.map((img) => {
                 const isDragging = draggedImgId.current === img.id;
                 const removeAction = deletarImagemContent.bind(null, img.id, topicoId);
@@ -250,7 +253,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
           )}
 
           {/* Upload para este grupo */}
-          <ImageUploadForm action={addImageAction} compact />
+          <ImageUploadForm action={addImageAction} />
         </div>
       )}
     </div>

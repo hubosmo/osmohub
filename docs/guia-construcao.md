@@ -135,10 +135,14 @@
 
 ## Fase 7 — Quiz
 
-- [ ] Componente `QuizPlayer.tsx` (modo prática)
-- [ ] Componente `QuizSimulado.tsx` (com timer)
-- [ ] Tela de resultado com pontuação e explicações
-- [ ] Histórico de tentativas
+- [x] Componente `QuizPlayer.tsx` — sessão full-screen: config, questões com feedback visual, tela de resultado
+- [x] Card `TopicQuizSection.tsx` — card de cuestionario na página de tópico (portada, botão, "Lo que aprenderás")
+- [x] Rota `/quizzes/[id]/session` — página standalone (sem sidebar/header do aluno)
+- [x] Suporte aos 3 tipos de questão: VERDADEIRO_FALSO, MULTIPLA_ESCOLHA, ESCOLHA_IMAGEM
+- [x] Auto-advance após resposta correta (1.2s) e errada (2.2s)
+- [x] Menu: silenciar, encerrar antecipado
+- [ ] Componente `QuizSimulado.tsx` (modo simulado com tempo rígido — fase futura)
+- [ ] Histórico de tentativas salvo no banco
 - [ ] Quiz inline no artigo (`QuizInlineBlock`)
 
 ---
@@ -164,9 +168,15 @@
 - [ ] Preview de simulação antes de salvar
 
 ### 8.4 Quiz Builder
-- [ ] Criar quiz e adicionar questões
-- [ ] Upload de imagem no enunciado
-- [ ] Definir modo e tempo limite
+- [x] Schema N:N: `Quiz` standalone + junction `TopicQuiz` + campos `capa_url`, `termos[]`, `publicado`
+- [x] `lib/db/quizzes.ts` — listarQuizzes, getQuizAdmin, getQuizzesDoTopico, listarImagensDisponiveis
+- [x] `lib/actions/content-quizzes.ts` — CRUD quiz/questão/opção + vincular/desvincular tópico
+- [x] `/admin/quizzes` — lista de quizzes com status + botão criar
+- [x] `/admin/quizzes/[id]` — editor completo: info básica, portada, termos, questões
+- [x] `QuizPanel.tsx` — builder com 3 tipos de questão (múltiple opción, V/F, elegir imagen)
+- [x] `QuizLinker.tsx` — seletor no TopicoPanel para vincular/desvincular quizzes
+- [ ] Upload de imagem no enunciado (via Supabase Storage — atualmente cola URL)
+- [ ] Reuso de imagens existentes via picker visual (atualmente cola URL manualmente)
 
 ### 8.5 Usuários
 - [ ] Listagem de alunos com busca

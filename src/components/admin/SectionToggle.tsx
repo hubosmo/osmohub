@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { toggleTopicoSection } from "@/lib/actions/content";
+import { toggleTopicoSection } from "@/lib/actions/content-structure";
 
 type Section = "video_ativo" | "artigo_ativo" | "atlas_ativo" | "tabelas_ativo";
 

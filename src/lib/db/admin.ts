@@ -76,6 +76,12 @@ export function getTopicoAdmin(id: string) {
         orderBy: { ordem: "asc" },
         include: { linhas: { orderBy: { ordem: "asc" } } },
       },
+      quizzes: {
+        orderBy: { ordem: "asc" },
+        include: {
+          quiz: { select: { id: true, titulo: true, _count: { select: { questoes: true } } } },
+        },
+      },
     },
   });
 }

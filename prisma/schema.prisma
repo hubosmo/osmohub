@@ -120,7 +120,7 @@ model Topico {
   imagens        ImagemTopico[]
   grupos_imagens GrupoImagensTopico[]
   tabelas        TabelaTopico[]
-  quizzes     Quiz[]
+  quizzes     TopicoQuiz[]
   simulacoes  TopicoSimulacao[]
   progresso   ProgressoTopico[]
   itens_plano ItemPlano[]
@@ -271,15 +271,17 @@ model TopicoSimulacao {
 
 model Quiz {
   id               String   @id @default(uuid())
-  topico_id        String?
   titulo           String
   descricao        String?
+  capa_url         String?
+  termos           String[] // "Lo que aprenderás" — lista de termos cobertos
   modo             ModoQuiz @default(PRATICA)
   tempo_limite_seg Int?
+  publicado        Boolean  @default(false)
   criado_em        DateTime @default(now())
   atualizado_em    DateTime @updatedAt
 
-  topico     Topico?         @relation(fields: [topico_id], references: [id])
+  topicos    TopicoQuiz[]
   questoes   Questao[]
   tentativas TentativaQuiz[]
 
@@ -291,15 +293,29 @@ enum ModoQuiz {
   SIMULADO
 }
 
+// junction N:N entre Topico e Quiz
+model TopicoQuiz {
+  topico_id String
+  quiz_id   String
+  ordem     Int    @default(0)
+
+  topico Topico @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  quiz   Quiz   @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+
+  @@id([topico_id, quiz_id])
+  @@map("topico_quizzes")
+}
+
 model Questao {
   id         String      @id @default(uuid())
   quiz_id    String
-  enunciado  Json
+  enunciado  String      @db.Text
+  imagem_url String?     // imagem que acompanha o enunciado (opcional)
   tipo       TipoQuestao @default(MULTIPLA_ESCOLHA)
-  explicacao String?
+  explicacao String?     @db.Text
   ordem      Int         @default(0)
 
-  quiz   Quiz    @relation(fields: [quiz_id], references: [id])
+  quiz   Quiz    @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
   opcoes Opcao[]
 
   @@map("questoes")
@@ -308,16 +324,18 @@ model Questao {
 enum TipoQuestao {
   MULTIPLA_ESCOLHA
   VERDADEIRO_FALSO
+  ESCOLHA_IMAGEM
 }
 
 model Opcao {
   id         String  @id @default(uuid())
   questao_id String
   texto      String
+  imagem_url String? // para tipo ESCOLHA_IMAGEM — referência a URL já existente
   correta    Boolean @default(false)
   ordem      Int     @default(0)
 
-  questao Questao @relation(fields: [questao_id], references: [id])
+  questao Questao @relation(fields: [questao_id], references: [id], onDelete: Cascade)
 
   @@map("opcoes")
 }

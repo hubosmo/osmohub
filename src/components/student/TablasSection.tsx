@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type TablaRow = { id: string; categoria: string; conteudo: string; valores_extra: unknown };
 type TablaData = { id: string; titulo: string; tipo: string; cabecalhos: unknown; linhas: TablaRow[] };
 
 export function TablasSection({ tabelas }: { tabelas: TablaData[] }) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
+  const isMobile = useIsMobile(640);
 
   return (
     <div className="flex flex-col gap-5">

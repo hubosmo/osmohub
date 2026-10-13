@@ -5,6 +5,7 @@ import {
   getAreaAdmin,
   getTopicoAdmin,
 } from "@/lib/db/admin";
+import { listarQuizzes } from "@/lib/db/quizzes";
 import { ContentTree } from "@/components/admin/ContentTree";
 import { EmptyPanel } from "@/components/admin/panels/EmptyPanel";
 import { CursoPanel } from "@/components/admin/panels/CursoPanel";
@@ -32,9 +33,16 @@ export default async function ContentPage({
   let selectedType: string | undefined;
 
   if (sp.topico) {
-    const data = await getTopicoAdmin(sp.topico);
+    const [data, todosQuizzes] = await Promise.all([
+      getTopicoAdmin(sp.topico),
+      listarQuizzes(),
+    ]);
     if (data) {
-      panel = <TopicoPanel data={data} />;
+      panel = <TopicoPanel data={{
+        ...data,
+        quizzesVinculados: data.quizzes,
+        todosQuizzes: todosQuizzes.map(q => ({ id: q.id, titulo: q.titulo, _count: { questoes: q._count.questoes } })),
+      }} />;
       selectedId = sp.topico;
       selectedType = "topico";
     }

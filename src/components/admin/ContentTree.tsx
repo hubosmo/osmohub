@@ -42,7 +42,7 @@ import {
   criarAreaContent,
   criarTopicoContent,
   reordenarItens,
-} from "@/lib/actions/content";
+} from "@/lib/actions/content-structure";
 
 type TreeTopico = { id: string; titulo: string; publicado: boolean };
 type TreeArea = { id: string; nome: string; publicado: boolean; topicos: TreeTopico[] };
@@ -151,6 +151,7 @@ function NodeRow({
         onClick={(e) => e.stopPropagation()}
         className="h-4 w-4 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing mr-1"
         style={{ color: "var(--text-muted)", touchAction: "none" }}
+        suppressHydrationWarning
         {...dragListeners}
         {...dragAttributes}
       >

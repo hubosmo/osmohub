@@ -15,7 +15,7 @@ import {
   Highlighter, Link as LinkIcon, Minus, Heading2, Heading3,
 } from "lucide-react";
 import type { JSONContent } from "@tiptap/react";
-import { salvarArtigo } from "@/lib/actions/content";
+import { salvarArtigo } from "@/lib/actions/content-media";
 
 type Props = {
   topicoId: string;

@@ -24,7 +24,11 @@ export type Env = z.infer<typeof envSchema>;
 
 // Valida no startup — falha rápido com mensagem clara
 function validateEnv(): Env {
-  const result = envSchema.safeParse(process.env);
+  // Convert empty strings to undefined so optional() works correctly for unset vars (e.g. MUX_TOKEN_ID=)
+  const cleaned = Object.fromEntries(
+    Object.entries(process.env).map(([k, v]) => [k, v === "" ? undefined : v])
+  );
+  const result = envSchema.safeParse(cleaned);
   if (!result.success) {
     console.error("❌ Variáveis de ambiente inválidas:");
     console.error(result.error.flatten().fieldErrors);

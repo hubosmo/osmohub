@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { atualizarCursoContent, deletarCursoContent, uploadCapaCurso } from "@/lib/actions/content";
+import { atualizarCursoContent, deletarCursoContent, uploadCapaCurso } from "@/lib/actions/content-structure";
 import { CapaUploadSection } from "./CapaUploadSection";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 

@@ -5,10 +5,7 @@ import { GripVertical, Trash2, Images, ImageIcon, ChevronDown, ChevronUp } from 
 import { GrupoImagensCard } from "./GrupoImagensCard";
 import { ImageLegendaEditor } from "./ImageLegendaEditor";
 import { ImageUploadForm } from "./ImageUploadForm";
-import {
-  reordenarBlocosAtlas,
-  deletarImagemContent,
-} from "@/lib/actions/content";
+import { reordenarBlocosAtlas, deletarImagemContent } from "@/lib/actions/content-atlas";
 
 type ImgBlock = {
   type: "imagem";

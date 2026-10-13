@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import Link from "next/link";
 import {
   Search, ChevronRight, ChevronLeft, BookOpen, PlayCircle,
@@ -51,22 +52,14 @@ export function DisciplinaAreas({
   const [selectedAreaId, setSelectedAreaId] = useState<string>(areas[0]?.id ?? "");
   const [search, setSearch] = useState("");
   const [isLight, setIsLight] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   useEffect(() => {
     const html = document.documentElement;
     const updateTheme = () => setIsLight(html.getAttribute("data-theme") === "light");
     updateTheme();
     const observer = new MutationObserver(updateTheme);
     observer.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
-
-    const updateViewport = () => setIsMobile(window.innerWidth < 768);
-    updateViewport();
-    window.addEventListener("resize", updateViewport);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateViewport);
-    };
+    return () => observer.disconnect();
   }, []);
 
   const selectedArea = areas.find((a) => a.id === selectedAreaId) ?? areas[0];

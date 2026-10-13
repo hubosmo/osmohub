@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
@@ -19,6 +19,8 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
   const [prevIdx, setPrevIdx] = useState<number | null>(null);
   const [dir, setDir] = useState<1 | -1>(1);
   const [showList, setShowList] = useState(false);
+  const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const total = imagens.length;
   const current = imagens[idx];
 
@@ -26,6 +28,10 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
 
   function navigate(newIdx: number, direction: 1 | -1) {
     if (prevIdx !== null) return; // bloqueia durante animação
+    // Congela a altura atual para evitar colapso enquanto a nova imagem carrega
+    if (containerRef.current) {
+      setFrozenHeight(containerRef.current.offsetHeight);
+    }
     setPrevIdx(idx);
     setDir(direction);
     setIdx(newIdx);
@@ -49,7 +55,11 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
       `}</style>
 
       {/* Imagem principal */}
-      <div className="relative overflow-hidden">
+      <div
+        ref={containerRef}
+        className="relative overflow-hidden"
+        style={frozenHeight !== null ? { minHeight: frozenHeight } : undefined}
+      >
 
         {/* Imagem entrando — posição normal, mantém a altura do container */}
         <div
@@ -71,7 +81,7 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               pointerEvents: "none",
               animation: `${exitAnim} 0.3s cubic-bezier(0.4,0,0.2,1) both`,
             }}
-            onAnimationEnd={() => setPrevIdx(null)}
+            onAnimationEnd={() => { setPrevIdx(null); setFrozenHeight(null); }}
           >
             <AtlasImageViewer src={imagens[prevIdx].url} alt={imagens[prevIdx].legenda ?? ""} />
           </div>

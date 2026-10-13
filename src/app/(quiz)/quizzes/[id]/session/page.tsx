@@ -1,0 +1,48 @@
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db/prisma";
+import { QuizPlayer } from "@/components/student/QuizPlayer";
+
+interface Props {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ back?: string }>;
+}
+
+export default async function QuizSessionPage({ params, searchParams }: Props) {
+  const { id } = await params;
+  const { back } = await searchParams;
+
+  const quiz = await prisma.quiz.findUnique({
+    where: { id, publicado: true },
+    select: {
+      id: true,
+      titulo: true,
+      capa_url: true,
+      termos: true,
+      questoes: {
+        orderBy: { ordem: "asc" },
+        select: {
+          id: true,
+          enunciado: true,
+          tipo: true,
+          imagem_url: true,
+          explicacao: true,
+          opcoes: {
+            orderBy: { ordem: "asc" },
+            select: { id: true, texto: true, imagem_url: true, correta: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!quiz || quiz.questoes.length === 0) notFound();
+
+  const backUrl = back ?? "/cursos";
+
+  return (
+    <QuizPlayer
+      quiz={quiz}
+      backUrl={backUrl}
+    />
+  );
+}

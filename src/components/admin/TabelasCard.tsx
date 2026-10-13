@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition, useRef, useState } from "react";
+import { useTransition, useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, Columns, Check, Pencil } from "lucide-react";
+import { Plus, Trash2, Columns, Check, Pencil, ChevronDown } from "lucide-react";
 import { SectionToggle } from "@/components/admin/SectionToggle";
 import {
   criarTabelaContent,
@@ -13,7 +13,7 @@ import {
   adicionarColunaTabela,
   removerColunaTabela,
   atualizarTituloTabela,
-} from "@/lib/actions/content";
+} from "@/lib/actions/content-tabelas";
 
 type TablaLinha = { id: string; categoria: string; conteudo: string; valores_extra: unknown };
 type Tabela = {
@@ -48,6 +48,18 @@ function useAction(successMsg: string) {
 export function TabelasCard({ topicoId, tabelas_ativo, tabelas }: Props) {
   const { run: runCreate } = useAction("Tabla creada");
   const createRef = useRef<HTMLFormElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(`adm-card:tabelas-${topicoId}`);
+      if (v !== null) setOpen(v === "1");
+    } catch {}
+  }, [topicoId]);
+  function toggleOpen() {
+    const next = !open;
+    setOpen(next);
+    try { localStorage.setItem(`adm-card:tabelas-${topicoId}`, next ? "1" : "0"); } catch {}
+  }
 
   function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,10 +72,14 @@ export function TabelasCard({ topicoId, tabelas_ativo, tabelas }: Props) {
   }
 
   return (
-    <div className="rounded-xl p-5" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#00A6FF22" }}>
+    <div className="rounded-xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+      {/* Collapsible header */}
+      <div
+        className="flex items-center gap-2 px-5 cursor-pointer select-none"
+        style={{ height: 52 }}
+        onClick={toggleOpen}
+      >
+        <div className="h-7 w-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: "#00A6FF22" }}>
           <span style={{ color: "#00A6FF" }}>
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -71,11 +87,19 @@ export function TabelasCard({ topicoId, tabelas_ativo, tabelas }: Props) {
             </svg>
           </span>
         </div>
-        <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+        <span className="flex-1 text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
           Tablas de resumen ({tabelas.length})
-        </h3>
-        <SectionToggle topicoId={topicoId} section="tabelas_ativo" initialValue={tabelas_ativo} hasContent={tabelas.length > 0} />
+        </span>
+        <span onClick={e => e.stopPropagation()}>
+          <SectionToggle topicoId={topicoId} section="tabelas_ativo" initialValue={tabelas_ativo} hasContent={tabelas.length > 0} />
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          style={{ color: "var(--text-muted)" }}
+        />
       </div>
+
+      {open && <div className="px-5 pb-5 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
 
       {/* Create table form — top */}
       <form ref={createRef} onSubmit={handleCreate} className="flex gap-2 items-end mb-4 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
@@ -108,6 +132,7 @@ export function TabelasCard({ topicoId, tabelas_ativo, tabelas }: Props) {
       {tabelas.map((tabela) => (
         <TabelaBlock key={tabela.id} tabela={tabela} topicoId={topicoId} />
       ))}
+      </div>}
     </div>
   );
 }

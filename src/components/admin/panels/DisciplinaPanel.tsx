@@ -1,5 +1,5 @@
 import { Layers } from "lucide-react";
-import { atualizarDisciplinaContent, deletarDisciplinaContent, uploadCapaDisciplina } from "@/lib/actions/content";
+import { atualizarDisciplinaContent, deletarDisciplinaContent, uploadCapaDisciplina } from "@/lib/actions/content-structure";
 import { CapaUploadSection } from "./CapaUploadSection";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 

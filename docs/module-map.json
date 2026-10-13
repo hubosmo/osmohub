@@ -51,7 +51,7 @@
     },
 
     "middleware": {
-      "status": "done",
+      "status": "in_progress",
       "description": "Proteção de rotas por autenticação e role",
       "files": ["src/middleware.ts"],
       "depends_on": ["foundation.supabase", "@supabase/ssr"],
@@ -60,7 +60,7 @@
         "student_routes": ["/dashboard", "/cursos", "/plano-de-estudos", "/biblioteca"],
         "admin_routes": ["/admin"]
       },
-      "notes": "TODO: adicionar verificação de role ADMIN via banco após auth.user estar disponível"
+      "notes": "Auth OK. TODO: verificação de role ADMIN via banco (atualmente apenas auth, não role)"
     },
 
     "layout.root": {
@@ -115,7 +115,7 @@
     },
 
     "layout.auth": {
-      "status": "planned",
+      "status": "done",
       "description": "Layout das páginas de autenticação (centralizado, sem sidebar)",
       "files": ["src/app/(auth)/layout.tsx"],
       "depends_on": ["layout.root"],
@@ -144,72 +144,98 @@
     },
 
     "auth.pages": {
-      "status": "planned",
+      "status": "in_progress",
       "description": "Páginas de login, cadastro e recuperação de senha",
       "files": [
         "src/app/(auth)/login/page.tsx",
         "src/app/(auth)/cadastro/page.tsx",
-        "src/app/(auth)/recuperar-senha/page.tsx",
+        "src/app/(auth)/verificar-email/page.tsx",
         "src/app/auth/callback/route.ts"
       ],
       "depends_on": ["layout.auth", "ui.base", "auth.actions"],
       "used_by": ["middleware"],
-      "tables": ["users"]
+      "tables": ["users"],
+      "notes": "Login e cadastro done. recuperar-senha pendente."
     },
 
     "auth.actions": {
-      "status": "planned",
+      "status": "done",
       "description": "Server Actions de autenticação (login, cadastro, logout)",
-      "files": ["src/lib/auth/actions.ts"],
+      "files": [
+        "src/lib/actions/auth.ts",
+        "src/app/(auth)/login/actions.ts",
+        "src/app/(auth)/cadastro/actions.ts"
+      ],
       "depends_on": ["foundation.supabase", "foundation.prisma"],
       "used_by": ["auth.pages"],
       "tables": ["users"],
-      "notes": "Ao criar usuário no Supabase Auth, sincronizar com tabela users (role, nome)"
+      "notes": "Sync Supabase Auth → tabela users implementado"
     },
 
     "auth.hooks": {
-      "status": "planned",
-      "description": "Hook useUser() para acesso ao usuário no client",
-      "files": ["src/hooks/useUser.ts"],
+      "status": "done",
+      "description": "Hook useUser() + UserProvider para acesso ao usuário no client",
+      "files": [
+        "src/components/providers/UserProvider.tsx"
+      ],
       "depends_on": ["foundation.supabase"],
       "used_by": ["layout.student", "layout.admin", "student.dashboard"]
     },
 
     "student.dashboard": {
-      "status": "planned",
-      "description": "Página inicial do aluno com resumo de progresso",
-      "files": ["src/app/(student)/dashboard/page.tsx"],
-      "depends_on": ["layout.student", "lib.db.progresso", "lib.db.topicos", "lib.db.plano"],
+      "status": "in_progress",
+      "description": "Página inicial do aluno com boas-vindas, cursos e último tópico",
+      "files": [
+        "src/app/(student)/dashboard/page.tsx",
+        "src/components/student/DashboardWelcome.tsx",
+        "src/components/student/DashboardCursos.tsx",
+        "src/components/student/DashboardNavegar.tsx",
+        "src/components/student/ContinuarUnidad.tsx"
+      ],
+      "depends_on": ["layout.student", "lib.db.cursos"],
       "used_by": [],
-      "tables": ["users", "progresso_topicos", "planos_estudos", "itens_plano", "topicos"]
+      "tables": ["users", "cursos", "disciplinas"],
+      "notes": "Boas-vindas, cursos e ContinuarUnidad done. Progresso/plano pendentes."
     },
 
     "student.disciplinas": {
-      "status": "planned",
-      "description": "Navegação hierárquica: disciplinas → áreas → tópicos",
+      "status": "done",
+      "description": "Navegação hierárquica: Cursos → Disciplinas → Áreas → Tópicos",
       "files": [
-        "src/app/(student)/disciplinas/page.tsx",
-        "src/app/(student)/disciplinas/[disciplina]/page.tsx",
-        "src/app/(student)/disciplinas/[disciplina]/[area]/page.tsx",
-        "src/components/student/DisciplinaCard.tsx",
-        "src/components/student/TopicoCard.tsx",
-        "src/components/student/Breadcrumb.tsx"
+        "src/app/(student)/cursos/page.tsx",
+        "src/app/(student)/cursos/[curso]/page.tsx",
+        "src/app/(student)/cursos/[curso]/[disciplina]/page.tsx",
+        "src/app/(student)/cursos/[curso]/[disciplina]/[area]/page.tsx",
+        "src/components/student/TodosCursos.tsx",
+        "src/components/student/CursoDisciplinas.tsx",
+        "src/components/student/DisciplinaAreas.tsx",
+        "src/components/student/AreaTopicos.tsx"
       ],
-      "depends_on": ["layout.student", "lib.db.disciplinas", "lib.db.progresso"],
+      "depends_on": ["layout.student", "lib.db.cursos"],
       "used_by": ["student.topico"],
-      "tables": ["disciplinas", "areas", "topicos", "progresso_topicos"]
+      "tables": ["cursos", "disciplinas", "areas", "topicos"],
+      "notes": "Rota real: /cursos/[curso]/[disciplina]/[area] (não /disciplinas como no planejamento original)"
     },
 
     "student.topico": {
-      "status": "planned",
-      "description": "Página unificada de tópico: vídeo + artigo + simulações + quiz",
-      "files": ["src/app/(student)/disciplinas/[disciplina]/[area]/[topico]/page.tsx"],
-      "depends_on": [
-        "layout.student", "content.video", "content.artigo",
-        "content.simulacoes", "content.quiz", "lib.db.topicos", "lib.db.progresso"
+      "status": "in_progress",
+      "description": "Página unificada de tópico: vídeo + artigo + atlas + tabelas + quiz",
+      "files": [
+        "src/app/(student)/cursos/[curso]/[disciplina]/[area]/[topico]/page.tsx",
+        "src/components/student/TopicVideoSection.tsx",
+        "src/components/student/TopicAtlasSection.tsx",
+        "src/components/student/TopicTour.tsx",
+        "src/components/student/TablasSection.tsx",
+        "src/components/student/RichOrPlain.tsx",
+        "src/components/student/AtlasCarousel.tsx",
+        "src/components/student/AtlasImageViewer.tsx",
+        "src/components/student/MobileIndiceBar.tsx",
+        "src/components/student/LastTopicTracker.tsx"
       ],
+      "depends_on": ["layout.student", "lib.db.cursos"],
       "used_by": [],
-      "tables": ["topicos", "videos", "artigos", "simulacoes", "quizzes", "progresso_topicos"]
+      "tables": ["topicos", "videos", "artigos", "imagens", "grupos_imagens", "tabelas"],
+      "notes": "Vídeo (YouTube/Vimeo embed), artigo (Tiptap), atlas e tabelas done. Quiz e simulações pendentes."
     },
 
     "student.progresso": {
@@ -225,7 +251,7 @@
       "status": "planned",
       "description": "Busca de conteúdo com filtros por disciplina e tipo",
       "files": ["src/app/(student)/biblioteca/page.tsx"],
-      "depends_on": ["layout.student", "lib.db.topicos", "lib.db.disciplinas"],
+      "depends_on": ["layout.student", "lib.db.cursos"],
       "used_by": [],
       "tables": ["topicos", "videos", "artigos", "disciplinas", "areas"]
     },
@@ -289,36 +315,58 @@
     },
 
     "content.quiz": {
-      "status": "planned",
+      "status": "in_progress",
       "description": "Player de quiz nos modos prática e simulado",
       "files": [
         "src/components/student/QuizPlayer.tsx",
-        "src/components/student/QuizSimulado.tsx"
+        "src/components/student/TopicQuizSection.tsx",
+        "src/app/(quiz)/layout.tsx",
+        "src/app/(quiz)/quizzes/[id]/session/page.tsx"
       ],
-      "depends_on": ["lib.db.quizzes", "lib.db.progresso"],
+      "depends_on": ["lib.db.quizzes"],
       "used_by": ["student.topico", "content.artigo"],
-      "tables": ["quizzes", "questoes", "opcoes", "tentativas_quiz"]
+      "tables": ["quizzes", "questoes", "opcoes", "tentativas_quiz"],
+      "notes": "Sessão full-screen em rota própria (sem StudentLayout). 3 tipos: VERDADEIRO_FALSO, MULTIPLA_ESCOLHA, ESCOLHA_IMAGEM. Auto-advance com feedback visual. Histórico (TentativaQuiz) pendente."
     },
 
-    "admin.disciplinas": {
-      "status": "planned",
-      "description": "CRUD de disciplinas, áreas e tópicos",
+    "admin.content": {
+      "status": "done",
+      "description": "Painel admin unificado: CRUD de cursos, disciplinas, áreas, tópicos, atlas, tabelas, vídeo e artigo",
       "files": [
-        "src/app/(admin)/disciplinas/page.tsx",
-        "src/app/(admin)/disciplinas/[id]/page.tsx"
+        "src/app/(admin)/admin/content/page.tsx",
+        "src/app/(admin)/admin/cursos/page.tsx",
+        "src/app/(admin)/admin/cursos/[id]/page.tsx",
+        "src/app/(admin)/admin/disciplinas/[id]/page.tsx",
+        "src/app/(admin)/admin/areas/[id]/page.tsx",
+        "src/app/(admin)/admin/topicos/[id]/page.tsx",
+        "src/components/admin/ContentTree.tsx",
+        "src/components/admin/panels/CursoPanel.tsx",
+        "src/components/admin/panels/DisciplinaPanel.tsx",
+        "src/components/admin/panels/AreaPanel.tsx",
+        "src/components/admin/panels/TopicoPanel.tsx",
+        "src/components/admin/panels/EmptyPanel.tsx",
+        "src/components/admin/panels/CapaUploadSection.tsx",
+        "src/components/admin/AtlasBlocksManager.tsx",
+        "src/components/admin/GrupoImagensCard.tsx",
+        "src/components/admin/ImageLegendaEditor.tsx",
+        "src/components/admin/ImageUploadForm.tsx",
+        "src/components/admin/TabelasCard.tsx",
+        "src/components/admin/SectionToggle.tsx",
+        "src/components/admin/AtlasActions.tsx",
+        "src/components/admin/DuracaoInput.tsx",
+        "src/components/admin/AdminNavGuard.tsx",
+        "src/components/admin/AdminSaveForm.tsx",
+        "src/components/editor/MiniEditor.tsx"
       ],
-      "depends_on": ["layout.admin", "lib.db.disciplinas", "ui.base"],
+      "depends_on": [
+        "layout.admin", "lib.db.admin", "lib.db.quizzes",
+        "lib/actions/content-structure", "lib/actions/content-atlas",
+        "lib/actions/content-tabelas", "lib/actions/content-media",
+        "lib/actions/content-quizzes"
+      ],
       "used_by": [],
-      "tables": ["disciplinas", "areas", "topicos"]
-    },
-
-    "admin.artigos": {
-      "status": "planned",
-      "description": "Editor de artigos Tiptap no admin",
-      "files": ["src/app/(admin)/artigos/[id]/page.tsx"],
-      "depends_on": ["layout.admin", "content.artigo", "lib.db.topicos"],
-      "used_by": [],
-      "tables": ["artigos", "topicos"]
+      "tables": ["cursos", "disciplinas", "areas", "topicos", "videos", "artigos", "imagens", "grupos_imagens", "imagens_grupo", "tabelas", "linhas_tabela", "topico_quizzes"],
+      "notes": "Painel com ContentTree (árvore) + painéis inline por nível. Vídeo suporta YouTube URL. Artigo usa MiniEditor (Tiptap simplificado). TopicoPanel inclui QuizLinker para vincular/desvincular quizzes."
     },
 
     "admin.simulacoes": {
@@ -334,40 +382,57 @@
     },
 
     "admin.quizzes": {
-      "status": "planned",
-      "description": "Quiz builder no admin",
-      "files": ["src/app/(admin)/quizzes/page.tsx"],
-      "depends_on": ["layout.admin", "lib.db.quizzes"],
-      "used_by": [],
-      "tables": ["quizzes", "questoes", "opcoes"]
+      "status": "in_progress",
+      "description": "Quiz builder standalone no admin — criação, edição, questões e vinculação a tópicos",
+      "files": [
+        "src/app/(admin)/admin/quizzes/page.tsx",
+        "src/app/(admin)/admin/quizzes/[id]/page.tsx",
+        "src/components/admin/panels/QuizPanel.tsx",
+        "src/components/admin/QuizLinker.tsx",
+        "src/lib/actions/content-quizzes.ts"
+      ],
+      "depends_on": ["layout.admin", "lib.db.quizzes", "lib.db.admin"],
+      "used_by": ["admin.content"],
+      "tables": ["quizzes", "questoes", "opcoes", "topico_quizzes"],
+      "notes": "Quizzes são standalone (N:N com tópicos via topico_quizzes). Quiz builder com 3 tipos: MULTIPLA_ESCOLHA, VERDADEIRO_FALSO, ESCOLHA_IMAGEM. Vinculação via QuizLinker no TopicoPanel. Sessão do aluno (QuizPlayer) ainda pendente."
     },
 
-    "admin.videos": {
+    "admin.videos_mux": {
       "status": "planned",
-      "description": "Upload de vídeo via Mux direct upload",
+      "description": "Upload de vídeo via Mux direct upload (nativo Mux, diferente do YouTube embed)",
       "files": [
         "src/app/api/mux/upload/route.ts",
         "src/app/api/mux/webhook/route.ts"
       ],
-      "depends_on": ["lib.video", "lib.db.topicos"],
-      "used_by": ["admin.disciplinas"],
+      "depends_on": ["lib.video", "lib.db.admin"],
+      "used_by": ["admin.content"],
       "tables": ["videos"],
-      "notes": "Upload vai direto do browser para Mux (não passa pelo servidor). Webhook Mux atualiza mux_status e mux_playback_id."
+      "notes": "Upload vai direto do browser para Mux. Webhook atualiza mux_status e mux_playback_id. YouTube URL já funciona como fallback."
     },
 
-    "lib.db.disciplinas": {
-      "status": "planned",
-      "description": "Queries de disciplinas, áreas e tópicos",
-      "files": ["src/lib/db/disciplinas.ts"],
+    "lib.db.cursos": {
+      "status": "done",
+      "description": "Queries da hierarquia completa: cursos, disciplinas, áreas, tópicos",
+      "files": ["src/lib/db/cursos.ts"],
       "depends_on": ["foundation.prisma"],
-      "used_by": ["student.disciplinas", "student.topico", "admin.disciplinas", "student.biblioteca"],
-      "tables": ["disciplinas", "areas", "topicos"]
+      "used_by": ["student.disciplinas", "student.topico", "student.dashboard"],
+      "tables": ["cursos", "disciplinas", "areas", "topicos", "videos", "artigos", "imagens", "grupos_imagens", "tabelas"]
+    },
+
+    "lib.db.admin": {
+      "status": "done",
+      "description": "Queries admin (listagem, contagens)",
+      "files": ["src/lib/db/admin.ts"],
+      "depends_on": ["foundation.prisma"],
+      "used_by": ["admin.content"],
+      "tables": ["cursos", "disciplinas", "areas", "topicos"]
     },
 
     "lib.db.progresso": {
       "status": "planned",
       "description": "Queries de leitura e escrita de progresso do aluno",
       "files": ["src/lib/db/progresso.ts"],
+      "notes": "Arquivo ainda não existe — a ser criado na Fase de Progresso. Diferente de content-ultimo-topico.ts que só salva o último tópico acessado.",
       "depends_on": ["foundation.prisma"],
       "used_by": [
         "content.video", "content.artigo", "content.simulacoes",
@@ -386,12 +451,12 @@
     },
 
     "lib.db.quizzes": {
-      "status": "planned",
+      "status": "in_progress",
       "description": "Queries de quizzes, questões e tentativas",
       "files": ["src/lib/db/quizzes.ts"],
       "depends_on": ["foundation.prisma"],
       "used_by": ["content.quiz", "admin.quizzes", "student.progresso"],
-      "tables": ["quizzes", "questoes", "opcoes", "tentativas_quiz"]
+      "tables": ["quizzes", "questoes", "opcoes", "topico_quizzes", "tentativas_quiz"]
     },
 
     "lib.db.plano": {
@@ -408,9 +473,33 @@
       "description": "Integração com Mux (criar upload, processar webhook)",
       "files": ["src/lib/video/mux.ts"],
       "depends_on": ["foundation.env"],
-      "used_by": ["admin.videos", "content.video"],
+      "used_by": ["admin.videos_mux", "content.video"],
       "tables": ["videos"],
       "env_vars": ["MUX_TOKEN_ID", "MUX_TOKEN_SECRET", "MUX_WEBHOOK_SECRET"]
+    },
+
+    "hooks.useIsMobile": {
+      "status": "done",
+      "description": "Hook centralizado para detecção de viewport mobile",
+      "files": ["src/hooks/useIsMobile.ts"],
+      "depends_on": [],
+      "used_by": ["student.*", "layout.student"],
+      "notes": "Breakpoint padrão 768px. Aceita breakpoint customizado. Substitui useState+useEffect manual."
+    },
+
+    "lib.actions.content": {
+      "status": "done",
+      "description": "Server Actions divididas por domínio",
+      "files": [
+        "src/lib/actions/content-structure.ts",
+        "src/lib/actions/content-atlas.ts",
+        "src/lib/actions/content-tabelas.ts",
+        "src/lib/actions/content-media.ts",
+        "src/lib/actions/content-quizzes.ts"
+      ],
+      "depends_on": ["foundation.prisma", "foundation.supabase"],
+      "used_by": ["admin.content", "admin.quizzes"],
+      "notes": "content-structure: CRUD curso/disciplina/area/topico/capas. content-atlas: imagens standalone e grupos. content-tabelas: tabelas e linhas. content-media: video e artigo. content-quizzes: CRUD quiz/questão/opção + vincular/desvincular tópico."
     }
 
   },
@@ -420,14 +509,15 @@
       "users":              { "module": "auth.actions", "relations": ["progresso_topicos", "tentativas_quiz", "planos_estudos"] },
       "disciplinas":        { "module": "admin.disciplinas", "relations": ["areas", "simulacoes"] },
       "areas":              { "module": "admin.disciplinas", "relations": ["disciplinas", "topicos"] },
-      "topicos":            { "module": "admin.disciplinas", "relations": ["areas", "videos", "artigos", "quizzes", "topico_simulacoes", "progresso_topicos", "itens_plano"] },
+      "topicos":            { "module": "admin.disciplinas", "relations": ["areas", "videos", "artigos", "topico_quizzes", "topico_simulacoes", "progresso_topicos", "itens_plano"] },
       "videos":             { "module": "admin.videos", "relations": ["topicos"] },
       "artigos":            { "module": "admin.artigos", "relations": ["topicos"] },
       "simulacoes":         { "module": "admin.simulacoes", "relations": ["disciplinas", "topico_simulacoes"] },
       "topico_simulacoes":  { "module": "admin.simulacoes", "relations": ["topicos", "simulacoes"] },
-      "quizzes":            { "module": "admin.quizzes", "relations": ["topicos", "questoes", "tentativas_quiz"] },
-      "questoes":           { "module": "admin.quizzes", "relations": ["quizzes", "opcoes"] },
-      "opcoes":             { "module": "admin.quizzes", "relations": ["questoes"] },
+      "quizzes":            { "module": "admin.quizzes", "relations": ["topico_quizzes", "questoes", "tentativas_quiz"], "note": "standalone — N:N com topicos via topico_quizzes" },
+      "topico_quizzes":     { "module": "admin.quizzes", "relations": ["topicos", "quizzes"], "note": "junction N:N; campos: topico_id, quiz_id, ordem" },
+      "questoes":           { "module": "admin.quizzes", "relations": ["quizzes", "opcoes"], "note": "enunciado: String; tipos: MULTIPLA_ESCOLHA | VERDADEIRO_FALSO | ESCOLHA_IMAGEM; imagem_url opcional" },
+      "opcoes":             { "module": "admin.quizzes", "relations": ["questoes"], "note": "imagem_url para tipo ESCOLHA_IMAGEM — referência a URL já existente, sem re-upload" },
       "progresso_topicos":  { "module": "lib.db.progresso", "relations": ["users", "topicos"] },
       "tentativas_quiz":    { "module": "lib.db.progresso", "relations": ["users", "quizzes"] },
       "planos_estudos":     { "module": "lib.db.plano", "relations": ["users", "itens_plano"] },

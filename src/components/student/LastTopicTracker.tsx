@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { salvarUltimoTopico } from "@/lib/actions/progresso";
+import { salvarUltimoTopico } from "@/lib/actions/content-ultimo-topico";
 
 export type LastTopicData = {
   topicoId: string;
