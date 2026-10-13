@@ -363,3 +363,33 @@ input:-webkit-autofill:active {
   text-underline-offset: 2px;
 }
 .rich-content a:hover { opacity: 0.8; }
+
+/* ── Vídeo fullscreen no mobile ─────────────────────────── */
+/* Garante que o iframe preencha a tela inteira em qualquer orientação */
+iframe:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: unset;
+  border-radius: 0;
+}
+iframe:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: unset;
+  border-radius: 0;
+}
+/* Container pai: libera o overflow ao entrar em fullscreen */
+.video-aspect-box:-webkit-full-screen,
+.video-aspect-box:fullscreen {
+  aspect-ratio: unset;
+  width: 100vw;
+  height: 100vh;
+}
+/* No mobile em landscape, ajusta altura mínima do container */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+  .video-aspect-box {
+    aspect-ratio: unset;
+    height: calc(100vw * 9 / 16);
+    max-height: 100svh;
+  }
+}

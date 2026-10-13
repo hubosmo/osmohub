@@ -37,13 +37,14 @@ export function TopicVideoSection({ video, playerId }: { video: VideoProps | nul
       )}
 
       {embedUrl ? (
-        <div id={playerId} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-          <div style={{ aspectRatio: "16/9" }}>
+        <div id={playerId} className="rounded-xl" style={{ border: "1px solid var(--border)", overflow: "clip" }}>
+          <div className="video-aspect-box" style={{ aspectRatio: "16/9" }}>
             <iframe
               src={embedUrl}
               className="w-full h-full block"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
+              title={video?.titulo ?? "Video"}
             />
           </div>
 
