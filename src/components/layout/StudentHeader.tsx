@@ -4,10 +4,12 @@ import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Menu, X, ChevronDown, ChevronRight, LayoutDashboard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
 import { OsmoLogo } from "@/components/brand/OsmoLogo";
 import { logoutAction } from "@/lib/actions/auth";
 import type { NavCurso } from "@/types/nav";
+import { DROPDOWN, DROPDOWN_ORIGIN, FAST, OVERLAY, SMOOTH, ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 
 interface StudentHeaderProps {
@@ -83,12 +85,15 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                 style={{ backgroundColor: "var(--accent)" }}
               />
             </button>
+            <AnimatePresence>
             {showNotif && (
               <>
                 <div className="fixed inset-0 z-40" onClick={closeAll} />
-                <div
+                <motion.div
+                  variants={DROPDOWN} initial="initial" animate="animate" exit="exit"
+                  transition={FAST}
                   className="absolute right-0 top-9 z-50 w-64 rounded-xl border p-4 shadow-xl"
-                  style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
+                  style={{ ...DROPDOWN_ORIGIN, backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
                 >
                   <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
                     Notificaciones
@@ -96,9 +101,10 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   <p className="text-xs text-center py-4" style={{ color: "var(--text-muted)" }}>
                     Sin notificaciones nuevas
                   </p>
-                </div>
+                </motion.div>
               </>
             )}
+            </AnimatePresence>
           </div>
 
           {/* User dropdown */}
@@ -123,12 +129,15 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
               <ChevronDown className="h-3 w-3 shrink-0" />
             </button>
 
+            <AnimatePresence>
             {showUser && (
               <>
                 <div className="fixed inset-0 z-40" onClick={closeAll} />
-                <div
+                <motion.div
+                  variants={DROPDOWN} initial="initial" animate="animate" exit="exit"
+                  transition={FAST}
                   className="absolute right-0 top-9 z-50 w-52 rounded-xl border py-1.5 shadow-xl"
-                  style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
+                  style={{ ...DROPDOWN_ORIGIN, backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
                 >
                   <div className="px-3 py-2 border-b" style={{ borderColor: "var(--border)" }}>
                     <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>
@@ -170,9 +179,10 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   >
                     {pending ? "Saliendo..." : "Cerrar sesión"}
                   </button>
-                </div>
+                </motion.div>
               </>
             )}
+            </AnimatePresence>
           </div>
           </div>
         </div>
@@ -208,9 +218,13 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
                 </Link>
 
+                <AnimatePresence>
                 {megaOpen && (
-                  <div
+                  <motion.div
+                    variants={DROPDOWN} initial="initial" animate="animate" exit="exit"
+                    transition={FAST}
                     className="absolute left-0 top-full pt-1 z-50"
+                    style={DROPDOWN_ORIGIN}
                     onMouseEnter={openMega}
                     onMouseLeave={closeMega}
                   >
@@ -275,8 +289,9 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link
@@ -323,13 +338,18 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
       </header>
 
       {/* ── Mobile drawer ──────────────────────────────────────── */}
+      <AnimatePresence>
       {mobileOpen && (
         <>
-          <div
+          <motion.div
+            variants={OVERLAY} initial="initial" animate="animate" exit="exit"
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-30 bg-black/50 md:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          <div
+          <motion.div
+            initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+            transition={SMOOTH}
             className="fixed left-0 top-0 z-40 h-full w-64 flex flex-col shadow-2xl md:hidden"
             style={{ backgroundColor: "var(--bg-surface)" }}
           >
@@ -370,12 +390,14 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                   />
                 </button>
 
+                <AnimatePresence initial={false}>
                 {mobileCoursesOpen && cursos.length > 0 && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE} transition={STANDARD} style={ACCORDION_STYLE}>
                   <div className="mt-0.5 flex flex-col gap-0.5">
                     {cursos.map((curso) => {
                       const expanded = mobileExpandedCurso === curso.id;
                       return (
-                        <div key={curso.id}>
+                        <div key={`curso-${curso.id}`}>
                           {/* Linha do curso: nome (link) + seta (expand) */}
                           <div
                             className="flex items-center rounded-lg overflow-hidden ml-2"
@@ -410,26 +432,32 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                           </div>
 
                           {/* Disciplinas — nível 2 */}
+                          <AnimatePresence initial={false}>
                           {expanded && (
-                            <div className="ml-5 mt-0.5 flex flex-col gap-0.5 mb-1">
-                              {curso.disciplinas.map((disc) => (
-                                <Link
-                                  key={disc.id}
-                                  href={`/cursos/${curso.slug}/${disc.slug}`}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="px-3 py-2 text-xs rounded-lg no-underline truncate"
-                                  style={{ color: "var(--text-muted)" }}
-                                >
-                                  {disc.nome}
-                                </Link>
-                              ))}
-                            </div>
+                            <motion.div key={`disc-${curso.id}`} initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE} transition={STANDARD} style={ACCORDION_STYLE}>
+                              <div className="ml-5 mt-0.5 flex flex-col gap-0.5 mb-1">
+                                {curso.disciplinas.map((disc) => (
+                                  <Link
+                                    key={disc.id}
+                                    href={`/cursos/${curso.slug}/${disc.slug}`}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="px-3 py-2 text-xs rounded-lg no-underline truncate"
+                                    style={{ color: "var(--text-muted)" }}
+                                  >
+                                    {disc.nome}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
                           )}
+                          </AnimatePresence>
                         </div>
                       );
                     })}
                   </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </div>
 
               {OTHER_NAV.map(({ href, label }) => {
@@ -498,9 +526,10 @@ export function StudentHeader({ userName = "Estudiante", userEmail, isAdmin, nav
                 {pending ? "Saliendo..." : "Cerrar sesión"}
               </button>
             </div>
-          </div>
+          </motion.div>
         </>
       )}
+      </AnimatePresence>
     </>
   );
 }

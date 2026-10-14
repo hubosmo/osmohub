@@ -83,7 +83,7 @@
 - [x] Seção de vídeo (YouTube embed / placeholder se sem vídeo)
 - [x] Seção de artigo (placeholder — editor Tiptap na Fase 5)
 - [ ] Seção de simulações vinculadas
-- [ ] Seção de quiz
+- [x] Seção de quiz
 - [x] Navegação anterior/próximo tópico
 - [ ] Marcação automática de progresso
 
@@ -215,6 +215,83 @@
 - [ ] Configurar domínio personalizado
 - [ ] RLS do Supabase em produção
 - [ ] Auditoria de performance (Lighthouse)
+
+---
+
+## Sistema de Animações ✅ (concluído)
+
+> Implementado via **Framer Motion** (`framer-motion ^13`). Toda animação nova deve usar as variantes de `src/lib/motion.ts` — nunca criar variantes inline.
+
+### Variantes disponíveis em `src/lib/motion.ts`
+
+| Exportação | Uso |
+|---|---|
+| `PAGE_VARIANTS` + `PAGE_TRANSITION` | Transição entre páginas (via `PageTransition`) |
+| `MODAL_BACKDROP` + `MODAL_PANEL` + `MODAL_TRANSITION` | Modais centralizados com backdrop |
+| `BOTTOM_SHEET` + `SHEET_TRANSITION` | Drawers mobile que sobem do rodapé |
+| `OVERLAY` | Backdrop de qualquer overlay (fade simples) |
+| `INLINE_PANEL` | Painéis que abrem lateralmente (admin) |
+| `DROPDOWN` + `DROPDOWN_ORIGIN` | Dropdowns (scaleY + fade) |
+| `LIST_CONTAINER` + `LIST_ITEM` | Listas com stagger entre itens |
+| `FAST` · `STANDARD` · `SMOOTH` | Transições de tempo reutilizáveis |
+
+### Como implementar
+
+**Transição de página** — automática. `PageTransition` já está nos layouts `StudentLayout` e `AdminLayout`. Não adicionar em rotas com animação própria (ex: `/quizzes/*/session`).
+
+**Modal novo:**
+```tsx
+import { motion, AnimatePresence } from "framer-motion";
+import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
+
+<AnimatePresence>
+  {open && (
+    <motion.div variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
+      transition={{ duration: 0.18 }} className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.65)" }} onClick={handleClose}>
+      <motion.div variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
+        transition={MODAL_TRANSITION} className="..." onClick={e => e.stopPropagation()}>
+        {/* conteúdo */}
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+**Dropdown novo:**
+```tsx
+import { motion, AnimatePresence } from "framer-motion";
+import { DROPDOWN, DROPDOWN_ORIGIN, FAST } from "@/lib/motion";
+
+<AnimatePresence>
+  {open && (
+    <motion.div variants={DROPDOWN} initial="initial" animate="animate" exit="exit"
+      transition={FAST} style={DROPDOWN_ORIGIN} className="absolute ...">
+      {/* itens */}
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+**Painel inline admin:**
+```tsx
+import { motion, AnimatePresence } from "framer-motion";
+import { INLINE_PANEL, STANDARD } from "@/lib/motion";
+
+<AnimatePresence>
+  {panelOpen && (
+    <motion.div variants={INLINE_PANEL} initial="initial" animate="animate" exit="exit"
+      transition={STANDARD}>
+      {/* painel */}
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+### Exceções — NÃO usar `PageTransition`
+
+- `/quizzes/*/session` — o `QuizPlayer` tem sua própria animação de slide entre questões
+- Páginas de autenticação (`(auth)`) — transição de layout diferente
 
 ---
 

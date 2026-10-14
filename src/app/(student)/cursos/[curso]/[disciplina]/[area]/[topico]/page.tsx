@@ -46,8 +46,8 @@ export default async function TopicoPage({ params }: PageProps) {
     ...(topico.video_ativo ? [{ id: "video", label: "Mira el video", icon: <PlayCircle className="h-4 w-4" /> }] : []),
     ...(topico.artigo_ativo && topico.artigo ? [{ id: "articulo", label: "Lee el artículo", icon: <BookOpen className="h-4 w-4" /> }] : []),
     ...(hasImages ? [{ id: "atlas", label: "Navega por el atlas", icon: <ImageIcon className="h-4 w-4" /> }] : []),
-    ...(hasTables ? [{ id: "tablas", label: "Tablas de resumen", icon: <Table2Icon className="h-4 w-4" /> }] : []),
     ...(hasQuiz ? [{ id: "cuestionario", label: "Haz un cuestionario", icon: <HelpCircle className="h-4 w-4" /> }] : []),
+    ...(hasTables ? [{ id: "tablas", label: "Tablas de resumen", icon: <Table2Icon className="h-4 w-4" /> }] : []),
   ];
 
   return (
@@ -167,7 +167,7 @@ export default async function TopicoPage({ params }: PageProps) {
           {/* ── Seções numeradas ──────────────────────────────────── */}
           <div className="flex flex-col gap-12">
             {sections.map((section, idx) => (
-              <section key={section.id} id={section.id}>
+              <section key={section.id} id={section.id} style={{ scrollMarginTop: 60 }}>
                 {/* Cabeçalho numerado */}
                 <div className="flex items-center gap-3 mb-5">
                   <div

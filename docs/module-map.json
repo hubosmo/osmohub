@@ -315,10 +315,13 @@
     },
 
     "content.quiz": {
-      "status": "in_progress",
+      "status": "done",
       "description": "Player de quiz nos modos prática e simulado",
       "files": [
         "src/components/student/QuizPlayer.tsx",
+        "src/components/student/QuizPlayerOpcoes.tsx",
+        "src/components/student/QuizPlayerPlaying.tsx",
+        "src/components/student/QuizPlayerFinished.tsx",
         "src/components/student/TopicQuizSection.tsx",
         "src/app/(quiz)/layout.tsx",
         "src/app/(quiz)/quizzes/[id]/session/page.tsx"
@@ -326,7 +329,7 @@
       "depends_on": ["lib.db.quizzes"],
       "used_by": ["student.topico", "content.artigo"],
       "tables": ["quizzes", "questoes", "opcoes", "tentativas_quiz"],
-      "notes": "Sessão full-screen em rota própria (sem StudentLayout). 3 tipos: VERDADEIRO_FALSO, MULTIPLA_ESCOLHA, ESCOLHA_IMAGEM. Auto-advance com feedback visual. Histórico (TentativaQuiz) pendente."
+      "notes": "Sessão full-screen em rota própria (sem StudentLayout). 3 tipos: VERDADEIRO_FALSO, MULTIPLA_ESCOLHA, ESCOLHA_IMAGEM. Funcionalidades: slide transition entre questões, efeitos sonoros (Web Audio API), lupa AtlasImageViewer nas imagens, tela de resultado com SVG ring + confeti (≥70%), configuração persistente (localStorage: tempo e tentativas), 1 ou 2 tentativas por questão, início direto sem modal. Histórico (TentativaQuiz) pendente."
     },
 
     "admin.content": {

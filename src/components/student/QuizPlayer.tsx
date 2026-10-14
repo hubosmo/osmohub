@@ -2,20 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Menu, X, VolumeX, Volume2, Flag, Square, Check, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import type { Opcao, Questao, AnswerState } from "./QuizPlayerOpcoes";
+import { QuizPlayingPhase } from "./QuizPlayerPlaying";
+import { QuizFinishedPhase } from "./QuizPlayerFinished";
+import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
-type Opcao = { id: string; texto: string; imagem_url: string | null; correta: boolean };
-type Questao = {
-  id: string;
-  enunciado: string;
-  tipo: string;
-  imagem_url: string | null;
-  explicacao: string | null;
-  termo: string | null;
-  opcoes: Opcao[];
-};
 type QuizData = {
   id: string;
   titulo: string;
@@ -26,9 +22,12 @@ type QuizData = {
 interface Props {
   quiz: QuizData;
   backUrl: string;
+  initialTime?: number;
+  initialExclude?: string[];
+  initialAttempts?: number;
 }
 
-// ── Constantes ─────────────────────────────────────────────────────────────────
+// ── Utilitários ────────────────────────────────────────────────────────────────
 
 const TIME_OPTIONS = [
   { label: "5 min",  value: 5,  questoes: 10 },
@@ -54,22 +53,53 @@ function formatTime(secs: number) {
 
 // ── Componente principal ───────────────────────────────────────────────────────
 
-export function QuizPlayer({ quiz, backUrl }: Props) {
+export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initialAttempts }: Props) {
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Fases: config → playing → finished
+  function playSound(type: "select" | "correct" | "wrong") {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (type === "correct") {
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = "sine"; osc.frequency.value = freq;
+          const t = ctx.currentTime + i * 0.1;
+          gain.gain.setValueAtTime(0.25, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.start(t); osc.stop(t + 0.35);
+        });
+      } else if (type === "wrong") {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination); osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(220, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
+      } else {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination); osc.type = "sine"; osc.frequency.value = 480;
+        gain.gain.setValueAtTime(0.08, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.08);
+      }
+    } catch {}
+  }
+
+  const hasInitialConfig = initialTime !== undefined;
   type Phase = "config" | "playing" | "finished";
-  const [phase, setPhase] = useState<Phase>("config");
+  const [phase, setPhase] = useState<Phase>(hasInitialConfig ? "playing" : "config");
 
-  // Termos únicos derivados das questões
   const uniqueTermos = [...new Set(
     quiz.questoes.map(q => q.termo).filter((t): t is string => !!t?.trim())
   )];
 
-  // Config
-  const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]); // 10 min default
+  const defaultTimeOpt = TIME_OPTIONS.find(o => o.value === initialTime) ?? TIME_OPTIONS[1];
+  const [selectedTime, setSelectedTime]     = useState(defaultTimeOpt);
   const [termosExpanded, setTermosExpanded] = useState(false);
-  const [deselectedTermos, setDeselectedTermos] = useState<Set<string>>(new Set());
+  const [deselectedTermos, setDeselectedTermos] = useState<Set<string>>(new Set(initialExclude ?? []));
 
   function toggleTermo(t: string) {
     setDeselectedTermos(prev => {
@@ -79,23 +109,32 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
     });
   }
 
-  // Playing
-  const [questions, setQuestions]     = useState<Questao[]>([]);
-  const [currentIdx, setCurrentIdx]   = useState(0);
-  const [elapsed, setElapsed]         = useState(0);
-  const [muted, setMuted]             = useState(false);
-  const [menuOpen, setMenuOpen]       = useState(false);
-  type AnswerState = "idle" | "correct" | "wrong";
-  const [answerState, setAnswerState] = useState<AnswerState>("idle");
-  const [selectedId, setSelectedId]   = useState<string | null>(null);
+  const [questions, setQuestions]       = useState<Questao[]>([]);
+  const [currentIdx, setCurrentIdx]     = useState(0);
+  const [elapsed, setElapsed]           = useState(0);
+  const [muted, setMuted]               = useState(false);
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const [answerState, setAnswerState]   = useState<AnswerState>("idle");
+  const [selectedId, setSelectedId]     = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
 
-  // Finished
-  const [totalTime, setTotalTime] = useState(0);
+  const maxAttempts = initialAttempts ?? 1;
+  const [attemptsUsed, setAttemptsUsed] = useState(0);
+  const [wrongIds, setWrongIds]         = useState<Set<string>>(new Set());
 
+  const [prevQ, setPrevQ]     = useState<Questao | null>(null);
+  const [prevIdx, setPrevIdx] = useState<number | null>(null);
+
+  const [totalTime, setTotalTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Timer ──
+  useEffect(() => {
+    if (hasInitialConfig && phase === "playing" && questions.length === 0) {
+      startSession();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (phase === "playing") {
       timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -105,10 +144,8 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [phase]);
 
-  // ── Iniciar sessão ──
   function startSession() {
-    const anyDeselected = deselectedTermos.size > 0;
-    const pool = anyDeselected
+    const pool = deselectedTermos.size > 0
       ? quiz.questoes.filter(q => q.termo && !deselectedTermos.has(q.termo))
       : quiz.questoes;
     const shuffled = shuffle(pool).slice(0, selectedTime.questoes);
@@ -118,28 +155,15 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
     setCorrectCount(0);
     setAnswerState("idle");
     setSelectedId(null);
+    setPrevQ(null);
+    setPrevIdx(null);
     setPhase("playing");
   }
 
-  // ── Responder ──
-  const handleAnswer = useCallback((opcao: Opcao) => {
-    if (answerState !== "idle") return;
-    setSelectedId(opcao.id);
-    if (opcao.correta) {
-      setAnswerState("correct");
-      setCorrectCount((c) => c + 1);
-      setTimeout(advanceQuestion, 1200);
-    } else {
-      setAnswerState("wrong");
-      setTimeout(advanceQuestion, 2200);
-    }
-  }, [answerState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Avançar ──
   const advanceQuestion = useCallback(() => {
-    setAnswerState("idle");
-    setSelectedId(null);
     setCurrentIdx((idx) => {
+      setPrevQ(questions[idx] ?? null);
+      setPrevIdx(idx);
       if (idx + 1 >= questions.length) {
         setTotalTime(elapsed);
         setPhase("finished");
@@ -147,29 +171,47 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
       }
       return idx + 1;
     });
-  }, [questions.length, elapsed]);
+    setAnswerState("idle");
+    setSelectedId(null);
+    setAttemptsUsed(0);
+    setWrongIds(new Set());
+  }, [questions, elapsed]);
 
-  // ── Encerrar antecipado ──
+  const handleAnswer = useCallback((opcao: Opcao) => {
+    if (answerState !== "idle") return;
+    if (wrongIds.has(opcao.id)) return;
+    setSelectedId(opcao.id);
+    if (opcao.correta) {
+      if (!muted) playSound("correct");
+      setAnswerState("correct");
+      setCorrectCount((c) => c + 1);
+      setTimeout(advanceQuestion, 1200);
+    } else {
+      if (!muted) playSound("wrong");
+      const newUsed = attemptsUsed + 1;
+      setAttemptsUsed(newUsed);
+      if (maxAttempts >= 2 && newUsed < maxAttempts) {
+        setAnswerState("wrong");
+        setWrongIds((prev) => new Set([...prev, opcao.id]));
+        setTimeout(() => { setAnswerState("idle"); setSelectedId(null); }, 700);
+      } else {
+        setAnswerState("wrong");
+        setTimeout(advanceQuestion, 2200);
+      }
+    }
+  }, [answerState, muted, attemptsUsed, maxAttempts, wrongIds, advanceQuestion]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function endEarly() {
     setTotalTime(elapsed);
     setPhase("finished");
     setMenuOpen(false);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FASE: CONFIG
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ── Fase config ──
   if (phase === "config") {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center px-4 py-8"
-        style={{ backgroundColor: "var(--bg-base)" }}
-      >
-        <div
-          className="w-full max-w-md rounded-2xl overflow-hidden shadow-xl"
-          style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
-        >
-          {/* Capa */}
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-xl" style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}>
           {quiz.capa_url && (
             <div className="relative h-32 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -177,388 +219,106 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
               <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--bg-surface))" }} />
             </div>
           )}
-
           <div className="px-6 pb-6 pt-4">
-            {/* Badge + título */}
-            <span
-              className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mb-2"
-              style={{ backgroundColor: "var(--accent)", color: "#fff" }}
-            >
+            <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mb-2" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
               Cuestionario
             </span>
-            <h1 className="text-lg font-bold mb-5 leading-snug" style={{ color: "var(--text-primary)" }}>
-              {quiz.titulo}
-            </h1>
+            <h1 className="text-lg font-bold mb-5 leading-snug" style={{ color: "var(--text-primary)" }}>{quiz.titulo}</h1>
 
-            {/* Selector de tiempo */}
-            <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
-              ¿Cuánto tiempo quieres estudiar?
-            </p>
+            <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>¿Cuánto tiempo quieres estudiar?</p>
             <div className="flex gap-2 mb-6">
               {TIME_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setSelectedTime(opt)}
-                  className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
-                  style={{
-                    border: `2px solid ${selectedTime.value === opt.value ? "var(--accent)" : "var(--border)"}`,
-                    backgroundColor: selectedTime.value === opt.value ? "var(--accent)" : "transparent",
-                    color: selectedTime.value === opt.value ? "#fff" : "var(--text-secondary)",
-                  }}
-                >
+                <button key={opt.value} onClick={() => setSelectedTime(opt)} className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
+                  style={{ border: `2px solid ${selectedTime.value === opt.value ? "var(--accent)" : "var(--border)"}`, backgroundColor: selectedTime.value === opt.value ? "var(--accent)" : "transparent", color: selectedTime.value === opt.value ? "#fff" : "var(--text-secondary)" }}>
                   {opt.label}
                 </button>
               ))}
             </div>
 
-            {/* Botão iniciar */}
-            <button
-              onClick={startSession}
-              className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wide text-white mb-4 transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)" }}
-            >
+            <button onClick={startSession} className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wide text-white mb-4 transition-opacity hover:opacity-90" style={{ backgroundColor: "var(--accent)" }}>
               Comenzar a estudiar ▶ {selectedTime.label}
             </button>
 
-            {/* Lo que aprenderás */}
             {uniqueTermos.length > 0 && (
               <div>
-                <button
-                  onClick={() => setTermosExpanded((v) => !v)}
-                  className="flex items-center gap-2 text-sm w-full py-2"
-                  style={{
-                    borderTop: "1px solid var(--border)",
-                    color: "var(--text-secondary)",
-                  }}
-                >
+                <button onClick={() => setTermosExpanded((v) => !v)} className="flex items-center gap-2 text-sm w-full py-2" style={{ borderTop: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                   <span className="flex-1 text-left">
                     Lo que aprenderás
                     {deselectedTermos.size > 0 && (
-                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
-                        style={{ backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
+                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
                         {uniqueTermos.length - deselectedTermos.size}/{uniqueTermos.length}
                       </span>
                     )}
                   </span>
-                  <ChevronRight
-                    className="h-4 w-4 transition-transform shrink-0"
-                    style={{ transform: termosExpanded ? "rotate(90deg)" : "none" }}
-                  />
+                  <ChevronRight className="h-4 w-4 transition-transform shrink-0" style={{ transform: termosExpanded ? "rotate(90deg)" : "none" }} />
                 </button>
-
+                <AnimatePresence initial={false}>
                 {termosExpanded && (
-                  <div className="pt-3 pb-1">
-                    <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-                      Haz clic para quitar contenido de la sesión de estudio:
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {uniqueTermos.map((t) => {
-                        const active = !deselectedTermos.has(t);
-                        return (
-                          <button
-                            key={t}
-                            onClick={() => toggleTermo(t)}
-                            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all"
-                            style={{
-                              border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
-                              color: active ? "var(--accent)" : "var(--text-muted)",
-                              backgroundColor: active
-                                ? "color-mix(in srgb, var(--accent) 10%, transparent)"
-                                : "transparent",
-                              textDecoration: active ? "none" : "line-through",
-                              opacity: active ? 1 : 0.5,
-                            }}
-                          >
-                            <span className="h-3 w-3 rounded-full border flex items-center justify-center shrink-0"
-                              style={{ borderColor: active ? "var(--accent)" : "var(--text-muted)", fontSize: 9 }}>
-                              {active ? "●" : ""}
-                            </span>
-                            {t}
-                          </button>
-                        );
-                      })}
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE} transition={STANDARD} style={ACCORDION_STYLE}>
+                    <div className="pt-3 pb-1">
+                      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Haz clic para quitar contenido de la sesión de estudio:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {uniqueTermos.map((t) => {
+                          const active = !deselectedTermos.has(t);
+                          return (
+                            <button key={t} onClick={() => toggleTermo(t)} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all"
+                              style={{ border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`, color: active ? "var(--accent)" : "var(--text-muted)", backgroundColor: active ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent", textDecoration: active ? "none" : "line-through", opacity: active ? 1 : 0.5 }}>
+                              <span className="h-3 w-3 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: active ? "var(--accent)" : "var(--text-muted)", fontSize: 9 }}>{active ? "●" : ""}</span>
+                              {t}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </div>
             )}
           </div>
         </div>
-
-        {/* Voltar */}
-        <button
-          onClick={() => router.back()}
-          className="mt-6 text-sm"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Volver al tema
-        </button>
+        <button onClick={() => router.back()} className="mt-6 text-sm" style={{ color: "var(--text-muted)" }}>← Volver al tema</button>
       </div>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FASE: PLAYING
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ── Fase playing ──
   if (phase === "playing") {
     const q = questions[currentIdx];
-    const progress = questions.length > 0 ? (currentIdx / questions.length) * 100 : 0;
-
-    return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ backgroundColor: "var(--bg-base)" }}
-        onClick={() => menuOpen && setMenuOpen(false)}
-      >
-        {/* ── Barra superior ── */}
-        <div
-          className="sticky top-0 z-20 flex items-center gap-3 px-4 h-14"
-          style={{ backgroundColor: "#1e2832", color: "#fff" }}
-        >
-          {/* Menu */}
-          <button
-            onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-            className="h-8 w-8 flex items-center justify-center rounded shrink-0"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          {/* Progresso */}
-          <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, backgroundColor: "var(--accent)" }}
-            />
-          </div>
-
-          {/* Timer */}
-          <span className="text-sm font-mono tabular-nums shrink-0">{formatTime(elapsed)}</span>
-
-          {/* Pause */}
-          <button className="h-8 w-8 flex items-center justify-center rounded shrink-0">
-            <span className="text-xs font-bold">⏸</span>
-          </button>
-        </div>
-
-        {/* ── Dropdown menu ── */}
-        {menuOpen && (
-          <div
-            className="fixed z-30 left-3 top-16 rounded-xl overflow-hidden shadow-xl"
-            style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", minWidth: 220 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => { setMuted((v) => !v); setMenuOpen(false); }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors hover:opacity-80"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {muted ? <Volume2 className="h-4 w-4 shrink-0" /> : <VolumeX className="h-4 w-4 shrink-0" />}
-              {muted ? "Activar sonidos" : "Silenciar sonidos"}
-            </button>
-            <button
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors hover:opacity-80"
-              style={{ color: "var(--text-primary)", borderTop: "1px solid var(--border)" }}
-            >
-              <Flag className="h-4 w-4 shrink-0" />
-              Reportar un problema
-            </button>
-            <button
-              onClick={endEarly}
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium"
-              style={{ color: "#fff", backgroundColor: "#E57373", borderTop: "1px solid var(--border)" }}
-            >
-              <Square className="h-4 w-4 shrink-0" />
-              Terminar este cuestionario
-            </button>
-          </div>
-        )}
-
-        {/* ── Enunciado ── */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-2xl mx-auto w-full">
-          {/* Imagen del enunciado (opcional) */}
-          {q.imagem_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={q.imagem_url}
-              alt=""
-              className="w-full max-w-sm rounded-xl object-cover mb-6"
-              style={{ maxHeight: 200, border: "1px solid var(--border)" }}
-            />
-          )}
-
-          {/* Texto */}
-          <p
-            className="text-base text-center leading-relaxed mb-8 max-w-lg"
-            style={{ color: "var(--accent)", fontWeight: 500 }}
-          >
-            {q.enunciado}
-          </p>
-
-          {/* Opciones */}
-          <div className="w-full">
-            {q.tipo === "VERDADEIRO_FALSO" && (
-              <VFOpcoes opcoes={q.opcoes} answerState={answerState} selectedId={selectedId} onAnswer={handleAnswer} />
-            )}
-            {q.tipo === "MULTIPLA_ESCOLHA" && (
-              <MultiOpcoes opcoes={q.opcoes} answerState={answerState} selectedId={selectedId} onAnswer={handleAnswer} />
-            )}
-            {q.tipo === "ESCOLHA_IMAGEM" && (
-              <ImageOpcoes opcoes={q.opcoes} answerState={answerState} selectedId={selectedId} onAnswer={handleAnswer} />
-            )}
-          </div>
-
-          {/* Explicação (se wrong) */}
-          {answerState === "wrong" && q.explicacao && (
-            <div
-              className="mt-5 w-full rounded-xl p-4 text-sm"
-              style={{ backgroundColor: "color-mix(in srgb, #EF4444 10%, var(--bg-surface))", border: "1px solid #EF4444", color: "var(--text-secondary)" }}
-            >
-              {q.explicacao}
-            </div>
-          )}
-        </div>
+    if (!q) return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="h-8 w-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
       </div>
+    );
+    // When maxAttempts >= 2 and the user still has a retry left, don't reveal
+    // the correct answer — only the wrong choice is highlighted red.
+    const hideCorrect = maxAttempts >= 2 && attemptsUsed < maxAttempts;
+    return (
+      <QuizPlayingPhase
+        q={q} prevQ={prevQ} prevIdx={prevIdx} isMobile={isMobile}
+        timerDisplay={formatTime(elapsed)}
+        progress={questions.length > 0 ? (currentIdx / questions.length) * 100 : 0}
+        muted={muted} menuOpen={menuOpen}
+        answerState={answerState} selectedId={selectedId} wrongIds={wrongIds}
+        hideCorrect={hideCorrect}
+        onMenuToggle={() => setMenuOpen((v) => !v)}
+        onMuteToggle={() => setMuted((v) => !v)}
+        onEndEarly={endEarly}
+        onAnswer={handleAnswer}
+        onClearPrev={() => { setPrevQ(null); setPrevIdx(null); }}
+      />
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FASE: FINISHED
-  // ─────────────────────────────────────────────────────────────────────────────
-  const pct = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
-
+  // ── Fase finished ──
+  const pct        = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+  const wrongCount = questions.length - correctCount;
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
-      style={{ backgroundColor: "var(--bg-base)" }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl p-8 text-center shadow-xl"
-        style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
-      >
-        {/* Ícone resultado */}
-        <div
-          className="h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ backgroundColor: pct >= 70 ? "#22C55E22" : "#EF444422" }}
-        >
-          {pct >= 70
-            ? <Check className="h-8 w-8" style={{ color: "#22C55E" }} />
-            : <X className="h-8 w-8" style={{ color: "#EF4444" }} />}
-        </div>
-
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>{pct}%</h2>
-        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-          {correctCount} de {questions.length} correctas · {formatTime(totalTime)}
-        </p>
-
-        {/* Mensagem motivacional */}
-        <p className="text-sm mb-8 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          {pct >= 90 ? "¡Excelente! Dominas este tema."
-           : pct >= 70 ? "¡Buen trabajo! Sigue practicando para mejorar."
-           : "Sigue estudiando. La práctica constante hace al maestro."}
-        </p>
-
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={startSession}
-            className="w-full py-3 rounded-xl font-bold text-sm text-white"
-            style={{ backgroundColor: "var(--accent)" }}
-          >
-            Volver a intentar
-          </button>
-          <button
-            onClick={() => router.push(backUrl)}
-            className="w-full py-2.5 rounded-xl text-sm"
-            style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
-          >
-            Volver al tema
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Sub-componentes de opciones ────────────────────────────────────────────────
-
-type OpcaoProps = {
-  opcoes: Opcao[];
-  answerState: "idle" | "correct" | "wrong";
-  selectedId: string | null;
-  onAnswer: (o: Opcao) => void;
-};
-
-function opcaoStyle(op: Opcao, answerState: "idle" | "correct" | "wrong", selectedId: string | null): React.CSSProperties {
-  const isSelected = op.id === selectedId;
-  if (answerState === "idle") return { border: "1px solid var(--border)", backgroundColor: "#fff", color: "#1a1a1a" };
-  if (answerState === "correct" && isSelected) return { border: "2px solid #22C55E", backgroundColor: "#22C55E22", color: "#1a1a1a" };
-  if (answerState === "wrong") {
-    if (isSelected) return { border: "2px solid #EF4444", backgroundColor: "#EF444422", color: "#1a1a1a" };
-    if (op.correta) return { border: "2px solid #22C55E", backgroundColor: "#22C55E22", color: "#1a1a1a" };
-    return { border: "1px solid var(--border)", backgroundColor: "#fff", color: "#1a1a1a", opacity: 0.4 };
-  }
-  return { border: "1px solid var(--border)", backgroundColor: "#fff", color: "#1a1a1a" };
-}
-
-function VFOpcoes({ opcoes, answerState, selectedId, onAnswer }: OpcaoProps) {
-  const vf = opcoes.length === 2 ? opcoes : [
-    { id: "V", texto: "Verdadero", imagem_url: null, correta: false },
-    { id: "F", texto: "Falso", imagem_url: null, correta: false },
-  ];
-  return (
-    <div className="flex flex-col gap-2 max-w-md mx-auto">
-      {vf.map((op) => (
-        <button
-          key={op.id}
-          onClick={() => onAnswer(op)}
-          disabled={answerState !== "idle"}
-          className="w-full py-3.5 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all"
-          style={opcaoStyle(op, answerState, selectedId)}
-        >
-          {op.texto}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function MultiOpcoes({ opcoes, answerState, selectedId, onAnswer }: OpcaoProps) {
-  return (
-    <div className="flex flex-col gap-2 max-w-xl mx-auto">
-      {opcoes.map((op) => (
-        <button
-          key={op.id}
-          onClick={() => onAnswer(op)}
-          disabled={answerState !== "idle"}
-          className="w-full px-4 py-3 rounded-xl text-sm text-left transition-all"
-          style={opcaoStyle(op, answerState, selectedId)}
-        >
-          {op.texto}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ImageOpcoes({ opcoes, answerState, selectedId, onAnswer }: OpcaoProps) {
-  return (
-    <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
-      {opcoes.map((op) => (
-        <button
-          key={op.id}
-          onClick={() => onAnswer(op)}
-          disabled={answerState !== "idle"}
-          className="rounded-xl overflow-hidden text-left transition-all"
-          style={opcaoStyle(op, answerState, selectedId)}
-        >
-          {op.imagem_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={op.imagem_url} alt="" className="w-full aspect-video object-cover" />
-          )}
-          {op.texto && (
-            <p className="px-2 py-1.5 text-xs font-medium">{op.texto}</p>
-          )}
-        </button>
-      ))}
-    </div>
+    <QuizFinishedPhase
+      pct={pct} correctCount={correctCount} wrongCount={wrongCount}
+      totalTime={formatTime(totalTime)}
+      onRetry={startSession}
+      onBack={() => router.push(backUrl)}
+    />
   );
 }
