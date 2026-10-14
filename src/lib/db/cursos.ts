@@ -266,9 +266,12 @@ export function getTopicoPorSlug(
               id: true,
               titulo: true,
               capa_url: true,
-              termos: true,
               publicado: true,
               _count: { select: { questoes: true } },
+              questoes: {
+                select: { termo: true },
+                orderBy: { ordem: "asc" },
+              },
             },
           },
         },

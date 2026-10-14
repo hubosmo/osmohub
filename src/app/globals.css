@@ -338,6 +338,15 @@ input:-webkit-autofill:active {
   text-underline-offset: 2px;
 }
 
+/* ── Botão Estudiar nos cards de tópico ─────────────────── */
+.estudiar-btn {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.estudiar-btn:hover {
+  background-color: var(--btn-accent);
+  color: #fff;
+}
+
 /* ── Breadcrumb links ───────────────────────────────────── */
 .breadcrumb-link { color: var(--text-secondary); transition: color 0.15s; }
 .breadcrumb-link:hover { color: var(--accent); }

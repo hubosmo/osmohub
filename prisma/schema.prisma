@@ -274,7 +274,6 @@ model Quiz {
   titulo           String
   descricao        String?
   capa_url         String?
-  termos           String[] // "Lo que aprenderás" — lista de termos cobertos
   modo             ModoQuiz @default(PRATICA)
   tempo_limite_seg Int?
   publicado        Boolean  @default(false)
@@ -310,9 +309,10 @@ model Questao {
   id         String      @id @default(uuid())
   quiz_id    String
   enunciado  String      @db.Text
-  imagem_url String?     // imagem que acompanha o enunciado (opcional)
+  imagem_url String?
   tipo       TipoQuestao @default(MULTIPLA_ESCOLHA)
   explicacao String?     @db.Text
+  termo      String?     // termo coberto pela questão — gera "Lo que aprenderás"
   ordem      Int         @default(0)
 
   quiz   Quiz    @relation(fields: [quiz_id], references: [id], onDelete: Cascade)

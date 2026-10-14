@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function revalidate() {
   revalidatePath("/admin/quizzes", "layout");
@@ -25,15 +26,11 @@ export async function atualizarQuiz(quizId: string, fd: FormData) {
   const titulo = (fd.get("titulo") as string | null)?.trim();
   const descricao = (fd.get("descricao") as string | null)?.trim() || null;
   const capa_url = (fd.get("capa_url") as string | null)?.trim() || null;
-  const termosRaw = (fd.get("termos") as string | null)?.trim() || "";
-  const termos = termosRaw
-    ? termosRaw.split("\n").map((t) => t.trim()).filter(Boolean)
-    : [];
   const publicado = fd.get("publicado") === "on";
 
   await prisma.quiz.update({
     where: { id: quizId },
-    data: { titulo: titulo ?? undefined, descricao, capa_url, termos, publicado },
+    data: { titulo: titulo ?? undefined, descricao, capa_url, publicado },
   });
   revalidate();
   revalidatePath(`/admin/quizzes/${quizId}`);
@@ -87,10 +84,11 @@ export async function atualizarQuestao(questaoId: string, quizId: string, fd: Fo
   const enunciado = (fd.get("enunciado") as string | null)?.trim();
   const explicacao = (fd.get("explicacao") as string | null)?.trim() || null;
   const imagem_url = (fd.get("imagem_url") as string | null)?.trim() || null;
+  const termo = (fd.get("termo") as string | null)?.trim() || null;
 
   await prisma.questao.update({
     where: { id: questaoId },
-    data: { enunciado: enunciado ?? undefined, explicacao, imagem_url },
+    data: { enunciado: enunciado ?? undefined, explicacao, imagem_url, termo },
   });
   revalidatePath(`/admin/quizzes/${quizId}`);
 }
@@ -187,4 +185,47 @@ export async function desvincularQuizDoTopico(topicoId: string, quizId: string) 
     where: { topico_id_quiz_id: { topico_id: topicoId, quiz_id: quizId } },
   });
   revalidatePath("/admin/content");
+}
+
+// ── Imagens do Quiz ────────────────────────────────────
+
+export async function uploadImagemQuiz(
+  quizId: string,
+  fd: FormData
+): Promise<{ url: string }> {
+  const file = fd.get("file") as File | null;
+  if (!file || file.size === 0) throw new Error("Arquivo inválido");
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const storagePath = `quizzes/${quizId}/${Date.now()}.${ext}`;
+  const bytes = await file.arrayBuffer();
+
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage
+    .from("capas")
+    .upload(storagePath, bytes, { contentType: file.type, upsert: false });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from("capas").getPublicUrl(storagePath);
+  return { url: data.publicUrl };
+}
+
+export async function listarImagensQuiz(
+  quizId: string
+): Promise<{ id: string; url: string; nome: string }[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from("capas")
+    .list(`quizzes/${quizId}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+
+  if (error || !data) return [];
+
+  return data
+    .filter((f) => f.name !== ".emptyFolderPlaceholder" && (f.metadata?.size ?? 0) > 0)
+    .map((f) => ({
+      id: f.id ?? f.name,
+      nome: f.name,
+      url: supabase.storage.from("capas").getPublicUrl(`quizzes/${quizId}/${f.name}`).data.publicUrl,
+    }));
 }

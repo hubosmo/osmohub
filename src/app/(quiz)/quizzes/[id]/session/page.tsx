@@ -17,7 +17,6 @@ export default async function QuizSessionPage({ params, searchParams }: Props) {
       id: true,
       titulo: true,
       capa_url: true,
-      termos: true,
       questoes: {
         orderBy: { ordem: "asc" },
         select: {
@@ -26,6 +25,7 @@ export default async function QuizSessionPage({ params, searchParams }: Props) {
           tipo: true,
           imagem_url: true,
           explicacao: true,
+          termo: true,
           opcoes: {
             orderBy: { ordem: "asc" },
             select: { id: true, texto: true, imagem_url: true, correta: true },

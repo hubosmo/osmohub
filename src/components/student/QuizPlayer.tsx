@@ -13,13 +13,13 @@ type Questao = {
   tipo: string;
   imagem_url: string | null;
   explicacao: string | null;
+  termo: string | null;
   opcoes: Opcao[];
 };
 type QuizData = {
   id: string;
   titulo: string;
   capa_url: string | null;
-  termos: string[];
   questoes: Questao[];
 };
 
@@ -61,9 +61,23 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
   type Phase = "config" | "playing" | "finished";
   const [phase, setPhase] = useState<Phase>("config");
 
+  // Termos únicos derivados das questões
+  const uniqueTermos = [...new Set(
+    quiz.questoes.map(q => q.termo).filter((t): t is string => !!t?.trim())
+  )];
+
   // Config
   const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]); // 10 min default
   const [termosExpanded, setTermosExpanded] = useState(false);
+  const [deselectedTermos, setDeselectedTermos] = useState<Set<string>>(new Set());
+
+  function toggleTermo(t: string) {
+    setDeselectedTermos(prev => {
+      const next = new Set(prev);
+      next.has(t) ? next.delete(t) : next.add(t);
+      return next;
+    });
+  }
 
   // Playing
   const [questions, setQuestions]     = useState<Questao[]>([]);
@@ -93,7 +107,11 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
 
   // ── Iniciar sessão ──
   function startSession() {
-    const shuffled = shuffle(quiz.questoes).slice(0, selectedTime.questoes);
+    const anyDeselected = deselectedTermos.size > 0;
+    const pool = anyDeselected
+      ? quiz.questoes.filter(q => q.termo && !deselectedTermos.has(q.termo))
+      : quiz.questoes;
+    const shuffled = shuffle(pool).slice(0, selectedTime.questoes);
     setQuestions(shuffled);
     setCurrentIdx(0);
     setElapsed(0);
@@ -203,7 +221,7 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
             </button>
 
             {/* Lo que aprenderás */}
-            {quiz.termos.length > 0 && (
+            {uniqueTermos.length > 0 && (
               <div>
                 <button
                   onClick={() => setTermosExpanded((v) => !v)}
@@ -213,7 +231,15 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  <span className="flex-1 text-left">Lo que aprenderás</span>
+                  <span className="flex-1 text-left">
+                    Lo que aprenderás
+                    {deselectedTermos.size > 0 && (
+                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
+                        style={{ backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
+                        {uniqueTermos.length - deselectedTermos.size}/{uniqueTermos.length}
+                      </span>
+                    )}
+                  </span>
                   <ChevronRight
                     className="h-4 w-4 transition-transform shrink-0"
                     style={{ transform: termosExpanded ? "rotate(90deg)" : "none" }}
@@ -226,17 +252,31 @@ export function QuizPlayer({ quiz, backUrl }: Props) {
                       Haz clic para quitar contenido de la sesión de estudio:
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {quiz.termos.map((t) => (
-                        <span
-                          key={t}
-                          className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
-                          style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
-                        >
-                          <span className="h-3 w-3 rounded-full border text-center leading-none flex items-center justify-center shrink-0"
-                            style={{ borderColor: "var(--text-muted)", fontSize: 9 }}>●</span>
-                          {t}
-                        </span>
-                      ))}
+                      {uniqueTermos.map((t) => {
+                        const active = !deselectedTermos.has(t);
+                        return (
+                          <button
+                            key={t}
+                            onClick={() => toggleTermo(t)}
+                            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all"
+                            style={{
+                              border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
+                              color: active ? "var(--accent)" : "var(--text-muted)",
+                              backgroundColor: active
+                                ? "color-mix(in srgb, var(--accent) 10%, transparent)"
+                                : "transparent",
+                              textDecoration: active ? "none" : "line-through",
+                              opacity: active ? 1 : 0.5,
+                            }}
+                          >
+                            <span className="h-3 w-3 rounded-full border flex items-center justify-center shrink-0"
+                              style={{ borderColor: active ? "var(--accent)" : "var(--text-muted)", fontSize: 9 }}>
+                              {active ? "●" : ""}
+                            </span>
+                            {t}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

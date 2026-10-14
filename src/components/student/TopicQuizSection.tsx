@@ -5,9 +5,9 @@ type QuizCard = {
   id: string;
   titulo: string;
   capa_url: string | null;
-  termos: string[];
   publicado: boolean;
   _count: { questoes: number };
+  questoes: { termo: string | null }[];
 };
 
 interface Props {
@@ -40,8 +40,8 @@ export function TopicQuizSection({ quizzes, backUrl }: Props) {
 
 function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
   const sessionUrl = `/quizzes/${quiz.id}/session?back=${encodeURIComponent(backUrl)}`;
-  // Estimativa: ~30s por questão
   const minEst = Math.max(1, Math.ceil((quiz._count.questoes * 30) / 60));
+  const termos = [...new Set(quiz.questoes.map(q => q.termo).filter((t): t is string => !!t?.trim()))];
 
   return (
     <div
@@ -95,7 +95,7 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
       </Link>
 
       {/* Lo que aprenderás */}
-      {quiz.termos.length > 0 && (
+      {termos.length > 0 && (
         <details
           className="group"
           style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
@@ -113,7 +113,7 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
               Haz clic para quitar contenido de la sesión de estudio:
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {quiz.termos.map((t) => (
+              {termos.map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full"

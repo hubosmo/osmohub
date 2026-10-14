@@ -296,8 +296,8 @@ export function AreaTopicos({
                         )}
                       </div>
                       <span
-                        className="shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border"
-                        style={{ borderColor: accentColor, color: accentColor }}
+                        className="estudiar-btn shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border"
+                        style={{ borderColor: accentColor, color: accentColor, "--btn-accent": accentColor } as React.CSSProperties}
                       >
                         Estudiar
                       </span>

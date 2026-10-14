@@ -30,7 +30,6 @@ export default async function QuizEditPage({ params }: Props) {
         titulo: quiz.titulo,
         descricao: quiz.descricao,
         capa_url: quiz.capa_url,
-        termos: quiz.termos,
         publicado: quiz.publicado,
         questoes: quiz.questoes.map(q => ({
           id: q.id,
@@ -38,6 +37,7 @@ export default async function QuizEditPage({ params }: Props) {
           tipo: q.tipo,
           imagem_url: q.imagem_url,
           explicacao: q.explicacao,
+          termo: q.termo,
           ordem: q.ordem,
           opcoes: q.opcoes.map(o => ({
             id: o.id,

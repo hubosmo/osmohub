@@ -20,6 +20,7 @@ export async function getQuizAdmin(id: string) {
         include: {
           opcoes: { orderBy: { ordem: "asc" } },
         },
+        // termo incluído via model (select implícito)
       },
       topicos: {
         include: {
