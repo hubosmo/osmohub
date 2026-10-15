@@ -1,4 +1,5 @@
 import { StudentHeader } from "./StudentHeader";
+import { PageTransition } from "./PageTransition";
 import { UserProvider } from "@/components/providers/UserProvider";
 import type { NavCurso } from "@/types/nav";
 
@@ -16,7 +17,7 @@ export function StudentLayout({ children, userName, userEmail, isAdmin, navData 
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
         <StudentHeader userName={userName} userEmail={userEmail} isAdmin={isAdmin} navData={navData} />
         <main className="flex-1 w-full px-4 lg:px-8 py-6" style={{ overflowX: "clip" }}>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </UserProvider>

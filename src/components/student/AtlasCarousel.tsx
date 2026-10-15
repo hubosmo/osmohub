@@ -2,8 +2,10 @@
 
 import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
+import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 type Imagem = { id: string; url: string; legenda: string | null };
 
@@ -58,26 +60,30 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
       <div
         ref={containerRef}
         className="relative overflow-hidden"
-        style={frozenHeight !== null ? { minHeight: frozenHeight } : undefined}
+        style={frozenHeight !== null ? { height: frozenHeight } : undefined}
       >
 
-        {/* Imagem entrando — posição normal, mantém a altura do container */}
+        {/* Imagem entrando — absoluta durante animação para não alterar layout */}
         <div
           key={idx}
           style={prevIdx !== null ? {
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
             animation: `${enterAnim} 0.3s cubic-bezier(0.4,0,0.2,1) both`,
           } : undefined}
         >
           <AtlasImageViewer src={current.url} alt={current.legenda ?? ""} />
         </div>
 
-        {/* Imagem saindo — sobreposição absoluta, não afeta layout */}
+        {/* Imagem saindo — absoluta, só visual */}
         {prevIdx !== null && (
           <div
             key={`exit-${prevIdx}`}
             style={{
               position: "absolute",
               inset: 0,
+              zIndex: 1,
               pointerEvents: "none",
               animation: `${exitAnim} 0.3s cubic-bezier(0.4,0,0.2,1) both`,
             }}
@@ -157,7 +163,12 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
           );
         })()}
 
+        <AnimatePresence initial={false}>
         {showList && total > 1 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE}
+            transition={STANDARD} style={ACCORDION_STYLE}
+          >
           <div
             className="flex flex-col gap-0 overflow-y-auto"
             style={{ maxHeight: 260, borderTop: "1px solid var(--border)" }}
@@ -190,7 +201,9 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               </button>
             ))}
           </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </figure>
   );

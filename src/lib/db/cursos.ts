@@ -265,6 +265,7 @@ export function getTopicoPorSlug(
             select: {
               id: true,
               titulo: true,
+              descricao: true,
               capa_url: true,
               publicado: true,
               _count: { select: { questoes: true } },

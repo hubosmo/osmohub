@@ -2,7 +2,9 @@
 
 import { useState, useRef, useTransition } from "react";
 import { Upload, Images, X, Loader2, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { uploadImagemQuiz, listarImagensQuiz } from "@/lib/actions/content-quizzes";
+import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 
 interface Props {
   quizId: string;
@@ -146,19 +148,20 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
       </div>
 
       {/* Modal */}
+      <AnimatePresence>
       {open && (
-        <div
+        <motion.div
+          variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
+          transition={{ duration: 0.18 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-          <div
+          <motion.div
+            variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
+            transition={MODAL_TRANSITION}
             className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-            style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border)",
-              maxHeight: "80vh",
-            }}
+            style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", maxHeight: "80vh" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
@@ -281,9 +284,10 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

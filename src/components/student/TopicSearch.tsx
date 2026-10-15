@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Loader2, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { buscarTopicos, type TopicResult } from "@/lib/actions/search";
+import { DROPDOWN, DROPDOWN_ORIGIN, FAST } from "@/lib/motion";
 
 export function TopicSearch() {
   const [query, setQuery] = useState("");
@@ -93,14 +95,13 @@ export function TopicSearch() {
         </div>
 
         {/* Dropdown results */}
+        <AnimatePresence>
         {open && results.length > 0 && (
-          <div
+          <motion.div
+            variants={DROPDOWN} initial="initial" animate="animate" exit="exit"
+            transition={FAST}
             className="absolute left-0 right-0 top-full mt-1.5 rounded-xl border overflow-hidden z-30"
-            style={{
-              backgroundColor: "var(--bg-elevated)",
-              borderColor: "var(--border)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-            }}
+            style={{ ...DROPDOWN_ORIGIN, backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}
           >
             {results.map((r, i) => (
               <button
@@ -128,8 +129,9 @@ export function TopicSearch() {
                 </div>
               </button>
             ))}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </section>
   );

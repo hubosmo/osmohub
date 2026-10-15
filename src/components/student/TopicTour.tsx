@@ -63,6 +63,8 @@ export function TopicTour() {
     return () => window.removeEventListener("resize", sync);
   }, []);
 
+  const isMobile = vp.w > 0 && vp.w < 640;
+
   // Get target rect — round to integers, clamp to viewport
   const syncRect = useCallback((s: number) => {
     const id = STEPS[s].targetId;
@@ -73,15 +75,12 @@ export function TopicTour() {
     const radius = parseFloat(window.getComputedStyle(el).borderRadius) || 0;
     const vh = window.innerHeight;
     const vw = window.innerWidth;
-    // Clamp to what's actually visible in the viewport.
-    // Sections taller than the viewport (like atlas with many images)
-    // would otherwise produce a spotlight that fills the screen and looks broken.
     const top    = Math.round(Math.max(0, r.top));
     const left   = Math.round(Math.max(0, r.left));
     const bottom = Math.round(Math.min(vh, r.bottom));
     const right  = Math.round(Math.min(vw, r.right));
-    // Cap height to 82% of viewport so full images fit while keeping dark border visible
-    const maxH = Math.floor(vh * 0.82);
+    // On mobile cap at 55% so card doesn't overlap spotlight
+    const maxH = Math.floor(vh * (vw < 640 ? 0.55 : 0.82));
     setRect({
       top,
       left,
@@ -98,9 +97,7 @@ export function TopicTour() {
     } catch {}
   }, []);
 
-  // Lock scroll with scrollbar-width compensation to prevent layout shift.
-  // Without padding-right, removing the scrollbar shifts content left by ~17px,
-  // making the spotlight appear wider on the left than the right.
+  // Desktop only: lock scroll with scrollbar-width compensation to prevent layout shift.
   function lockScroll() {
     const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
@@ -112,29 +109,28 @@ export function TopicTour() {
   }
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || isMobile) return;
     lockScroll();
     return () => unlockScroll();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  }, [visible, isMobile]);
 
-  // On step change: unlock → scroll → re-lock → measure (layout is stable with compensation)
+  // On step change: scroll to target, then measure
   useEffect(() => {
     if (!visible) return;
-    unlockScroll();
+    if (!isMobile) unlockScroll();
     const id = STEPS[step].targetId;
     if (id) {
       const el = document.getElementById(id);
       if (el) {
         const r = el.getBoundingClientRect();
-        const isTall = r.height > window.innerHeight * 0.82;
+        const isTall = r.height > window.innerHeight * (isMobile ? 0.55 : 0.82);
         if (isTall) {
-          // Scroll so element top lands at SCROLL_TOP_OFFSET below viewport top.
-          // This gives the spotlight exactly BREADCRUMB_GAP of space below the breadcrumb.
           const targetScrollY = window.scrollY + r.top - SCROLL_TOP_OFFSET;
           window.scrollTo({ top: Math.max(0, targetScrollY), behavior: "smooth" });
         } else {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          // On mobile scroll so element top has breathing room from the card at bottom
+          el.scrollIntoView({ behavior: "smooth", block: isMobile ? "start" : "center" });
         }
       }
     } else {
@@ -142,14 +138,21 @@ export function TopicTour() {
     }
     if (scrollTimer.current) clearTimeout(scrollTimer.current);
     scrollTimer.current = setTimeout(() => {
-      lockScroll();
-      // One frame after re-locking so layout settles before measuring
+      if (!isMobile) lockScroll();
       requestAnimationFrame(() => syncRect(step));
     }, 450);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, visible, syncRect]);
+  }, [step, visible, syncRect, isMobile]);
 
-  // Update rect on window resize (scroll is locked, no scroll listener needed)
+  // On mobile: keep rect in sync while user scrolls (no scroll lock)
+  useEffect(() => {
+    if (!visible || !isMobile) return;
+    const onScroll = () => syncRect(step);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [visible, isMobile, step, syncRect]);
+
+  // Update rect on window resize
   useEffect(() => {
     if (!visible) return;
     const update = () => syncRect(step);
@@ -170,7 +173,6 @@ export function TopicTour() {
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
-  const isMobile = vp.w < 640;
 
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -231,7 +233,7 @@ export function TopicTour() {
     !isMobile && spot && vp.w > 0
       ? { position: "fixed", top: dialogTop, left: dialogLeft, width: CARD_W, zIndex: 62 }
       : isMobile
-      ? { position: "fixed", bottom: 20, left: 12, right: 12, zIndex: 62 }
+      ? { position: "fixed", bottom: "max(16px, env(safe-area-inset-bottom, 0px) + 12px)", left: 12, right: 12, zIndex: 62 }
       : { position: "fixed", bottom: 28, left: 24, width: CARD_W, zIndex: 62 };
 
   return (
@@ -390,28 +392,29 @@ export function TopicTour() {
           display: "flex",
           alignItems: "center",
           gap: 8,
-          padding: "10px 14px",
+          padding: isMobile ? "12px 16px" : "10px 14px",
           borderTop: "1px solid var(--border)",
         }}>
           {step > 0 && (
             <button
               onClick={() => goTo(step - 1)}
               style={{
-                fontSize: 11,
+                fontSize: isMobile ? 13 : 11,
                 fontWeight: 700,
                 letterSpacing: "0.06em",
                 color: "var(--text-primary)",
                 background: "transparent",
                 border: "1.5px solid var(--border)",
-                borderRadius: 6,
-                padding: "5px 11px",
+                borderRadius: 8,
+                padding: isMobile ? "9px 14px" : "5px 11px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 3,
+                gap: 4,
+                minHeight: isMobile ? 44 : undefined,
               }}
             >
-              <ChevronLeft size={12} />
+              <ChevronLeft size={isMobile ? 14 : 12} />
               ATRÁS
             </button>
           )}
@@ -420,32 +423,56 @@ export function TopicTour() {
             onClick={() => isLast ? dismiss() : goTo(step + 1)}
             style={{
               flex: 1,
-              fontSize: 11,
+              fontSize: isMobile ? 13 : 11,
               fontWeight: 700,
               letterSpacing: "0.06em",
               color: "var(--text-inverse)",
               background: "var(--accent)",
               border: "none",
-              borderRadius: 6,
-              padding: "6px 12px",
+              borderRadius: 8,
+              padding: isMobile ? "10px 12px" : "6px 12px",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              minHeight: isMobile ? 44 : undefined,
             }}
           >
             {isLast ? "FINALIZAR" : "ADELANTE"}
           </button>
 
-          <span style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--text-muted)",
-            fontVariantNumeric: "tabular-nums",
-            flexShrink: 0,
-          }}>
-            {step + 1}/{STEPS.length}
-          </span>
+          {/* Progress dots on mobile, counter on desktop */}
+          {isMobile ? (
+            <div style={{ display: "flex", gap: 5, flexShrink: 0, alignItems: "center" }}>
+              {STEPS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  style={{
+                    width: i === step ? 16 : 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: i === step ? "var(--accent)" : "var(--border)",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    transition: "width 0.2s ease, background 0.2s ease",
+                  }}
+                  aria-label={`Paso ${i + 1}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              fontVariantNumeric: "tabular-nums",
+              flexShrink: 0,
+            }}>
+              {step + 1}/{STEPS.length}
+            </span>
+          )}
         </div>
       </div>
     </>

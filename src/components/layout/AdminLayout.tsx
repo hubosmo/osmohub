@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageTransition } from "./PageTransition";
 import {
   LayoutDashboard,
   LayoutPanelLeft,
@@ -56,7 +57,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 items-center justify-end border-b border-border bg-bg-surface px-6">
           <ThemeToggle />
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6"><PageTransition>{children}</PageTransition></main>
       </div>
     </div>
   );

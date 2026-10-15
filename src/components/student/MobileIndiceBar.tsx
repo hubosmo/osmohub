@@ -5,6 +5,8 @@ import {
   ChevronDown, ChevronUp, ChevronRight,
   PlayCircle, BookOpen, ImageIcon, Table2, HelpCircle,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 type Section = { id: string; label: string };
 
@@ -44,7 +46,12 @@ export function MobileIndiceBar({ sections }: { sections: Section[] }) {
       </button>
 
       {/* Lista de secciones */}
+      <AnimatePresence initial={false}>
       {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE}
+          transition={STANDARD} style={ACCORDION_STYLE}
+        >
         <div className="border-t" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-elevated)" }}>
           {sections.map((s) => (
             <a
@@ -70,7 +77,9 @@ export function MobileIndiceBar({ sections }: { sections: Section[] }) {
             <span className="text-sm">Continúa tu aprendizaje</span>
           </a>
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

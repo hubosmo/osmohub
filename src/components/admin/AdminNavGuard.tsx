@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUnsavedChanges } from "@/stores/unsaved-changes";
+import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 
 export function AdminNavGuard() {
   const { isDirty, setDirty } = useUnsavedChanges();
@@ -52,15 +54,19 @@ export function AdminNavGuard() {
     pendingHref.current = null;
   }
 
-  if (!showModal) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
-      style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
-      onClick={handleStay}
-    >
-      <div
+    <AnimatePresence>
+    {showModal && (
+      <motion.div
+        variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
+        transition={{ duration: 0.18 }}
+        className="fixed inset-0 z-[200] flex items-center justify-center"
+        style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
+        onClick={handleStay}
+      >
+      <motion.div
+        variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
+        transition={MODAL_TRANSITION}
         className="w-full max-w-sm mx-4 rounded-2xl p-6 shadow-2xl"
         style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}
         onClick={(e) => e.stopPropagation()}
@@ -106,7 +112,9 @@ export function AdminNavGuard() {
             Salir sin guardar
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+      </motion.div>
+    )}
+    </AnimatePresence>
   );
 }

@@ -217,12 +217,18 @@ export async function listarImagensQuiz(
   const supabase = createAdminClient();
   const { data, error } = await supabase.storage
     .from("capas")
-    .list(`quizzes/${quizId}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+    .list(`quizzes/${quizId}`, { limit: 200 });
 
-  if (error || !data) return [];
+  if (error) {
+    console.error("[listarImagensQuiz] storage error:", error.message, "quizId:", quizId);
+    return [];
+  }
+  if (!data) return [];
+
+  console.log("[listarImagensQuiz] raw files:", data.map(f => ({ name: f.name, id: f.id })));
 
   return data
-    .filter((f) => f.name !== ".emptyFolderPlaceholder" && (f.metadata?.size ?? 0) > 0)
+    .filter((f) => f.name !== ".emptyFolderPlaceholder")
     .map((f) => ({
       id: f.id ?? f.name,
       nome: f.name,

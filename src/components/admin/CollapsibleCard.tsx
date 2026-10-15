@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 interface Props {
   storageKey: string;
@@ -61,11 +63,18 @@ export function CollapsibleCard({
         />
       </div>
 
-      {open && (
-        <div className="px-5 pb-5 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
-          {children}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE}
+            transition={STANDARD} style={ACCORDION_STYLE}
+          >
+            <div className="px-5 pb-5 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
