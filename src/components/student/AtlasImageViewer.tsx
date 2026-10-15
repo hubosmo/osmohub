@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ZoomIn } from "lucide-react";
 
 const LENS = 240;
@@ -13,7 +13,18 @@ type Props = { src: string; alt: string };
 export function AtlasImageViewer({ src, alt }: Props) {
   const [active, setActive] = useState(false);
   const [lens, setLens] = useState<LensState | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Quando src muda: imagens em cache já têm complete=true — não precisam esperar onLoad
+  useEffect(() => {
+    if (imgRef.current?.complete) {
+      setLoaded(true);
+    } else {
+      setLoaded(false);
+    }
+  }, [src]);
 
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (!active || !containerRef.current) return;
@@ -37,10 +48,23 @@ export function AtlasImageViewer({ src, alt }: Props) {
       className="relative w-full"
       onMouseMove={onMouseMove}
       onMouseLeave={() => setLens(null)}
-      style={{ cursor: active ? "crosshair" : "default", lineHeight: 0 }}
+      style={{ cursor: active ? "crosshair" : "default", lineHeight: 0, minHeight: loaded ? undefined : 180 }}
     >
+      {/* Skeleton enquanto a imagem carrega */}
+      {!loaded && (
+        <div className="absolute inset-0" style={{ backgroundColor: "var(--bg-elevated)" }} />
+      )}
+
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="w-full h-auto block" draggable={false} />
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        className="w-full h-auto block"
+        draggable={false}
+        onLoad={() => setLoaded(true)}
+        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.22s ease" }}
+      />
 
       {/* Toggle button — top-right of the image */}
       <button
