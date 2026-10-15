@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, VolumeX, Volume2, Flag, Square } from "lucide-react";
+import { Menu, VolumeX, Volume2, Flag, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Opcao, Questao, AnswerState } from "./QuizPlayerOpcoes";
 import { QuestionLayout } from "./QuizPlayerOpcoes";
@@ -19,10 +19,15 @@ interface Props {
   selectedId: string | null;
   wrongIds: Set<string>;
   hideCorrect: boolean;
+  isReviewing: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
   onMenuToggle: () => void;
   onMuteToggle: () => void;
   onEndEarly: () => void;
   onAnswer: (o: Opcao) => void;
+  onGoBack: () => void;
+  onGoForward: () => void;
   onClearPrev: () => void;
 }
 
@@ -30,7 +35,8 @@ export function QuizPlayingPhase({
   q, prevQ, prevIdx, isMobile,
   timerDisplay, progress, muted, menuOpen,
   answerState, selectedId, wrongIds, hideCorrect,
-  onMenuToggle, onMuteToggle, onEndEarly, onAnswer, onClearPrev,
+  isReviewing, canGoBack, canGoForward,
+  onMenuToggle, onMuteToggle, onEndEarly, onAnswer, onGoBack, onGoForward, onClearPrev,
 }: Props) {
   return (
     <div
@@ -59,18 +65,34 @@ export function QuizPlayingPhase({
 
         <span className="text-sm font-mono tabular-nums shrink-0">{timerDisplay}</span>
 
-        <button className="h-8 w-8 flex items-center justify-center rounded shrink-0">
-          <span className="text-xs font-bold">⏸</span>
+        <button
+          onClick={onGoBack}
+          disabled={!canGoBack}
+          className="h-8 w-8 flex items-center justify-center rounded shrink-0 transition-opacity"
+          style={{ opacity: canGoBack ? 1 : 0.3 }}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <button
+          onClick={canGoForward ? onGoForward : undefined}
+          disabled={!canGoForward}
+          className="h-8 w-8 flex items-center justify-center rounded shrink-0 transition-opacity"
+          style={{ opacity: canGoForward ? 1 : 0.3 }}
+        >
+          <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
-      {/* ── Barra do enunciado ── */}
+      {/* ── Barra instrução ── */}
       <div
         className="sticky top-14 z-20 flex items-center gap-3 px-4 py-3"
         style={{ backgroundColor: "var(--bg-base)", borderBottom: "1px solid var(--border)" }}
       >
-        <p className="flex-1 text-sm leading-snug font-medium" style={{ color: "var(--accent)" }}>
-          {q.enunciado}
+        <p className="flex-1 text-sm leading-snug" style={{ color: isReviewing ? "var(--text-muted)" : q.tipo === "ESCOLHA_IMAGEM" ? "var(--accent)" : "var(--text-muted)" }}>
+          {isReviewing
+            ? "← Revisando respuesta anterior."
+            : q.tipo === "ESCOLHA_IMAGEM" ? q.enunciado : "Responde la pregunta aquí abajo."}
         </p>
       </div>
 
@@ -112,12 +134,12 @@ export function QuizPlayingPhase({
       </AnimatePresence>
 
       {/* ── Slide de questões ── */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden flex items-center justify-center">
         {/* Questão a sair */}
         {prevQ && prevIdx !== null && (
           <div
             key={`exit-${prevIdx}`}
-            className={`absolute inset-0 flex items-center justify-center px-4 py-8 w-full ${!isMobile && prevQ.imagem_url ? "max-w-5xl" : "max-w-2xl"} mx-auto pointer-events-none`}
+            className={`absolute inset-0 flex items-center justify-center px-4 py-8 w-full ${isMobile ? "max-w-2xl" : "max-w-5xl"} mx-auto pointer-events-none`}
             style={{ animation: "quiz-slide-out 0.28s cubic-bezier(0.4,0,0.2,1) both", zIndex: 1 }}
             onAnimationEnd={onClearPrev}
           >
@@ -128,7 +150,7 @@ export function QuizPlayingPhase({
         {/* Questão a entrar */}
         <div
           key={`enter-${q.id}`}
-          className={`flex items-center justify-center px-4 py-8 w-full ${!isMobile && q.imagem_url ? "max-w-5xl" : "max-w-2xl"} mx-auto`}
+          className={`flex items-center justify-center px-4 py-6 w-full ${isMobile ? "max-w-2xl" : "max-w-5xl"} mx-auto`}
           style={{
             animation: prevQ ? "quiz-slide-in 0.28s cubic-bezier(0.4,0,0.2,1) both" : undefined,
             position: prevQ ? "absolute" : "relative",

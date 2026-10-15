@@ -125,6 +125,10 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
   const [prevQ, setPrevQ]     = useState<Questao | null>(null);
   const [prevIdx, setPrevIdx] = useState<number | null>(null);
 
+  type HistEntry = { selectedId: string | null; answerState: AnswerState; wrongIds: Set<string> };
+  const [answerHistory, setAnswerHistory] = useState<Record<number, HistEntry>>({});
+  const [historyIdx, setHistoryIdx]       = useState<number | null>(null);
+
   const [totalTime, setTotalTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,6 +148,14 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [phase]);
 
+  // Auto-encerra quando o tempo configurado se esgota
+  useEffect(() => {
+    if (phase === "playing" && elapsed >= selectedTime.value * 60) {
+      setTotalTime(elapsed);
+      setPhase("finished");
+    }
+  }, [elapsed, phase, selectedTime.value]);
+
   function startSession() {
     const pool = deselectedTermos.size > 0
       ? quiz.questoes.filter(q => q.termo && !deselectedTermos.has(q.termo))
@@ -157,10 +169,24 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     setSelectedId(null);
     setPrevQ(null);
     setPrevIdx(null);
+    setAnswerHistory({});
+    setHistoryIdx(null);
     setPhase("playing");
   }
 
+  function goBack() {
+    const from = historyIdx ?? currentIdx;
+    if (from > 0) setHistoryIdx(from - 1);
+  }
+
+  function goForward() {
+    if (historyIdx === null) return;
+    if (historyIdx < currentIdx - 1) setHistoryIdx(historyIdx + 1);
+    else setHistoryIdx(null); // volta à questão atual (não respondida)
+  }
+
   const advanceQuestion = useCallback(() => {
+    setHistoryIdx(null);
     setCurrentIdx((idx) => {
       setPrevQ(questions[idx] ?? null);
       setPrevIdx(idx);
@@ -184,6 +210,7 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     if (opcao.correta) {
       if (!muted) playSound("correct");
       setAnswerState("correct");
+      setAnswerHistory(prev => ({ ...prev, [currentIdx]: { selectedId: opcao.id, answerState: "correct", wrongIds: new Set() } }));
       setCorrectCount((c) => c + 1);
       setTimeout(advanceQuestion, 1200);
     } else {
@@ -195,11 +222,13 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
         setWrongIds((prev) => new Set([...prev, opcao.id]));
         setTimeout(() => { setAnswerState("idle"); setSelectedId(null); }, 700);
       } else {
+        const finalWrongIds = new Set([...wrongIds, opcao.id]);
+        setAnswerHistory(prev => ({ ...prev, [currentIdx]: { selectedId: opcao.id, answerState: "wrong", wrongIds: finalWrongIds } }));
         setAnswerState("wrong");
         setTimeout(advanceQuestion, 2200);
       }
     }
-  }, [answerState, muted, attemptsUsed, maxAttempts, wrongIds, advanceQuestion]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [answerState, muted, attemptsUsed, maxAttempts, wrongIds, currentIdx, advanceQuestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function endEarly() {
     setTotalTime(elapsed);
@@ -290,21 +319,37 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
         <div className="h-8 w-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
       </div>
     );
-    // When maxAttempts >= 2 and the user still has a retry left, don't reveal
-    // the correct answer — only the wrong choice is highlighted red.
     const hideCorrect = maxAttempts >= 2 && attemptsUsed < maxAttempts;
+
+    const isReviewing  = historyIdx !== null;
+    const histEntry    = historyIdx !== null ? answerHistory[historyIdx] : null;
+    const displayQ     = isReviewing ? (questions[historyIdx!] ?? q) : q;
+    const dispAnswer   : AnswerState = isReviewing ? (histEntry?.answerState ?? "correct") : answerState;
+    const dispSelected = isReviewing ? (histEntry?.selectedId ?? null) : selectedId;
+    const dispWrongIds = isReviewing ? (histEntry?.wrongIds ?? new Set<string>()) : wrongIds;
+    const canGoBack    = (historyIdx ?? currentIdx) > 0;
+    const canGoForward = isReviewing;
+
     return (
       <QuizPlayingPhase
-        q={q} prevQ={prevQ} prevIdx={prevIdx} isMobile={isMobile}
-        timerDisplay={formatTime(elapsed)}
+        q={displayQ}
+        prevQ={isReviewing ? null : prevQ}
+        prevIdx={isReviewing ? null : prevIdx}
+        isMobile={isMobile}
+        timerDisplay={formatTime(Math.max(0, selectedTime.value * 60 - elapsed))}
         progress={questions.length > 0 ? (currentIdx / questions.length) * 100 : 0}
         muted={muted} menuOpen={menuOpen}
-        answerState={answerState} selectedId={selectedId} wrongIds={wrongIds}
+        answerState={dispAnswer} selectedId={dispSelected} wrongIds={dispWrongIds}
         hideCorrect={hideCorrect}
+        isReviewing={isReviewing}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
         onMenuToggle={() => setMenuOpen((v) => !v)}
         onMuteToggle={() => setMuted((v) => !v)}
         onEndEarly={endEarly}
-        onAnswer={handleAnswer}
+        onAnswer={isReviewing ? () => {} : handleAnswer}
+        onGoBack={goBack}
+        onGoForward={goForward}
         onClearPrev={() => { setPrevQ(null); setPrevIdx(null); }}
       />
     );

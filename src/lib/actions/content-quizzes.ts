@@ -50,10 +50,10 @@ export async function criarQuestao(quizId: string, fd: FormData) {
   const tipo = (fd.get("tipo") as string) || "MULTIPLA_ESCOLHA";
   const imagem_url = (fd.get("imagem_url") as string | null)?.trim() || null;
 
-  const last = await prisma.questao.findFirst({
+  // Empurra todas as questões existentes para abrir espaço no início
+  await prisma.questao.updateMany({
     where: { quiz_id: quizId },
-    orderBy: { ordem: "desc" },
-    select: { ordem: true },
+    data: { ordem: { increment: 1 } },
   });
 
   const questao = await prisma.questao.create({
@@ -62,7 +62,7 @@ export async function criarQuestao(quizId: string, fd: FormData) {
       enunciado,
       tipo: tipo as "MULTIPLA_ESCOLHA" | "VERDADEIRO_FALSO" | "ESCOLHA_IMAGEM",
       imagem_url,
-      ordem: (last?.ordem ?? -1) + 1,
+      ordem: 0,
     },
   });
 
@@ -219,13 +219,8 @@ export async function listarImagensQuiz(
     .from("capas")
     .list(`quizzes/${quizId}`, { limit: 200 });
 
-  if (error) {
-    console.error("[listarImagensQuiz] storage error:", error.message, "quizId:", quizId);
-    return [];
-  }
+  if (error) return [];
   if (!data) return [];
-
-  console.log("[listarImagensQuiz] raw files:", data.map(f => ({ name: f.name, id: f.id })));
 
   return data
     .filter((f) => f.name !== ".emptyFolderPlaceholder")
@@ -234,4 +229,67 @@ export async function listarImagensQuiz(
       nome: f.name,
       url: supabase.storage.from("capas").getPublicUrl(`quizzes/${quizId}/${f.name}`).data.publicUrl,
     }));
+}
+
+export async function listarImagensGaleria(): Promise<{
+  quiz: { id: string; url: string; nome: string }[];
+  atlas: { id: string; url: string; nome: string }[];
+}> {
+  const [opcoes, questoes, quizCaps, atlasImgs] = await Promise.all([
+    prisma.opcao.findMany({
+      where: { imagem_url: { not: null } },
+      select: { id: true, imagem_url: true, texto: true },
+      take: 300,
+    }),
+    prisma.questao.findMany({
+      where: { imagem_url: { not: null } },
+      select: { id: true, imagem_url: true, enunciado: true },
+      take: 200,
+    }),
+    prisma.quiz.findMany({
+      where: { capa_url: { not: null } },
+      select: { id: true, capa_url: true, titulo: true },
+    }),
+    prisma.imagemTopico.findMany({
+      select: { id: true, url: true, legenda: true },
+      take: 500,
+    }),
+  ]);
+
+  const seenQuiz = new Set<string>();
+  const quiz: { id: string; url: string; nome: string }[] = [];
+
+  for (const o of opcoes) {
+    if (o.imagem_url && !seenQuiz.has(o.imagem_url)) {
+      seenQuiz.add(o.imagem_url);
+      quiz.push({ id: `opc-${o.id}`, url: o.imagem_url, nome: o.texto || "Opción" });
+    }
+  }
+  for (const q of questoes) {
+    if (q.imagem_url && !seenQuiz.has(q.imagem_url)) {
+      seenQuiz.add(q.imagem_url);
+      quiz.push({ id: `q-${q.id}`, url: q.imagem_url, nome: q.enunciado.slice(0, 40) });
+    }
+  }
+  for (const q of quizCaps) {
+    if (q.capa_url && !seenQuiz.has(q.capa_url)) {
+      seenQuiz.add(q.capa_url);
+      quiz.push({ id: `quiz-${q.id}`, url: q.capa_url, nome: q.titulo });
+    }
+  }
+
+  const seenAtlas = new Set<string>();
+  const atlas = atlasImgs
+    .filter(i => {
+      if (!i.url || seenAtlas.has(i.url)) return false;
+      seenAtlas.add(i.url);
+      return true;
+    })
+    .map(i => ({
+      id: `atlas-${i.id}`,
+      url: i.url,
+      nome: i.legenda?.replace(/<[^>]+>/g, "").slice(0, 50) || "Imagen",
+    }));
+
+  return { quiz, atlas };
 }

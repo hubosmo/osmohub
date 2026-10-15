@@ -209,7 +209,7 @@ export default function CadastroPage() {
               <button
                 type="submit"
                 disabled={passwordMismatch || !acceptTerms || loading}
-                className="w-full rounded-full py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#00A6FF" }}
               >
                 {loading ? "Creando cuenta..." : "Crear cuenta →"}
@@ -223,7 +223,7 @@ export default function CadastroPage() {
 
               <button
                 type="button"
-                className="w-full flex items-center justify-center gap-3 rounded-full py-3 text-sm font-semibold border transition-all hover:brightness-95 active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-3 rounded-lg py-3 text-sm font-semibold border transition-all hover:brightness-95 active:scale-[0.98]"
                 style={{
                   backgroundColor: "transparent",
                   borderColor: dividerColor,

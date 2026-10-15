@@ -9,12 +9,12 @@ export const SMOOTH: Transition   = { duration: 0.3,  ease: [0.4, 0, 0.2, 1] };
 // ── Páginas ────────────────────────────────────────────────────────────────────
 
 export const PAGE_VARIANTS: Variants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0 },
-  exit:    { opacity: 0, y: -6 },
+  initial: { opacity: 0, scale: 0.98 },
+  animate: { opacity: 1, scale: 1 },
+  exit:    { opacity: 0 },
 };
 
-export const PAGE_TRANSITION: Transition = STANDARD;
+export const PAGE_TRANSITION: Transition = { duration: 0.18, ease: [0.4, 0, 0.2, 1] };
 
 // ── Modais (backdrop + painel independentes) ──────────────────────────────────
 

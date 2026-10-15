@@ -1,23 +1,28 @@
 "use client";
 
 import { useState, useRef, useTransition } from "react";
-import { Upload, Images, X, Loader2, Check } from "lucide-react";
+import { Upload, Images, BookImage, X, Loader2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { uploadImagemQuiz, listarImagensQuiz } from "@/lib/actions/content-quizzes";
+import { uploadImagemQuiz, listarImagensGaleria } from "@/lib/actions/content-quizzes";
 import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
+
+interface GaleriaData {
+  quiz: { id: string; url: string; nome: string }[];
+  atlas: { id: string; url: string; nome: string }[];
+}
 
 interface Props {
   quizId: string;
-  value: string;        // URL atual
+  value: string;
   onChange: (url: string) => void;
   label?: string;
-  compact?: boolean;    // versão mini (para opções)
+  compact?: boolean;
 }
 
 export function QuizImagePicker({ quizId, value, onChange, label, compact = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"upload" | "gallery">("upload");
-  const [gallery, setGallery] = useState<{ id: string; url: string; nome: string }[]>([]);
+  const [tab, setTab] = useState<"upload" | "gallery" | "atlas">("upload");
+  const [galeria, setGaleria] = useState<GaleriaData | null>(null);
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [preview, setPreview] = useState<string | null>(null);
@@ -25,28 +30,27 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
 
   function openPicker() {
     setOpen(true);
-    if (tab === "gallery" && gallery.length === 0) loadGallery();
+    if (tab !== "upload" && !galeria) loadGallery();
   }
 
   function loadGallery() {
     setLoadingGallery(true);
     startTransition(async () => {
-      const imgs = await listarImagensQuiz(quizId);
-      setGallery(imgs);
+      const data = await listarImagensGaleria();
+      setGaleria(data);
       setLoadingGallery(false);
     });
   }
 
-  function handleTabChange(t: "upload" | "gallery") {
+  function handleTabChange(t: "upload" | "gallery" | "atlas") {
     setTab(t);
-    if (t === "gallery" && gallery.length === 0) loadGallery();
+    if (t !== "upload" && !galeria) loadGallery();
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
+    setPreview(URL.createObjectURL(file));
   }
 
   function handleUpload() {
@@ -61,9 +65,9 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
         setOpen(false);
         setPreview(null);
         if (fileRef.current) fileRef.current.value = "";
-        // Refresh gallery
-        const imgs = await listarImagensQuiz(quizId);
-        setGallery(imgs);
+        // Refresh galeria
+        const data = await listarImagensGaleria();
+        setGaleria(data);
       } catch (err) {
         alert((err as Error).message);
       }
@@ -90,10 +94,13 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
     cursor: "pointer",
   };
 
-  const btnActive: React.CSSProperties = {
-    backgroundColor: "var(--accent)",
-    color: "#fff",
-  };
+  const tabs: { key: "upload" | "gallery" | "atlas"; label: string; icon: React.ReactNode }[] = [
+    { key: "upload",  label: "Subir",   icon: <Upload    className="h-3.5 w-3.5" /> },
+    { key: "gallery", label: "Galería", icon: <Images    className="h-3.5 w-3.5" /> },
+    { key: "atlas",   label: "Atlas",   icon: <BookImage className="h-3.5 w-3.5" /> },
+  ];
+
+  const currentList = tab === "atlas" ? (galeria?.atlas ?? []) : (galeria?.quiz ?? []);
 
   return (
     <div>
@@ -103,7 +110,6 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
         </label>
       )}
 
-      {/* Thumbnail / placeholder */}
       <div className="flex items-center gap-2">
         {value ? (
           <div className="relative shrink-0" style={{ width: compact ? 48 : 72, height: compact ? 36 : 48 }}>
@@ -174,20 +180,21 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
             </div>
 
             {/* Tabs */}
-            <div className="flex px-5 pt-3 gap-3">
-              {(["upload", "gallery"] as const).map((t) => (
+            <div className="flex px-5 pt-3 gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
+              {tabs.map(({ key, label, icon }) => (
                 <button
-                  key={t}
+                  key={key}
                   type="button"
-                  onClick={() => handleTabChange(t)}
-                  className="flex items-center gap-1.5 pb-2 text-xs font-semibold border-b-2 transition-colors"
+                  onClick={() => handleTabChange(key)}
+                  className="flex items-center gap-1.5 pb-2.5 text-xs font-semibold border-b-2 transition-colors"
                   style={{
-                    borderColor: tab === t ? "var(--accent)" : "transparent",
-                    color: tab === t ? "var(--accent)" : "var(--text-muted)",
+                    borderColor: tab === key ? "var(--accent)" : "transparent",
+                    color: tab === key ? "var(--accent)" : "var(--text-muted)",
+                    marginBottom: -1,
                   }}
                 >
-                  {t === "upload" ? <Upload className="h-3.5 w-3.5" /> : <Images className="h-3.5 w-3.5" />}
-                  {t === "upload" ? "Subir archivo" : "Galería"}
+                  {icon}
+                  {label}
                 </button>
               ))}
             </div>
@@ -196,7 +203,6 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
             <div className="flex-1 overflow-y-auto px-5 pb-5 pt-4">
               {tab === "upload" && (
                 <div className="flex flex-col gap-4">
-                  {/* Preview */}
                   {preview && (
                     <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -204,7 +210,6 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
                     </div>
                   )}
 
-                  {/* File input */}
                   <label
                     className="flex flex-col items-center justify-center gap-2 rounded-xl cursor-pointer py-8 transition-opacity hover:opacity-80"
                     style={{
@@ -242,19 +247,19 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
                 </div>
               )}
 
-              {tab === "gallery" && (
+              {(tab === "gallery" || tab === "atlas") && (
                 <div>
                   {loadingGallery ? (
                     <div className="flex items-center justify-center py-12">
                       <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--text-muted)" }} />
                     </div>
-                  ) : gallery.length === 0 ? (
+                  ) : currentList.length === 0 ? (
                     <p className="text-sm text-center py-12" style={{ color: "var(--text-muted)" }}>
-                      Sin imágenes subidas aún.
+                      {tab === "atlas" ? "Sin imágenes de atlas disponibles." : "Sin imágenes en la galería aún."}
                     </p>
                   ) : (
                     <div className="grid grid-cols-3 gap-2">
-                      {gallery.map((img) => {
+                      {currentList.map((img) => {
                         const selected = img.url === value;
                         return (
                           <button
@@ -262,6 +267,7 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
                             type="button"
                             onClick={() => selectFromGallery(img.url)}
                             className="relative aspect-square rounded-lg overflow-hidden transition-all hover:opacity-90"
+                            title={img.nome}
                             style={{
                               border: `2px solid ${selected ? "var(--accent)" : "var(--border)"}`,
                             }}

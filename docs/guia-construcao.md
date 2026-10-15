@@ -175,8 +175,8 @@
 - [x] `/admin/quizzes/[id]` — editor completo: info básica, portada, termos, questões
 - [x] `QuizPanel.tsx` — builder com 3 tipos de questão (múltiple opción, V/F, elegir imagen)
 - [x] `QuizLinker.tsx` — seletor no TopicoPanel para vincular/desvincular quizzes
-- [ ] Upload de imagem no enunciado (via Supabase Storage — atualmente cola URL)
-- [ ] Reuso de imagens existentes via picker visual (atualmente cola URL manualmente)
+- [x] Upload de imagem no enunciado (via Supabase Storage — bucket `capas/quizzes/{id}/`)
+- [x] Reuso de imagens existentes via picker visual (galeria unificada: quizzes + Atlas)
 
 ### 8.5 Usuários
 - [ ] Listagem de alunos com busca

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { EstudiarBtn } from "./EstudiarBtn";
 import Link from "next/link";
 import {
   Search, ChevronRight, ChevronLeft, BookOpen, PlayCircle,
@@ -372,12 +373,7 @@ export function DisciplinaAreas({
                               </span>
                             )}
                           </div>
-                          <span
-                            className="shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border"
-                            style={{ borderColor: accentColor, color: accentColor }}
-                          >
-                            Estudiar
-                          </span>
+                          <EstudiarBtn accentColor={accentColor} />
                         </>
                       )}
                     </Link>

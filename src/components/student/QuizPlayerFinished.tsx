@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { Trophy, X } from "lucide-react";
+import { useUser } from "@/components/providers/UserProvider";
 
 // ── Confete ────────────────────────────────────────────────────────────────────
 
@@ -76,11 +77,30 @@ interface Props {
   onBack: () => void;
 }
 
+const PHRASES: Record<string, { heading: string; sub: string }> = {
+  perfect: { heading: "¡Perfecto,",    sub: "Respondiste todo correctamente. ¡Eres un crack!" },
+  great:   { heading: "¡Excelente,",   sub: "Dominas este tema. ¡Sigue así!" },
+  good:    { heading: "¡Bien hecho,",  sub: "Buen desempeño. ¡Sigue practicando!" },
+  ok:      { heading: "¡Vas bien,",    sub: "Ya casi. Un poco más de práctica y lo tendrás." },
+  low:     { heading: "¡Ánimo,",       sub: "Estudia un poco más y lo vas a lograr." },
+};
+
+function getPhraseKey(pct: number) {
+  if (pct === 100) return "perfect";
+  if (pct >= 90)  return "great";
+  if (pct >= 70)  return "good";
+  if (pct >= 50)  return "ok";
+  return "low";
+}
+
 export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, onRetry, onBack }: Props) {
-  const R          = 44;
-  const C          = 2 * Math.PI * R;
-  const ringOffset = C * (1 - pct / 100);
-  const ringColor  = pct >= 70 ? "#22C55E" : "#EF4444";
+  const { userName }  = useUser();
+  const firstName     = userName.split(" ")[0];
+  const R             = 44;
+  const C             = 2 * Math.PI * R;
+  const ringOffset    = C * (1 - pct / 100);
+  const ringColor     = pct >= 70 ? "#22C55E" : "#EF4444";
+  const phrase        = PHRASES[getPhraseKey(pct)];
 
   return (
     <div
@@ -93,8 +113,17 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
         className="w-full max-w-sm rounded-2xl p-8 text-center shadow-xl"
         style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", position: "relative", zIndex: 50 }}
       >
+        {/* Saudação personalizada */}
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
+          Cuestionario completado
+        </p>
+        <h2 className="text-2xl font-black leading-snug mb-5" style={{ color: "var(--text-primary)" }}>
+          {phrase.heading}{" "}
+          <span style={{ color: "var(--accent)" }}>{firstName}!</span>
+        </h2>
+
         {/* Ring de progresso SVG */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-3">
           <div className="relative inline-flex items-center justify-center">
             <svg width={112} height={112} viewBox="0 0 112 112">
               <circle cx={56} cy={56} r={R} fill="none" stroke="var(--border)" strokeWidth={7} />
@@ -119,15 +148,13 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
         </div>
 
         {/* Percentagem */}
-        <h2 className="text-4xl font-black mb-1 tabular-nums" style={{ color: "var(--text-primary)" }}>
+        <p className="text-4xl font-black mb-1 tabular-nums" style={{ color: "var(--text-primary)" }}>
           {pct}%
-        </h2>
+        </p>
 
-        {/* Mensagem motivacional */}
-        <p className="text-sm font-semibold mb-6" style={{ color: ringColor }}>
-          {pct >= 90 ? "¡Excelente! Dominas este tema."
-           : pct >= 70 ? "¡Buen trabajo! Sigue practicando."
-           : "Sigue estudiando. ¡Tú puedes!"}
+        {/* Frase de desempenho */}
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          {phrase.sub}
         </p>
 
         {/* Stats */}

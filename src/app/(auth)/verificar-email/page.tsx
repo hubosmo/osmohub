@@ -154,7 +154,7 @@ function VerificarEmailContent() {
                 <button
                   onClick={handleResend}
                   disabled={resending}
-                  className="w-full flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold border transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold border transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-60"
                   style={{
                     backgroundColor: "transparent",
                     borderColor: dividerColor,
