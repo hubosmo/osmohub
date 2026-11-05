@@ -217,7 +217,9 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
       if (!muted) playSound("wrong");
       const newUsed = attemptsUsed + 1;
       setAttemptsUsed(newUsed);
-      if (maxAttempts >= 2 && newUsed < maxAttempts) {
+      // Questões com ≤2 opções (V/F, imagem binária) sempre têm 1 tentativa — a 2ª seria garantida
+      const effectiveMaxAttempts = (questions[currentIdx]?.opcoes.length ?? 0) <= 2 ? 1 : maxAttempts;
+      if (effectiveMaxAttempts >= 2 && newUsed < effectiveMaxAttempts) {
         setAnswerState("wrong");
         setWrongIds((prev) => new Set([...prev, opcao.id]));
         setTimeout(() => { setAnswerState("idle"); setSelectedId(null); }, 700);

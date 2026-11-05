@@ -2,6 +2,10 @@
 
 ## ORM: Prisma + PostgreSQL (Supabase)
 
+> **Fonte da verdade:** `prisma/schema.prisma`. Este documento é um resumo comentado; ao alterar o schema, atualizar aqui na mesma tarefa.
+>
+> **Atenção — migrations:** `prisma/migrations/` tem só 3 migrations (init, grupos_imagens, grupos_legenda). A migration `init` cria a tabela `quizzes` na forma antiga, e a tabela `topico_quizzes` e o valor `ESCOLHA_IMAGEM` não aparecem em nenhuma migration (verificado por busca nos `.sql`). Provavelmente o banco foi alterado por `db push` ou direto no Supabase. Antes de criar um banco novo (staging/produção) é preciso gerar uma migration de baseline, senão `migrate deploy` não reproduz o schema atual.
+
 ---
 
 ```prisma
@@ -93,7 +97,7 @@ model Topico {
   area              Area              @relation(fields: [area_id], references: [id])
   video             Video?
   artigo            Artigo?
-  quizzes           Quiz[]
+  quizzes           TopicoQuiz[]
   simulacoes        TopicoSimulacao[]
   progresso         ProgressoTopico[]
   itens_plano       ItemPlano[]
@@ -179,20 +183,24 @@ model TopicoSimulacao {
 }
 
 // ─── QUIZ ──────────────────────────────────────────────
+// Quiz é uma entidade independente: vincula-se a N tópicos via TopicoQuiz.
+// Campos `modo` e `tempo_limite_seg` existem mas ainda não são lidos pelo código
+// (tempo e tentativas hoje vêm da tela de configuração, via query string).
 
 model Quiz {
-  id               String      @id @default(uuid())
-  topico_id        String?
+  id               String   @id @default(uuid())
   titulo           String
   descricao        String?
-  modo             ModoQuiz    @default(PRATICA)
+  capa_url         String?
+  modo             ModoQuiz @default(PRATICA)
   tempo_limite_seg Int?
-  criado_em        DateTime    @default(now())
-  atualizado_em    DateTime    @updatedAt
+  publicado        Boolean  @default(false)   // só quizzes publicados aparecem ao aluno
+  criado_em        DateTime @default(now())
+  atualizado_em    DateTime @updatedAt
 
-  topico           Topico?     @relation(fields: [topico_id], references: [id])
-  questoes         Questao[]
-  tentativas       TentativaQuiz[]
+  topicos    TopicoQuiz[]
+  questoes   Questao[]
+  tentativas TentativaQuiz[]
 
   @@map("quizzes")
 }
@@ -202,16 +210,31 @@ enum ModoQuiz {
   SIMULADO
 }
 
-model Questao {
-  id          String      @id @default(uuid())
-  quiz_id     String
-  enunciado   Json        // suporta texto e imagem
-  tipo        TipoQuestao @default(MULTIPLA_ESCOLHA)
-  explicacao  String?
-  ordem       Int         @default(0)
+// junction N:N entre Topico e Quiz
+model TopicoQuiz {
+  topico_id String
+  quiz_id   String
+  ordem     Int    @default(0)
 
-  quiz        Quiz        @relation(fields: [quiz_id], references: [id])
-  opcoes      Opcao[]
+  topico Topico @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  quiz   Quiz   @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+
+  @@id([topico_id, quiz_id])
+  @@map("topico_quizzes")
+}
+
+model Questao {
+  id         String      @id @default(uuid())
+  quiz_id    String
+  enunciado  String      @db.Text
+  imagem_url String?     // imagem de contexto do enunciado
+  tipo       TipoQuestao @default(MULTIPLA_ESCOLHA)
+  explicacao String?     @db.Text
+  termo      String?     // termo coberto pela questão — gera "Lo que aprenderás" e filtro de sessão
+  ordem      Int         @default(0)
+
+  quiz   Quiz    @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+  opcoes Opcao[]
 
   @@map("questoes")
 }
@@ -219,16 +242,18 @@ model Questao {
 enum TipoQuestao {
   MULTIPLA_ESCOLHA
   VERDADEIRO_FALSO
+  ESCOLHA_IMAGEM
 }
 
 model Opcao {
   id         String  @id @default(uuid())
   questao_id String
   texto      String
+  imagem_url String? // usado em ESCOLHA_IMAGEM
   correta    Boolean @default(false)
   ordem      Int     @default(0)
 
-  questao    Questao @relation(fields: [questao_id], references: [id])
+  questao Questao @relation(fields: [questao_id], references: [id], onDelete: Cascade)
 
   @@map("opcoes")
 }

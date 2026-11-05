@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
+import { LoadingButton } from "@/components/ui/LoadingButton";
 import { loginAction } from "./actions";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -175,14 +176,9 @@ export default function LoginPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#00A6FF" }}
-              >
-                {loading ? "Entrando..." : "Entrar →"}
-              </button>
+              <LoadingButton type="submit" loading={loading} loadingText="Entrando…">
+                Entrar →
+              </LoadingButton>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px" style={{ backgroundColor: dividerColor }} />

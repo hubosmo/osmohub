@@ -57,7 +57,7 @@ export function AuthInput({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-2xl pl-10 py-3 outline-none transition-colors"
+          className="w-full rounded-lg pl-10 py-3 outline-none transition-colors"
           style={{
             paddingRight: isPassword ? "2.75rem" : "1.25rem",
             backgroundColor: inputBg,

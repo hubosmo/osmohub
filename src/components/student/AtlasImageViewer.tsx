@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useLayoutEffect, useEffect, useRef } from "react";
 import { ZoomIn } from "lucide-react";
+import { preloadImage } from "@/lib/image-preload";
 
 const LENS = 240;
 const ZOOM = 2.8;
@@ -12,19 +13,28 @@ type Props = { src: string; alt: string };
 
 export function AtlasImageViewer({ src, alt }: Props) {
   const [active, setActive] = useState(false);
-  const [lens, setLens] = useState<LensState | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [lens, setLens]     = useState<LensState | null>(null);
+  const containerRef        = useRef<HTMLDivElement>(null);
 
-  // Quando src muda: imagens em cache já têm complete=true — não precisam esperar onLoad
+  // shownSrc = src visível agora (só muda quando a próxima está pronta para pintar)
+  const [shownSrc, setShownSrc] = useState(src);
+  const [ready, setReady]       = useState(false);
+  const visibleRef              = useRef<HTMLImageElement>(null);
+
+  // Detecta imagens em cache antes do primeiro paint — evita flash no reload
+  useLayoutEffect(() => {
+    const img = visibleRef.current;
+    if (img?.complete && img.naturalWidth > 0) setReady(true);
+  }, [shownSrc]);
+
+  // Quando src muda: pré-carrega e decodifica antes de exibir — sem flash entre slides
   useEffect(() => {
-    if (imgRef.current?.complete) {
-      setLoaded(true);
-    } else {
-      setLoaded(false);
-    }
-  }, [src]);
+    if (src === shownSrc) return;
+
+    let cancelled = false;
+    void preloadImage(src).then(() => { if (!cancelled) setShownSrc(src); });
+    return () => { cancelled = true; };
+  }, [src]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (!active || !containerRef.current) return;
@@ -48,25 +58,25 @@ export function AtlasImageViewer({ src, alt }: Props) {
       className="relative w-full"
       onMouseMove={onMouseMove}
       onMouseLeave={() => setLens(null)}
-      style={{ cursor: active ? "crosshair" : "default", lineHeight: 0, minHeight: loaded ? undefined : 180 }}
+      style={{ cursor: active ? "crosshair" : "default", lineHeight: 0, minHeight: ready ? undefined : 180, height: ready ? undefined : "100%" }}
     >
-      {/* Skeleton enquanto a imagem carrega */}
-      {!loaded && (
+      {/* Skeleton só no carregamento inicial (nunca durante troca de slide) */}
+      {!ready && (
         <div className="absolute inset-0" style={{ backgroundColor: "var(--bg-elevated)" }} />
       )}
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        ref={imgRef}
-        src={src}
+        ref={visibleRef}
+        src={shownSrc}
         alt={alt}
         className="w-full h-auto block"
         draggable={false}
-        onLoad={() => setLoaded(true)}
-        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.22s ease" }}
+        onLoad={() => setReady(true)}
+        style={{ opacity: ready ? 1 : 0, transition: "opacity 0.2s ease" }}
       />
 
-      {/* Toggle button — top-right of the image */}
+      {/* Toggle lupa */}
       <button
         type="button"
         onClick={() => { setActive((v) => !v); setLens(null); }}
@@ -83,7 +93,7 @@ export function AtlasImageViewer({ src, alt }: Props) {
         <ZoomIn className="h-4 w-4" />
       </button>
 
-      {/* Magnifier lens */}
+      {/* Lupa ampliadora */}
       {active && lens && (
         <div
           className="pointer-events-none absolute rounded-full z-20"
@@ -92,7 +102,7 @@ export function AtlasImageViewer({ src, alt }: Props) {
             height: LENS,
             left:   lens.x - LENS / 2,
             top:    lens.y - LENS / 2,
-            backgroundImage:    `url(${src})`,
+            backgroundImage:    `url(${shownSrc})`,
             backgroundRepeat:   "no-repeat",
             backgroundSize:     `${lens.bw}px ${lens.bh}px`,
             backgroundPosition: `${lens.bx}px ${lens.by}px`,

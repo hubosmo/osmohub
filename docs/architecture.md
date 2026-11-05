@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Aplicação Next.js 14 (App Router) full-stack com Supabase como backend principal. Estrutura de rotas em grupos para separar contextos (marketing, auth, aluno, admin) com layouts e middlewares independentes.
+Aplicação Next.js 16 (App Router) full-stack com Supabase como backend principal. Estrutura de rotas em grupos para separar contextos (marketing, auth, aluno, admin) com layouts e middlewares independentes.
 
 ---
 
@@ -12,7 +12,7 @@ Aplicação Next.js 14 (App Router) full-stack com Supabase como backend princip
 ┌─────────────────────────────────────────────┐
 │              Vercel (CDN + Edge)             │
 ├─────────────────────────────────────────────┤
-│         Next.js 14 (App Router)             │
+│         Next.js 16 (App Router)             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
 │  │(marketing)│  │(student) │  │ (admin)  │  │
 │  └──────────┘  └──────────┘  └──────────┘  │

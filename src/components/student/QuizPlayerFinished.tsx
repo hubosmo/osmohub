@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Trophy, X } from "lucide-react";
+import { LoadingButton } from "@/components/ui/LoadingButton";
 import { useUser } from "@/components/providers/UserProvider";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 // ── Confete ────────────────────────────────────────────────────────────────────
 
@@ -95,7 +97,9 @@ function getPhraseKey(pct: number) {
 
 export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, onRetry, onBack }: Props) {
   const { userName }  = useUser();
+  const isMobile      = useIsMobile();
   const firstName     = userName.split(" ")[0];
+  const [goingBack, setGoingBack] = useState(false);
   const R             = 44;
   const C             = 2 * Math.PI * R;
   const ringOffset    = C * (1 - pct / 100);
@@ -104,9 +108,30 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
+      {/* Decoração lateral — só desktop */}
+      {!isMobile && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src="/Burbujas%20anat%C3%B3micas%20llenas%20de%20ternura.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute pointer-events-none select-none"
+          style={{
+            width: "55vw",
+            height: "auto",
+            opacity: 0.25,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            maskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
+            WebkitMaskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
+          }}
+        />
+      )}
+
       {pct >= 70 && <ConfettiEffect />}
 
       <div
@@ -188,13 +213,14 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
           >
             Volver a intentar
           </button>
-          <button
-            onClick={onBack}
-            className="w-full py-2.5 rounded-xl text-sm transition-opacity hover:opacity-70"
-            style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
+          <LoadingButton
+            variant="secondary"
+            loading={goingBack}
+            loadingText="Volviendo…"
+            onClick={() => { setGoingBack(true); onBack(); }}
           >
             Volver al tema
-          </button>
+          </LoadingButton>
         </div>
       </div>
     </div>

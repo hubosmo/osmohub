@@ -94,7 +94,9 @@ Azul acento hover: #0090E0
 
 ---
 
-## Tokens Tailwind (tailwind.config.ts)
+## Tokens Tailwind
+
+> O projeto usa Tailwind v4: não existe `tailwind.config.ts`. Os tokens abaixo estão declarados em `src/app/globals.css` (bloco `@theme`), com os valores de tema em `:root.dark` / `:root.light`. O bloco a seguir é só ilustrativo da estrutura. Regras de uso (raio, motion, estados): `design-system.md`.
 
 ```ts
 colors: {

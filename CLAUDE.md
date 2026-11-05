@@ -18,7 +18,7 @@ Referência de experiência: **Kenhub**.
 
 | Camada | Tecnologia |
 |---|---|
-| Framework | Next.js 14 (App Router, TypeScript) |
+| Framework | Next.js 16 (App Router, TypeScript), React 19 |
 | Estilização | Tailwind CSS + shadcn/ui |
 | Banco de dados | Supabase (PostgreSQL) |
 | ORM | Prisma |
@@ -101,7 +101,9 @@ A plataforma suporta tema **escuro** e **claro**. Ver `docs/brand.md` para palet
 - [Mapa do Sistema](docs/system-map.md) ← **ler primeiro: rotas reais, fluxos, componentes, arquivos**
 - [Guia de Construção](docs/guia-construcao.md) ← checklist de fases (o que está done/pendente)
 - [Mapa de Módulos](docs/module-map.json) ← dependências detalhadas por módulo
-- [Brand & Design System](docs/brand.md)
+- [Design System — regras de uso](docs/design-system.md) ← **ler antes de criar qualquer UI** (raio, motion, loading, modais)
+- [Decisões (ADRs)](docs/decisions/README.md) ← **o que já foi decidido e por quê; não refazer**
+- [Brand & Paleta](docs/brand.md)
 - [Arquitetura Técnica](docs/architecture.md)
 - [Modelo de Conteúdo](docs/content-model.md)
 - [Funcionalidades](docs/features.md)
@@ -114,6 +116,19 @@ Antes de implementar qualquer módulo novo:
 2. Consultar `docs/module-map.json` → campo `depends_on` e `used_by` do módulo
 3. Implementar sem afetar módulos com status `done`
 4. Atualizar `module-map.json` (status, files) e marcar `[x]` no guia ao concluir
+5. Se tomou uma decisão relevante (escolha entre alternativas, nova regra, bug que revelou uma regra), criar um ADR em `docs/decisions/` e atualizar o índice
+6. Se mudou rota, componente, action, query ou schema, atualizar `docs/system-map.md` (e `docs/database-schema.md` se for schema) na mesma tarefa
+
+### Definição de pronto (antes de commitar)
+
+- [ ] `npm run check` passa (typecheck + limites de tamanho + proteção das actions de admin). O lint ainda tem 18 erros antigos (ver `docs/design-system.md`, seção 9), por isso não entra no `check`; não introduzir erro novo em arquivo que você tocou
+- [ ] Nenhuma cor hex nova: só variáveis do tema (ver `docs/design-system.md`)
+- [ ] Botão de ação com carregamento usa `LoadingButton`; imagens em slide usam `useImagePreload`
+- [ ] Nada reimplementado que já exista em `components/ui/`, `hooks/` ou `lib/`
+- [ ] Parâmetro de URL usado como destino de redirect passa por `safeInternalPath`
+- [ ] Server action nova em `lib/actions/` começa com `await requireAdmin();` (ou, se for pública, entra na lista de `scripts/check-admin-actions.mjs` com justificativa). Nunca confiar em ID de usuário vindo do cliente: obter da sessão
+- [ ] Texto visível em espanhol latino
+- [ ] Docs atualizados (itens 4 a 6 acima)
 
 ---
 
@@ -143,7 +158,7 @@ lib/actions/
   content-atlas.ts       → imagens standalone e grupos de imagens
   content-tabelas.ts     → tabelas e linhas
   content-media.ts       → video e artigo
-  content-quizzes.ts     → (criar quando implementar quizzes)
+  content-quizzes.ts     → quiz, questões, opções, vínculo com tópico (próximo do limite: dividir ao crescer)
   content-simulacoes.ts  → (criar quando implementar simulações)
 ```
 
@@ -157,7 +172,7 @@ Cada tipo de seção tem seu arquivo em `components/student/`:
 ```
 TopicVideoSection.tsx    ✓
 TopicAtlasSection.tsx    ✓
-TopicQuizSection.tsx     → criar ao implementar quiz
+TopicQuizSection.tsx     ✓
 TopicSimSection.tsx      → criar ao implementar simulação
 ```
 

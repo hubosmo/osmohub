@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useImagePreload } from "@/hooks/useImagePreload";
 import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AtlasImageViewer } from "./AtlasImageViewer";
@@ -25,6 +26,10 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
   const containerRef = useRef<HTMLDivElement>(null);
   const total = imagens.length;
   const current = imagens[idx];
+
+  useImagePreload(total > 1
+    ? [imagens[idx < total - 1 ? idx + 1 : 0].url, imagens[idx > 0 ? idx - 1 : total - 1].url]
+    : []);
 
   if (total === 0) return null;
 

@@ -3,6 +3,8 @@
 > Documento de referência rápida. Ler antes de implementar qualquer módulo novo.
 > Mostra o que **realmente existe hoje**, fluxos do usuário, e dependências entre módulos.
 > Complementa `module-map.json` (detalhe por módulo) e `guia-construcao.md` (checklist de fases).
+> Regras visuais: `design-system.md`. Decisões já tomadas e o porquê: `decisions/`.
+> Última verificação contra o código: 2026-11-05.
 
 ---
 
@@ -18,22 +20,24 @@
 | **Layout admin** | AdminLayout, AdminNavGuard, AdminSaveForm |
 | **Dashboard** | Boas-vindas, DashboardCursos, DashboardNavegar, ContinuarUnidad |
 | **Navegação de conteúdo** | Cursos → Disciplinas → Áreas → Tópicos (hierarquia completa) |
-| **Página de tópico** | Vídeo, Artigo (Tiptap), Atlas (imagens + carrossel), Tabelas, Quiz (placeholder) |
+| **Página de tópico** | Vídeo, Artigo (Tiptap), Atlas (imagens + carrossel), Tabelas, Cuestionario (card + configuração de sessão) |
+| **Quiz — aluno** | Sessão em tela cheia (`QuizPlayer`): timer em contagem regressiva, 1 ou 2 tentativas, navegação para questões já respondidas, filtro por termo, tela de resultado personalizada, retorno ao tópico de origem |
+| **Quiz — admin** | `/admin/quizzes` (lista) e `/admin/quizzes/[id]` (builder: questões, opções, imagens, termos, publicar), vínculo N:N a tópicos (`QuizLinker`) |
 | **Tour de onboarding** | TopicTour (5 passos, localStorage, estilo Kenhub) |
-| **Admin — conteúdo** | CRUD Cursos, Disciplinas, Áreas, Tópicos, Atlas, Tabelas, Vídeo, Artigo |
+| **Admin — conteúdo** | CRUD Cursos, Disciplinas, Áreas, Tópicos, Atlas, Tabelas, Vídeo (embed), Artigo |
 | **Hooks/utils** | useIsMobile, LastTopicTracker, MobileIndiceBar, TopicSearch |
 
 ### Pendente (próximas fases)
 
 | Módulo | Bloqueado por |
 |---|---|
-| Player Mux nativo | Conta Mux + env vars |
-| Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. |
-| Quiz completo | QuizPlayer, QuizSimulado, QuizBuilder no admin |
+| Hospedagem de vídeo própria | Decisão em [ADR 0009](decisions/0009-hospedagem-de-video.md) (Mux vs Cloudflare Stream) |
+| Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. (pasta `components/simulations/` vazia) |
+| Persistir tentativas de quiz | Tabela `tentativas_quiz` existe mas nenhum código grava; `modo`/`tempo_limite_seg` do quiz também não são lidos |
 | Progresso do aluno | progresso.ts, marcação automática em vídeo/artigo |
 | Plano de estudos | plano.ts, UI de plano |
 | Biblioteca (busca) | lib/db/busca.ts |
-| Auth por role no middleware | Validação ADMIN vs STUDENT |
+| Revisão de segurança restante | RLS do Supabase, limites de tamanho/tipo em uploads, queries de `lib/db/admin.ts` sem guarda própria (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
 
 ---
 
@@ -53,16 +57,19 @@
 │
 ├── /dashboard
 │
+├── /quizzes/[id]/session                ← sessão de quiz em tela cheia (route group `(quiz)`, ver ADR 0004)
+│       query: back, time, attempts, exclude
+│
 └── /admin
-    ├── /admin/cursos
-    │   └── /admin/cursos/[id]           ← painel do curso (disciplinas inline)
-    ├── /admin/disciplinas/[id]          ← painel da disciplina (áreas inline)
-    ├── /admin/areas/[id]                ← painel da área (tópicos inline)
-    ├── /admin/topicos/[id]              ← painel do tópico (vídeo, artigo, atlas, tabelas)
-    └── /admin/content                   ← árvore de conteúdo (ContentTree)
+    ├── /admin                           ← painel inicial
+    ├── /admin/content                   ← árvore de conteúdo (ContentTree)
+    ├── /admin/quizzes                   ← lista de quizzes
+    └── /admin/quizzes/[id]              ← builder do quiz (QuizPanel)
 ```
 
-**Nota:** O admin usa um único ContentTree que renderiza painéis aninhados (Curso → Disciplina → Área → Tópico) sem navegar de página.
+**Nota:** O admin de conteúdo usa um único ContentTree que renderiza painéis aninhados (Curso → Disciplina → Área → Tópico) sem navegar de página. Não existem páginas `/admin/cursos/[id]`, `/admin/disciplinas/[id]` etc.
+
+**Route groups:** `(auth)` login/cadastro · `(student)` área do aluno com header/sidebar · `(quiz)` sessão de quiz sem chrome · `(admin)` painel.
 
 ---
 
@@ -99,8 +106,27 @@
       ├── ArticuloSection   (#articulo) — ArtigoRenderer Tiptap
       ├── TopicAtlasSection  (#atlas)   — AtlasCarousel + AtlasImageViewer
       ├── TablasSection      (#tablas)
-      └── CuestionarioSection (#cuestionario) — placeholder
+      └── TopicQuizSection   (#cuestionario) — cards dos quizzes publicados vinculados ao tópico
 ```
+
+### Fluxo do quiz (aluno)
+
+```
+[Tópico] → TopicQuizSection
+  ├── "Comenzar ▶" ou engrenagem (modal: tempo 5/10/20/30 min, 1 ou 2 intentos,
+  │     termos a incluir/excluir, salvar como padrão em localStorage)
+  └── router.push /quizzes/[id]/session?back=<tópico>&time=&attempts=&exclude=
+        ↓
+[(quiz)/layout]  → busca usuário no Supabase, provê UserProvider
+[session/page]   → carrega quiz publicado + questões → <QuizPlayer>
+  fase "playing"  QuizPlayerPlaying + QuizPlayerOpcoes
+                  (timer regressivo, auto-encerra no fim; ‹ › revisa respostas anteriores)
+  fase "finished" QuizPlayerFinished (nome, frase por faixa de nota, confete ≥70%)
+        ↓ "Volver al tema" → router.push(back)     (ADR 0005)
+        ↓ "Volver a intentar" → nova sessão
+```
+
+Regras de quiz: ver [ADR 0006](decisions/0006-tentativas-em-questoes-binarias.md). Nenhum resultado é gravado no banco hoje.
 
 ---
 
@@ -140,6 +166,18 @@ src/components/layout/
   AdminLayout.tsx       → layout admin (sidebar + conteúdo)
   ThemeToggle.tsx       → botão dark/light
   TopLoader.tsx         → barra de progresso de navegação
+  PageTransition.tsx    → fade-in entre páginas (sem AnimatePresence, ver ADR 0007)
+```
+
+### Outros componentes compartilhados
+```
+src/components/
+  ui/          → shadcn base (badge, button, card, dialog, dropdown-menu, input, separator, skeleton, sonner)
+                 + LoadingButton (botão de ação primário/secundário com estado de loading)
+  auth/        → AuthInput (usado em login e cadastro), AuthLeftPanel
+  brand/       → OsmoLogo, OrbitalDecor, GoogleIcon, SplashScreen
+  providers/   → ThemeProvider, UserProvider, QueryProvider
+  simulations/ → vazia (pendente)
 ```
 
 ### Aluno
@@ -158,6 +196,13 @@ src/components/student/
   DisciplinaAreas.tsx     → página /[disciplina]: seletor de áreas + tópicos
   LastTopicTracker.tsx    → rastreia último tópico acessado (banco)
   MobileIndiceBar.tsx     → índice colapsável de seções (mobile only)
+  EstudiarBtn.tsx         → rótulo-botão "Estudiar" com hover na cor de acento da disciplina
+  TopicSidebarNav.tsx     → sidebar do tópico (desktop): links de seção com destaque da seção ativa pelo scroll
+  TopicQuizSection.tsx    → cards de quiz do tópico + modal de configuração de sessão
+  QuizPlayer.tsx          → orquestra a sessão (estado, timer, histórico, tentativas)
+  QuizPlayerPlaying.tsx   → barra superior, instrução e slide de questões
+  QuizPlayerOpcoes.tsx    → layouts por tipo de questão (múltipla, V/F, escolha de imagem)
+  QuizPlayerFinished.tsx  → tela de resultado + confete
   RichOrPlain.tsx         → renderiza HTML rico ou texto simples
   TablasSection.tsx       → tabelas interativas com blur-reveal
   ThemeAwareCapa.tsx      → imagem que troca entre capa dark/light
@@ -175,6 +220,10 @@ src/components/admin/
   AdminSaveForm.tsx         → form wrapper com submit automático
   AtlasActions.tsx          → ações de atlas (adicionar imagem, etc.)
   AtlasBlocksManager.tsx    → gerencia grupos e imagens do atlas
+  CollapsibleCard.tsx       → card recolhível usado nos painéis
+  ConfirmModal.tsx          → modal de confirmação para ações destrutivas
+  QuizImagePicker.tsx       → seletor de imagem do quiz (upload + galeria unificada quiz/atlas)
+  QuizLinker.tsx            → vincula/desvincula quizzes de um tópico
   ContentTree.tsx           → árvore de conteúdo (painel principal)
   DuracaoInput.tsx          → input de duração em minutos
   GrupoImagensCard.tsx      → card de grupo de imagens
@@ -188,6 +237,10 @@ src/components/admin/
     CursoPanel.tsx          → painel de edição de curso
     DisciplinaPanel.tsx     → painel de edição de disciplina
     EmptyPanel.tsx          → estado vazio quando nada está selecionado
+    QuizPanel.tsx           → builder do quiz (página /admin/quizzes/[id])
+    QuestaoRow.tsx          → edição de uma questão
+    OpcaoRow.tsx            → edição de uma opção
+    quiz-types.ts           → tipos compartilhados do builder
     TopicoPanel.tsx         → painel completo de edição de tópico
 ```
 
@@ -197,6 +250,22 @@ src/components/editor/
   ArtigoRenderer.tsx  → renderiza JSON Tiptap como HTML (área do aluno)
   MiniEditor.tsx      → editor Tiptap simplificado (admin)
 ```
+
+---
+
+### Hooks, utilitários e scripts
+```
+src/hooks/useIsMobile.ts        → viewport (padrão < 768px)
+src/hooks/useImagePreload.ts    → pré-carrega uma lista de URLs de imagem
+src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
+src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
+src/lib/motion.ts               → tokens de animação (framer-motion)
+src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (autorização, ADR 0011)
+src/middleware.ts               → exige login em rotas de aluno/admin (falha fechada); papel NÃO é checado aqui
+scripts/check-file-sizes.mjs    → verifica limites de linhas do CLAUDE.md (catraca com file-size-baseline.json)
+scripts/check-admin-actions.mjs → falha se uma server action de admin não começar com requireAdmin()
+```
+Comandos: `npm run typecheck`, `npm run check:size`, `npm run check:auth`, `npm run check` (os três). `npm run lint` roda à parte e leva vários minutos neste disco.
 
 ---
 
@@ -211,7 +280,11 @@ src/lib/actions/
   content-atlas.ts           → imagens standalone + grupos de imagens
   content-tabelas.ts         → tabelas e linhas
   content-media.ts           → vídeo e artigo (upsert, deletar, salvar)
+  content-quizzes.ts         → quiz, questões, opções, vínculo com tópico
+  content-quiz-imagens.ts    → upload de imagem do quiz e galeria unificada (quiz + atlas)
 ```
+
+Todas as actions acima, exceto `auth`, `search` e `content-ultimo-topico`, começam com `await requireAdmin()`.
 
 **Regra:** cada domínio novo → arquivo novo. Nunca misturar domínios.
 
@@ -224,10 +297,11 @@ src/lib/db/
   prisma.ts     → singleton Prisma Client
   cursos.ts     → listarCursos, getCursoPorSlug, getDisciplinaPorSlug,
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
-  admin.ts      → queries admin (listagem, contagens)
+  admin.ts      → queries admin (listagem, contagens, árvore completa)
+  quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, listarImagensDisponiveis
 ```
 
-**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`, `quizzes.ts`
+**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. A query da sessão de quiz hoje é feita direto em `(quiz)/quizzes/[id]/session/page.tsx` com `prisma` (viola "queries em `lib/db/`"; mover para `lib/db/quizzes.ts`).
 
 ---
 
@@ -307,7 +381,8 @@ planos_estudos       → planos nomeados por aluno
 itens_plano          → tópicos no plano + ordem + concluido
 simulacoes           → biblioteca de simulações reutilizáveis (tipo, config JSON)
 topico_simulacoes    → vinculo simulação ↔ tópico
-quizzes              → quizzes por tópico
-questoes             → questões de um quiz
-opcoes               → opções de uma questão (texto, correta)
+quizzes              → quiz independente (titulo, capa_url, publicado)
+topico_quizzes       → vínculo N:N tópico ↔ quiz
+questoes             → questões de um quiz (tipo, enunciado, imagem_url, termo, explicacao)
+opcoes               → opções de uma questão (texto, imagem_url, correta)
 ```
