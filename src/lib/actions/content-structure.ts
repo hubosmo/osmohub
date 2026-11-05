@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/admin";
 
 function toSlug(str: string) {
   return str
@@ -31,6 +32,7 @@ export async function reordenarItens(
   tipo: "curso" | "disciplina" | "area" | "topico",
   items: { id: string; ordem: number }[]
 ) {
+  await requireAdmin();
   await prisma.$transaction(
     items.map(({ id, ordem }) => {
       if (tipo === "curso") return prisma.curso.update({ where: { id }, data: { ordem } });
@@ -45,6 +47,7 @@ export async function reordenarItens(
 // ─── CURSOS ────────────────────────────────────────────
 
 export async function criarCursoContent(formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   const c = await prisma.curso.create({ data: { nome, slug: toSlug(nome) } });
@@ -52,6 +55,7 @@ export async function criarCursoContent(formData: FormData) {
 }
 
 export async function atualizarCursoContent(id: string, formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   await prisma.curso.update({
@@ -69,6 +73,7 @@ export async function atualizarCursoContent(id: string, formData: FormData) {
 }
 
 export async function deletarCursoContent(id: string) {
+  await requireAdmin();
   await prisma.curso.delete({ where: { id } });
   redirect("/admin/content");
 }
@@ -76,6 +81,7 @@ export async function deletarCursoContent(id: string) {
 // ─── DISCIPLINAS ───────────────────────────────────────
 
 export async function criarDisciplinaContent(cursoId: string, formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   const d = await prisma.disciplina.create({
@@ -85,6 +91,7 @@ export async function criarDisciplinaContent(cursoId: string, formData: FormData
 }
 
 export async function atualizarDisciplinaContent(id: string, formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   await prisma.disciplina.update({
@@ -102,6 +109,7 @@ export async function atualizarDisciplinaContent(id: string, formData: FormData)
 }
 
 export async function deletarDisciplinaContent(id: string, cursoId: string) {
+  await requireAdmin();
   await prisma.disciplina.delete({ where: { id } });
   redirect(`/admin/content?curso=${cursoId}`);
 }
@@ -109,6 +117,7 @@ export async function deletarDisciplinaContent(id: string, cursoId: string) {
 // ─── AREAS ─────────────────────────────────────────────
 
 export async function criarAreaContent(disciplinaId: string, formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   const a = await prisma.area.create({
@@ -118,6 +127,7 @@ export async function criarAreaContent(disciplinaId: string, formData: FormData)
 }
 
 export async function atualizarAreaContent(id: string, formData: FormData) {
+  await requireAdmin();
   const nome = s(formData.get("nome"));
   if (!nome) return;
   await prisma.area.update({
@@ -133,6 +143,7 @@ export async function atualizarAreaContent(id: string, formData: FormData) {
 }
 
 export async function deletarAreaContent(id: string, disciplinaId: string) {
+  await requireAdmin();
   await prisma.area.delete({ where: { id } });
   redirect(`/admin/content?disciplina=${disciplinaId}`);
 }
@@ -140,6 +151,7 @@ export async function deletarAreaContent(id: string, disciplinaId: string) {
 // ─── TÓPICOS ───────────────────────────────────────────
 
 export async function criarTopicoContent(areaId: string, formData: FormData) {
+  await requireAdmin();
   const titulo = s(formData.get("titulo"));
   if (!titulo) return;
   const t = await prisma.topico.create({
@@ -154,6 +166,7 @@ export async function criarTopicoContent(areaId: string, formData: FormData) {
 }
 
 export async function atualizarTopicoContent(id: string, formData: FormData) {
+  await requireAdmin();
   const titulo = s(formData.get("titulo"));
   if (!titulo) return;
   const durMin = parseInt(s(formData.get("duracao_estimada_min")));
@@ -177,11 +190,13 @@ export async function toggleTopicoSection(
   section: "video_ativo" | "artigo_ativo" | "atlas_ativo" | "tabelas_ativo",
   ativo: boolean
 ) {
+  await requireAdmin();
   await prisma.topico.update({ where: { id }, data: { [section]: ativo } });
   revalidate();
 }
 
 export async function deletarTopicoContent(id: string, areaId: string) {
+  await requireAdmin();
   await prisma.topico.delete({ where: { id } });
   redirect(`/admin/content?area=${areaId}`);
 }
@@ -215,18 +230,21 @@ async function uploadCapa(
 }
 
 export async function uploadCapaCurso(id: string, formData: FormData) {
+  await requireAdmin();
   await uploadCapa("capas", `cursos/${id}/capa`, formData, (url, field) =>
     prisma.curso.update({ where: { id }, data: { [field]: url } }).then(() => {})
   );
 }
 
 export async function uploadCapaDisciplina(id: string, formData: FormData) {
+  await requireAdmin();
   await uploadCapa("capas", `disciplinas/${id}/capa`, formData, (url, field) =>
     prisma.disciplina.update({ where: { id }, data: { [field]: url } }).then(() => {})
   );
 }
 
 export async function uploadCapaArea(id: string, formData: FormData) {
+  await requireAdmin();
   await uploadCapa("capas", `areas/${id}/capa`, formData, (url, field) =>
     prisma.area.update({ where: { id }, data: { [field]: url } }).then(() => {})
   );

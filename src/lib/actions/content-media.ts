@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth/admin";
 
 function s(v: FormDataEntryValue | null) {
   return String(v ?? "").trim();
@@ -15,6 +16,7 @@ function revalidate() {
 // ─── VIDEO ─────────────────────────────────────────────
 
 export async function upsertVideoContent(topicoId: string, formData: FormData) {
+  await requireAdmin();
   const youtube_url = s(formData.get("youtube_url")) || null;
   const titulo = s(formData.get("titulo")) || "Video";
   const descricao = s(formData.get("descricao")) || null;
@@ -30,6 +32,7 @@ export async function upsertVideoContent(topicoId: string, formData: FormData) {
 }
 
 export async function deletarVideoContent(topicoId: string) {
+  await requireAdmin();
   await prisma.video.deleteMany({ where: { topico_id: topicoId } });
   revalidate();
 }
@@ -37,6 +40,7 @@ export async function deletarVideoContent(topicoId: string) {
 // ─── ARTIGO ────────────────────────────────────────────
 
 export async function salvarArtigo(topicoId: string, content: object) {
+  await requireAdmin();
   const topico = await prisma.topico.findUnique({
     where: { id: topicoId },
     select: { titulo: true },

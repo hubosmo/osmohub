@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth/admin";
 
 function s(v: FormDataEntryValue | null) {
   return String(v ?? "").trim();
@@ -15,6 +16,7 @@ function revalidate() {
 // ─── TABELAS ───────────────────────────────────────────
 
 export async function criarTabelaContent(topicoId: string, formData: FormData) {
+  await requireAdmin();
   const titulo = s(formData.get("titulo"));
   if (!titulo) return;
   const tipo = s(formData.get("tipo")) || "resumen";
@@ -30,11 +32,13 @@ export async function criarTabelaContent(topicoId: string, formData: FormData) {
 }
 
 export async function deletarTabelaContent(id: string, topicoId: string) {
+  await requireAdmin();
   await prisma.tabelaTopico.delete({ where: { id } });
   revalidate();
 }
 
 export async function atualizarTituloTabela(tabelaId: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const titulo = s(formData.get("titulo"));
   if (!titulo) return;
   await prisma.tabelaTopico.update({ where: { id: tabelaId }, data: { titulo } });
@@ -42,6 +46,7 @@ export async function atualizarTituloTabela(tabelaId: string, topicoId: string, 
 }
 
 export async function adicionarColunaTabela(tabelaId: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const header = s(formData.get("header"));
   if (!header) return;
   const tabela = await prisma.tabelaTopico.findUnique({ where: { id: tabelaId }, select: { cabecalhos: true } });
@@ -51,6 +56,7 @@ export async function adicionarColunaTabela(tabelaId: string, topicoId: string, 
 }
 
 export async function removerColunaTabela(tabelaId: string, topicoId: string, index: number) {
+  await requireAdmin();
   const tabela = await prisma.tabelaTopico.findUnique({ where: { id: tabelaId }, select: { cabecalhos: true } });
   const atual = (tabela?.cabecalhos as string[]) ?? [];
   await prisma.tabelaTopico.update({ where: { id: tabelaId }, data: { cabecalhos: atual.filter((_, i) => i !== index) } });
@@ -64,6 +70,7 @@ export async function adicionarLinhaContent(
   topicoId: string,
   formData: FormData
 ) {
+  await requireAdmin();
   const categoria = s(formData.get("categoria"));
   const conteudo = s(formData.get("conteudo"));
   if (!categoria || !conteudo) return;
@@ -87,11 +94,13 @@ export async function adicionarLinhaContent(
 }
 
 export async function deletarLinhaContent(id: string, topicoId: string) {
+  await requireAdmin();
   await prisma.tabelaLinha.delete({ where: { id } });
   revalidate();
 }
 
 export async function atualizarLinhaContent(id: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const categoria = s(formData.get("categoria"));
   const conteudo = s(formData.get("conteudo"));
   if (!categoria || !conteudo) return;

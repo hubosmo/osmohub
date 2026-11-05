@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/admin";
 
 function s(v: FormDataEntryValue | null) {
   return String(v ?? "").trim();
@@ -16,6 +17,7 @@ function revalidate() {
 // ─── GRUPOS DE IMAGENS ────────────────────────────────
 
 export async function criarGrupoImagens(topicoId: string, _fd?: FormData) {
+  await requireAdmin();
   const last = await prisma.grupoImagensTopico.findFirst({
     where: { topico_id: topicoId },
     orderBy: { ordem: "desc" },
@@ -28,6 +30,7 @@ export async function criarGrupoImagens(topicoId: string, _fd?: FormData) {
 }
 
 export async function atualizarTituloGrupo(grupoId: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const titulo = s(formData.get("titulo")) || null;
   await prisma.grupoImagensTopico.update({ where: { id: grupoId }, data: { titulo } });
   revalidate();
@@ -37,6 +40,7 @@ export async function reordenarBlocosAtlas(
   topicoId: string,
   blocks: { type: "imagem" | "grupo"; id: string }[]
 ) {
+  await requireAdmin();
   await prisma.$transaction(
     blocks.map((b, idx) =>
       b.type === "imagem"
@@ -48,6 +52,7 @@ export async function reordenarBlocosAtlas(
 }
 
 export async function deletarGrupoImagens(grupoId: string, topicoId: string) {
+  await requireAdmin();
   await prisma.grupoImagensTopico.deleteMany({ where: { id: grupoId } });
   revalidate();
 }
@@ -57,6 +62,7 @@ export async function reordenarImagensGrupo(
   topicoId: string,
   imagemIds: string[]
 ) {
+  await requireAdmin();
   await prisma.$transaction(
     imagemIds.map((id, idx) =>
       prisma.imagemTopico.update({ where: { id }, data: { ordem: idx } })
@@ -66,6 +72,7 @@ export async function reordenarImagensGrupo(
 }
 
 export async function atualizarModoLegendaGrupo(grupoId: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const modo = s(formData.get("modo_legenda")) as "individual" | "unica";
   const legenda = s(formData.get("legenda")) || null;
   await prisma.grupoImagensTopico.update({
@@ -76,6 +83,7 @@ export async function atualizarModoLegendaGrupo(grupoId: string, topicoId: strin
 }
 
 export async function adicionarImagemAoGrupo(grupoId: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   let url = s(formData.get("url"));
   const file = formData.get("file") as File | null;
   if (file && file.size > 0) {
@@ -111,6 +119,7 @@ export async function adicionarImagemAoGrupo(grupoId: string, topicoId: string, 
 // ─── IMAGENS STANDALONE ───────────────────────────────
 
 export async function adicionarImagemContent(topicoId: string, formData: FormData) {
+  await requireAdmin();
   let url = s(formData.get("url"));
 
   const file = formData.get("file") as File | null;
@@ -149,12 +158,14 @@ export async function adicionarImagemContent(topicoId: string, formData: FormDat
 }
 
 export async function atualizarLegendaImagem(id: string, topicoId: string, formData: FormData) {
+  await requireAdmin();
   const legenda = s(formData.get("legenda")) || null;
   await prisma.imagemTopico.update({ where: { id }, data: { legenda } });
   revalidate();
 }
 
 export async function deletarImagemContent(id: string, topicoId: string) {
+  await requireAdmin();
   await prisma.imagemTopico.delete({ where: { id } });
   revalidate();
 }

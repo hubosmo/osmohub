@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/admin";
 
 function revalidate() {
   revalidatePath("/admin/quizzes", "layout");
@@ -12,6 +12,7 @@ function revalidate() {
 // ── Quiz ───────────────────────────────────────────────
 
 export async function criarQuiz(fd: FormData) {
+  await requireAdmin();
   const titulo = (fd.get("titulo") as string | null)?.trim();
   if (!titulo) throw new Error("Título obrigatório");
 
@@ -23,6 +24,7 @@ export async function criarQuiz(fd: FormData) {
 }
 
 export async function atualizarQuiz(quizId: string, fd: FormData) {
+  await requireAdmin();
   const titulo = (fd.get("titulo") as string | null)?.trim();
   const descricao = (fd.get("descricao") as string | null)?.trim() || null;
   const capa_url = (fd.get("capa_url") as string | null)?.trim() || null;
@@ -37,6 +39,7 @@ export async function atualizarQuiz(quizId: string, fd: FormData) {
 }
 
 export async function deletarQuiz(quizId: string) {
+  await requireAdmin();
   await prisma.quiz.delete({ where: { id: quizId } });
   revalidatePath("/admin/quizzes");
 }
@@ -44,6 +47,7 @@ export async function deletarQuiz(quizId: string) {
 // ── Questão ────────────────────────────────────────────
 
 export async function criarQuestao(quizId: string, fd: FormData) {
+  await requireAdmin();
   const enunciado = (fd.get("enunciado") as string | null)?.trim();
   if (!enunciado) throw new Error("Enunciado obrigatório");
 
@@ -81,6 +85,7 @@ export async function criarQuestao(quizId: string, fd: FormData) {
 }
 
 export async function atualizarQuestao(questaoId: string, quizId: string, fd: FormData) {
+  await requireAdmin();
   const enunciado = (fd.get("enunciado") as string | null)?.trim();
   const explicacao = (fd.get("explicacao") as string | null)?.trim() || null;
   const imagem_url = (fd.get("imagem_url") as string | null)?.trim() || null;
@@ -94,11 +99,13 @@ export async function atualizarQuestao(questaoId: string, quizId: string, fd: Fo
 }
 
 export async function deletarQuestao(questaoId: string, quizId: string) {
+  await requireAdmin();
   await prisma.questao.delete({ where: { id: questaoId } });
   revalidatePath(`/admin/quizzes/${quizId}`);
 }
 
 export async function reordenarQuestoes(quizId: string, ids: string[]) {
+  await requireAdmin();
   await Promise.all(
     ids.map((id, ordem) => prisma.questao.update({ where: { id }, data: { ordem } }))
   );
@@ -108,6 +115,7 @@ export async function reordenarQuestoes(quizId: string, ids: string[]) {
 // ── Opção ──────────────────────────────────────────────
 
 export async function criarOpcao(questaoId: string, quizId: string, fd: FormData) {
+  await requireAdmin();
   const texto = (fd.get("texto") as string | null)?.trim() || "";
   const imagem_url = (fd.get("imagem_url") as string | null)?.trim() || null;
   const correta = fd.get("correta") === "on";
@@ -131,6 +139,7 @@ export async function criarOpcao(questaoId: string, quizId: string, fd: FormData
 }
 
 export async function atualizarOpcao(opcaoId: string, quizId: string, fd: FormData) {
+  await requireAdmin();
   const texto = (fd.get("texto") as string | null)?.trim() || "";
   const imagem_url = (fd.get("imagem_url") as string | null)?.trim() || null;
   const correta = fd.get("correta") === "on";
@@ -143,6 +152,7 @@ export async function atualizarOpcao(opcaoId: string, quizId: string, fd: FormDa
 }
 
 export async function marcarOpcaoCorreta(opcaoId: string, questaoId: string, quizId: string) {
+  await requireAdmin();
   // Desmarca todas e marca só essa
   await prisma.opcao.updateMany({
     where: { questao_id: questaoId },
@@ -156,6 +166,7 @@ export async function marcarOpcaoCorreta(opcaoId: string, questaoId: string, qui
 }
 
 export async function deletarOpcao(opcaoId: string, quizId: string) {
+  await requireAdmin();
   await prisma.opcao.delete({ where: { id: opcaoId } });
   revalidatePath(`/admin/quizzes/${quizId}`);
 }
@@ -163,6 +174,7 @@ export async function deletarOpcao(opcaoId: string, quizId: string) {
 // ── Vínculo Tópico ↔ Quiz ──────────────────────────────
 
 export async function vincularQuizAoTopico(topicoId: string, fd: FormData) {
+  await requireAdmin();
   const quizId = fd.get("quizId") as string;
   if (!quizId) return;
 
@@ -181,115 +193,9 @@ export async function vincularQuizAoTopico(topicoId: string, fd: FormData) {
 }
 
 export async function desvincularQuizDoTopico(topicoId: string, quizId: string) {
+  await requireAdmin();
   await prisma.topicoQuiz.delete({
     where: { topico_id_quiz_id: { topico_id: topicoId, quiz_id: quizId } },
   });
   revalidatePath("/admin/content");
-}
-
-// ── Imagens do Quiz ────────────────────────────────────
-
-export async function uploadImagemQuiz(
-  quizId: string,
-  fd: FormData
-): Promise<{ url: string }> {
-  const file = fd.get("file") as File | null;
-  if (!file || file.size === 0) throw new Error("Arquivo inválido");
-
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const storagePath = `quizzes/${quizId}/${Date.now()}.${ext}`;
-  const bytes = await file.arrayBuffer();
-
-  const supabase = createAdminClient();
-  const { error } = await supabase.storage
-    .from("capas")
-    .upload(storagePath, bytes, { contentType: file.type, upsert: false });
-
-  if (error) throw new Error(error.message);
-
-  const { data } = supabase.storage.from("capas").getPublicUrl(storagePath);
-  return { url: data.publicUrl };
-}
-
-export async function listarImagensQuiz(
-  quizId: string
-): Promise<{ id: string; url: string; nome: string }[]> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.storage
-    .from("capas")
-    .list(`quizzes/${quizId}`, { limit: 200 });
-
-  if (error) return [];
-  if (!data) return [];
-
-  return data
-    .filter((f) => f.name !== ".emptyFolderPlaceholder")
-    .map((f) => ({
-      id: f.id ?? f.name,
-      nome: f.name,
-      url: supabase.storage.from("capas").getPublicUrl(`quizzes/${quizId}/${f.name}`).data.publicUrl,
-    }));
-}
-
-export async function listarImagensGaleria(): Promise<{
-  quiz: { id: string; url: string; nome: string }[];
-  atlas: { id: string; url: string; nome: string }[];
-}> {
-  const [opcoes, questoes, quizCaps, atlasImgs] = await Promise.all([
-    prisma.opcao.findMany({
-      where: { imagem_url: { not: null } },
-      select: { id: true, imagem_url: true, texto: true },
-      take: 300,
-    }),
-    prisma.questao.findMany({
-      where: { imagem_url: { not: null } },
-      select: { id: true, imagem_url: true, enunciado: true },
-      take: 200,
-    }),
-    prisma.quiz.findMany({
-      where: { capa_url: { not: null } },
-      select: { id: true, capa_url: true, titulo: true },
-    }),
-    prisma.imagemTopico.findMany({
-      select: { id: true, url: true, legenda: true },
-      take: 500,
-    }),
-  ]);
-
-  const seenQuiz = new Set<string>();
-  const quiz: { id: string; url: string; nome: string }[] = [];
-
-  for (const o of opcoes) {
-    if (o.imagem_url && !seenQuiz.has(o.imagem_url)) {
-      seenQuiz.add(o.imagem_url);
-      quiz.push({ id: `opc-${o.id}`, url: o.imagem_url, nome: o.texto || "Opción" });
-    }
-  }
-  for (const q of questoes) {
-    if (q.imagem_url && !seenQuiz.has(q.imagem_url)) {
-      seenQuiz.add(q.imagem_url);
-      quiz.push({ id: `q-${q.id}`, url: q.imagem_url, nome: q.enunciado.slice(0, 40) });
-    }
-  }
-  for (const q of quizCaps) {
-    if (q.capa_url && !seenQuiz.has(q.capa_url)) {
-      seenQuiz.add(q.capa_url);
-      quiz.push({ id: `quiz-${q.id}`, url: q.capa_url, nome: q.titulo });
-    }
-  }
-
-  const seenAtlas = new Set<string>();
-  const atlas = atlasImgs
-    .filter(i => {
-      if (!i.url || seenAtlas.has(i.url)) return false;
-      seenAtlas.add(i.url);
-      return true;
-    })
-    .map(i => ({
-      id: `atlas-${i.id}`,
-      url: i.url,
-      nome: i.legenda?.replace(/<[^>]+>/g, "").slice(0, 50) || "Imagen",
-    }));
-
-  return { quiz, atlas };
 }

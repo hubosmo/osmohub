@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { QuizPlayer } from "@/components/student/QuizPlayer";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -37,7 +38,7 @@ export default async function QuizSessionPage({ params, searchParams }: Props) {
 
   if (!quiz || quiz.questoes.length === 0) notFound();
 
-  const backUrl = back ?? "/cursos";
+  const backUrl = safeInternalPath(back, "/cursos");
   const initialTime     = time     ? parseInt(time)     : undefined;
   const initialExclude  = exclude  ? exclude.split("|") : undefined;
   const initialAttempts = attempts ? parseInt(attempts) : undefined;

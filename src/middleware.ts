@@ -2,8 +2,32 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Se as env vars do Supabase não estiverem configuradas, deixa passar
+  const pathname = request.nextUrl.pathname;
+
+  // Rotas protegidas — exigem autenticação
+  const isStudentRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/cursos") ||
+    pathname.startsWith("/quizzes") ||
+    pathname.startsWith("/plano-de-estudos") ||
+    pathname.startsWith("/plan-de-estudios") ||
+    pathname.startsWith("/simulaciones") ||
+    pathname.startsWith("/biblioteca") ||
+    pathname.startsWith("/configuracion");
+
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isProtected = isStudentRoute || isAdminRoute;
+
+  function redirectToLogin() {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Sem Supabase configurado só se deixa passar fora de produção
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (isProtected && process.env.NODE_ENV === "production") return redirectToLogin();
     return NextResponse.next();
   }
 
@@ -35,31 +59,15 @@ export async function middleware(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
   } catch {
-    return NextResponse.next();
+    // Não foi possível validar a sessão: tratar como não autenticado (falha fechada)
+    user = null;
   }
 
-  const pathname = request.nextUrl.pathname;
+  if (isProtected && !user) return redirectToLogin();
 
-  // Rotas protegidas — exigem autenticação
-  const isStudentRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/cursos") ||
-    pathname.startsWith("/plano-de-estudos") ||
-    pathname.startsWith("/plan-de-estudios") ||
-    pathname.startsWith("/simulaciones") ||
-    pathname.startsWith("/biblioteca") ||
-    pathname.startsWith("/configuracion");
-
-  const isAdminRoute = pathname.startsWith("/admin");
-
-  if ((isStudentRoute || isAdminRoute) && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // TODO: verificar role ADMIN para rotas /admin quando o banco estiver conectado
+  // O papel ADMIN NÃO é checado aqui: o middleware roda no edge, sem Prisma, e o papel
+  // pode estar só na tabela `users`. A checagem fica em (admin)/layout.tsx e em cada
+  // server action de admin (lib/auth/admin.ts). Ver docs/decisions/0011.
 
   return supabaseResponse;
 }

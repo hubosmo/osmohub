@@ -3,7 +3,7 @@
 import { useState, useRef, useTransition } from "react";
 import { Upload, Images, BookImage, X, Loader2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { uploadImagemQuiz, listarImagensGaleria } from "@/lib/actions/content-quizzes";
+import { uploadImagemQuiz, listarImagensGaleria } from "@/lib/actions/content-quiz-imagens";
 import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 
 interface GaleriaData {
