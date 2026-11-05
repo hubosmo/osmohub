@@ -127,6 +127,7 @@ Antes de implementar qualquer módulo novo:
 - [ ] Nada reimplementado que já exista em `components/ui/`, `hooks/` ou `lib/`
 - [ ] Parâmetro de URL usado como destino de redirect passa por `safeInternalPath`
 - [ ] Server action nova em `lib/actions/` começa com `await requireAdmin();` (ou, se for pública, entra na lista de `scripts/check-admin-actions.mjs` com justificativa). Nunca confiar em ID de usuário vindo do cliente: obter da sessão
+- [ ] Mudou o schema: gerou migration contra banco **local** (`npm run db:migrate`); nunca `db push` nem `migrate dev` no Supabase (ADR 0012)
 - [ ] Texto visível em espanhol latino
 - [ ] Docs atualizados (itens 4 a 6 acima)
 

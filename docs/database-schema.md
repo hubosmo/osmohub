@@ -4,7 +4,7 @@
 
 > **Fonte da verdade:** `prisma/schema.prisma`. Este documento é um resumo comentado; ao alterar o schema, atualizar aqui na mesma tarefa.
 >
-> **Atenção — migrations:** `prisma/migrations/` tem só 3 migrations (init, grupos_imagens, grupos_legenda). A migration `init` cria a tabela `quizzes` na forma antiga, e a tabela `topico_quizzes` e o valor `ESCOLHA_IMAGEM` não aparecem em nenhuma migration (verificado por busca nos `.sql`). Provavelmente o banco foi alterado por `db push` ou direto no Supabase. Antes de criar um banco novo (staging/produção) é preciso gerar uma migration de baseline, senão `migrate deploy` não reproduz o schema atual.
+> **Migrations:** `prisma/migrations/` tem uma única migration, `20261105180000_baseline`, com o schema completo; reproduz o banco em um Postgres vazio (validado). O histórico anterior não reproduzia o banco e foi substituído ([ADR 0012](decisions/0012-historico-de-migrations-reiniciado.md)). Criar migrations só contra banco local (`npm run db:migrate` é bloqueado se `DATABASE_URL` for remoto) e aplicar no Supabase com `npm run db:deploy`. Nunca `db push` nem `migrate dev` no Supabase.
 
 ---
 

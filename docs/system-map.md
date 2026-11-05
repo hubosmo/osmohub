@@ -264,6 +264,7 @@ src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (aut
 src/middleware.ts               → exige login em rotas de aluno/admin (falha fechada); papel NÃO é checado aqui
 scripts/check-file-sizes.mjs    → verifica limites de linhas do CLAUDE.md (catraca com file-size-baseline.json)
 scripts/check-admin-actions.mjs → falha se uma server action de admin não começar com requireAdmin()
+scripts/db-guard.mjs            → bloqueia `npm run db:migrate` se DATABASE_URL não for banco local (ADR 0012)
 ```
 Comandos: `npm run typecheck`, `npm run check:size`, `npm run check:auth`, `npm run check` (os três). `npm run lint` roda à parte e leva vários minutos neste disco.
 

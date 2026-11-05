@@ -54,3 +54,4 @@ O que passa a valer no código. Riscos e pendências.
 | [0009](0009-hospedagem-de-video.md) | Hospedagem de vídeo além do Vimeo gratuito | Proposta |
 | [0010](0010-modelos-3d.md) | Modelos 3D nos tópicos | Proposta |
 | [0011](0011-autorizacao-admin-em-camadas.md) | Autorização do admin em camadas (middleware, layout, actions) | Aceita |
+| [0012](0012-historico-de-migrations-reiniciado.md) | Histórico de migrations reiniciado com um baseline | Aceita |

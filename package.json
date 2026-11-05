@@ -13,7 +13,8 @@
     "check": "npm run typecheck && npm run check:size && npm run check:auth",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "node --env-file-if-exists=.env scripts/db-guard.mjs && prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio"
   },
   "dependencies": {
