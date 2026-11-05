@@ -58,6 +58,33 @@ export async function getQuizzesDoTopico(topicoId: string) {
   return junctions.map((j) => j.quiz);
 }
 
+// Quiz publicado com questões e opções para a sessão do aluno (inclui a resposta correta: só usar no servidor)
+export async function getQuizParaSessao(id: string) {
+  return prisma.quiz.findUnique({
+    where: { id, publicado: true },
+    select: {
+      id: true,
+      titulo: true,
+      capa_url: true,
+      questoes: {
+        orderBy: { ordem: "asc" },
+        select: {
+          id: true,
+          enunciado: true,
+          tipo: true,
+          imagem_url: true,
+          explicacao: true,
+          termo: true,
+          opcoes: {
+            orderBy: { ordem: "asc" },
+            select: { id: true, texto: true, imagem_url: true, correta: true },
+          },
+        },
+      },
+    },
+  });
+}
+
 // Busca imagens já existentes no projeto para reusar em questões
 export async function listarImagensDisponiveis(topicoId?: string) {
   const where = topicoId ? { topico_id: topicoId } : {};

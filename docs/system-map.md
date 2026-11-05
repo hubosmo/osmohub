@@ -266,9 +266,10 @@ src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (aut
 src/middleware.ts               → exige login em rotas de aluno/admin (falha fechada); papel NÃO é checado aqui
 scripts/check-file-sizes.mjs    → verifica limites de linhas do CLAUDE.md (catraca com file-size-baseline.json)
 scripts/check-admin-actions.mjs → falha se uma server action de admin não começar com requireAdmin()
+scripts/check-db-access.mjs     → falha se um arquivo fora de src/lib/ importar o Prisma (queries ficam em lib/db/)
 scripts/db-guard.mjs            → bloqueia `npm run db:migrate` se DATABASE_URL não for banco local (ADR 0012)
 ```
-Comandos: `npm run check:size`, `npm run check:auth`, `npm run typecheck`, `npm run lint` e `npm run check` (os quatro). O lint usa cache (`.eslintcache`): a primeira execução leva alguns minutos neste disco, as seguintes são rápidas.
+Comandos: `npm run check:size`, `npm run check:auth`, `npm run check:db`, `npm run typecheck`, `npm run lint` e `npm run check` (todos). O lint usa cache (`.eslintcache`): a primeira execução leva alguns minutos neste disco, as seguintes são rápidas.
 
 ---
 
@@ -301,10 +302,10 @@ src/lib/db/
   cursos.ts     → listarCursos, getCursoPorSlug, getDisciplinaPorSlug,
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
   admin.ts      → queries admin (listagem, contagens, árvore completa)
-  quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, listarImagensDisponiveis
+  quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
 ```
 
-**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. A query da sessão de quiz hoje é feita direto em `(quiz)/quizzes/[id]/session/page.tsx` com `prisma` (viola "queries em `lib/db/`"; mover para `lib/db/quizzes.ts`).
+**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. `npm run check:db` falha se um arquivo fora de `src/lib/` importar o Prisma. Exceções registradas: as actions de `login` e `cadastro`, que fazem a mesma sincronização de usuário duplicada (dívida: extrair para `lib/db/`).
 
 ---
 
