@@ -203,6 +203,10 @@ src/components/student/
   MobileIndiceBar.tsx     → índice colapsável de seções (mobile only)
   EstudiarBtn.tsx         → rótulo-botão "Estudiar" com hover na cor de acento da disciplina
   TopicSidebarNav.tsx     → sidebar do tópico (desktop): links de seção com destaque da seção ativa pelo scroll
+  TopicBreadcrumb.tsx     → breadcrumb fixo da página do tópico
+  TopicHeader.tsx         → título, bookmark, status, objetivos de aprendizado (id "objetivo" do tour)
+  TopicSections.tsx       → seções numeradas (vídeo, artigo, atlas, quiz, tabelas); define os ids de âncora do tour
+  TopicPrevNext.tsx       → "Continúa tu aprendizaje": tópico anterior e seguinte (id "continua" do tour)
   TopicQuizSection.tsx    → cards de quiz do tópico + modal de configuração de sessão
   QuizPlayer.tsx          → orquestra a sessão (estado, timer, histórico, tentativas)
   QuizPlayerPlaying.tsx   → barra superior, instrução e slide de questões
@@ -266,6 +270,7 @@ src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValu
 src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
+src/lib/video/thumbnail.ts      → resolveVideoThumbnail: miniatura de vídeo YouTube/Vimeo (servidor)
 src/lib/motion.ts               → tokens de animação (framer-motion)
 src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (autorização, ADR 0011)
 src/middleware.ts               → exige login em rotas de aluno/admin (falha fechada); papel NÃO é checado aqui

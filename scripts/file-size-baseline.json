@@ -1,6 +1,5 @@
 {
   "src/app/(auth)/cadastro/page.tsx": 258,
   "src/app/(auth)/login/page.tsx": 227,
-  "src/app/(auth)/verificar-email/page.tsx": 208,
-  "src/app/(student)/cursos/[curso]/[disciplina]/[area]/[topico]/page.tsx": 271
+  "src/app/(auth)/verificar-email/page.tsx": 208
 }
