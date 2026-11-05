@@ -257,6 +257,8 @@ src/components/editor/
 ```
 src/hooks/useIsMobile.ts        → viewport (padrão < 768px)
 src/hooks/useImagePreload.ts    → pré-carrega uma lista de URLs de imagem
+src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValue: valor persistido no navegador, sem setState em efeito (ADR 0013)
+src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
 src/lib/motion.ts               → tokens de animação (framer-motion)
@@ -266,7 +268,7 @@ scripts/check-file-sizes.mjs    → verifica limites de linhas do CLAUDE.md (cat
 scripts/check-admin-actions.mjs → falha se uma server action de admin não começar com requireAdmin()
 scripts/db-guard.mjs            → bloqueia `npm run db:migrate` se DATABASE_URL não for banco local (ADR 0012)
 ```
-Comandos: `npm run typecheck`, `npm run check:size`, `npm run check:auth`, `npm run check` (os três). `npm run lint` roda à parte e leva vários minutos neste disco.
+Comandos: `npm run check:size`, `npm run check:auth`, `npm run typecheck`, `npm run lint` e `npm run check` (os quatro). O lint usa cache (`.eslintcache`): a primeira execução leva alguns minutos neste disco, as seguintes são rápidas.
 
 ---
 

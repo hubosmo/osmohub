@@ -91,7 +91,7 @@ Todo texto visível em espanhol latino ([ADR 0001](decisions/0001-idioma-es-419.
 
 **Spinner e loading.** `animate-spin` aparece em 9 arquivos com variações de tamanho e texto. O `LoadingButton` já existe e é usado no login e em "Volver al tema"; os demais botões com spinner (`ConfirmModal`, `QuestaoRow`, `QuizImagePicker`, `verificar-email`) devem migrar quando forem tocados.
 
-**Lint.** `npm run lint` acusa 18 erros e 26 avisos (medido em 2026-11-05). Erros: 10 de `react-hooks/set-state-in-effect` (regra nova do React 19, em padrões como ler `localStorage` num `useEffect`), 4 de `react/no-unescaped-entities` em `QuestaoRow.tsx`, 2 de `react-hooks/refs` e 2 de `no-explicit-any` em `lib/db/cursos.ts`. Um deles, em `QuizPlayer.tsx:154`, é o auto-encerramento do timer. Enquanto não forem corrigidos, o lint fica fora do `npm run check`.
+**Lint.** Zero erros (eram 18, corrigidos em 2026-11-05; ver [ADR 0013](decisions/0013-estado-no-navegador-sem-setstate-em-efeito.md)). Restam 26 avisos, com teto em `--max-warnings 26`: 13 de `no-unused-vars`, 4 de `no-unused-expressions`, 4 de `no-img-element`, 1 de `alt-text`, 1 de `exhaustive-deps` e 3 diretivas `eslint-disable` sem efeito. Corrigir avisos e baixar o teto em `package.json`.
 
 **Tokens órfãos.** `PAGE_VARIANTS` e `PAGE_TRANSITION` em `motion.ts` não são mais usados.
 

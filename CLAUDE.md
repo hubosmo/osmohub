@@ -121,7 +121,8 @@ Antes de implementar qualquer módulo novo:
 
 ### Definição de pronto (antes de commitar)
 
-- [ ] `npm run check` passa (typecheck + limites de tamanho + proteção das actions de admin). O lint ainda tem 18 erros antigos (ver `docs/design-system.md`, seção 9), por isso não entra no `check`; não introduzir erro novo em arquivo que você tocou
+- [ ] `npm run check` passa (limites de tamanho, proteção das actions de admin, typecheck e lint). O lint tem erro zero e um teto de 26 avisos (`--max-warnings`): novo aviso quebra o check; ao corrigir avisos, baixe o teto em `package.json`
+- [ ] Ler `localStorage` ou `sessionStorage` com `useLocalStorageValue` / `useSessionStorageValue`, nunca `setState` dentro de `useEffect` (ADR 0013)
 - [ ] Nenhuma cor hex nova: só variáveis do tema (ver `docs/design-system.md`)
 - [ ] Botão de ação com carregamento usa `LoadingButton`; imagens em slide usam `useImagePreload`
 - [ ] Nada reimplementado que já exista em `components/ui/`, `hooks/` ou `lib/`

@@ -52,9 +52,11 @@ export function AtlasBlocksManager({ topicoId, grupos, imagens, addImagemAction,
   // DnD state
   const draggedId = useRef<string | null>(null);
   const dragOverId = useRef<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   function handleDragStart(id: string, e: React.DragEvent) {
     draggedId.current = id;
+    setDraggingId(id);
     e.dataTransfer.effectAllowed = "move";
   }
 
@@ -77,6 +79,7 @@ export function AtlasBlocksManager({ topicoId, grupos, imagens, addImagemAction,
   function handleDragEnd() {
     draggedId.current = null;
     dragOverId.current = null;
+    setDraggingId(null);
     const ordered = blocksRef.current.map(b => ({ type: b.type, id: b.id }));
     startTransition(async () => {
       await reordenarBlocosAtlas(topicoId, ordered);
@@ -86,7 +89,7 @@ export function AtlasBlocksManager({ topicoId, grupos, imagens, addImagemAction,
   return (
     <div className="flex flex-col gap-2">
       {blocks.map((block) => {
-        const isDragging = draggedId.current === block.id;
+        const isDragging = draggingId === block.id;
 
         return (
           <div

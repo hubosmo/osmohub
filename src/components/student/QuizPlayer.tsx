@@ -130,7 +130,7 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
   const [historyIdx, setHistoryIdx]       = useState<number | null>(null);
 
   const [totalTime, setTotalTime] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const elapsedRef = useRef(0);
 
   useEffect(() => {
     if (hasInitialConfig && phase === "playing" && questions.length === 0) {
@@ -139,22 +139,20 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cronômetro; quando o tempo configurado se esgota, encerra o quiz no próprio tique
   useEffect(() => {
-    if (phase === "playing") {
-      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [phase]);
-
-  // Auto-encerra quando o tempo configurado se esgota
-  useEffect(() => {
-    if (phase === "playing" && elapsed >= selectedTime.value * 60) {
-      setTotalTime(elapsed);
-      setPhase("finished");
-    }
-  }, [elapsed, phase, selectedTime.value]);
+    if (phase !== "playing") return;
+    const limit = selectedTime.value * 60;
+    const id = setInterval(() => {
+      elapsedRef.current += 1;
+      setElapsed(elapsedRef.current);
+      if (elapsedRef.current >= limit) {
+        setTotalTime(elapsedRef.current);
+        setPhase("finished");
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [phase, selectedTime.value]);
 
   function startSession() {
     const pool = deselectedTermos.size > 0
@@ -163,6 +161,7 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     const shuffled = shuffle(pool).slice(0, selectedTime.questoes);
     setQuestions(shuffled);
     setCurrentIdx(0);
+    elapsedRef.current = 0;
     setElapsed(0);
     setCorrectCount(0);
     setAnswerState("idle");

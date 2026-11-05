@@ -10,7 +10,6 @@ export async function salvarUltimoTopico(topicoId: string) {
 
   await prisma.user.update({
     where: { id: user.id },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: { ultimo_topico_id: topicoId } as any,
+    data: { ultimo_topico_id: topicoId },
   });
 }

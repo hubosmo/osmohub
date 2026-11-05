@@ -37,13 +37,19 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
   useEffect(() => { imRef.current = localImagens; }, [localImagens]);
 
   // Sync images when props change (after remount via key)
-  useEffect(() => { setLocalImagens(imagens); }, [imagens]);
+  const [syncedImagens, setSyncedImagens] = useState(imagens);
+  if (imagens !== syncedImagens) {
+    setSyncedImagens(imagens);
+    setLocalImagens(imagens);
+  }
 
-  // DnD within group
+  // DnD within group: a ref guia a lógica (sem closure velha), o estado só pinta o item arrastado
   const draggedImgId = useRef<string | null>(null);
+  const [draggingImgId, setDraggingImgId] = useState<string | null>(null);
 
   function handleImgDragStart(id: string, e: React.DragEvent) {
     draggedImgId.current = id;
+    setDraggingImgId(id);
     e.dataTransfer.effectAllowed = "move";
   }
 
@@ -64,6 +70,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
 
   function handleImgDragEnd() {
     draggedImgId.current = null;
+    setDraggingImgId(null);
     const ids = imRef.current.map(i => i.id);
     startTransition(async () => {
       await reordenarImagensGrupo(grupoId, topicoId, ids);
@@ -203,7 +210,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
               style={localImagens.length > 4 ? { maxHeight: 272, overflowY: "auto", paddingRight: 2 } : undefined}
             >
               {localImagens.map((img) => {
-                const isDragging = draggedImgId.current === img.id;
+                const isDragging = draggingImgId === img.id;
                 const removeAction = deletarImagemContent.bind(null, img.id, topicoId);
                 return (
                   <div

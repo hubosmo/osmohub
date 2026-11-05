@@ -105,7 +105,7 @@ export function QuestaoRow({
             )}
 
             <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-              Término cubierto — "Lo que aprenderás"
+              Término cubierto — &quot;Lo que aprenderás&quot;
             </label>
             <input
               name="termo" defaultValue={questao.termo ?? ""}
@@ -114,7 +114,7 @@ export function QuestaoRow({
               style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
             />
             <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-              Termo exibido no card "Lo que aprenderás". Deixar vazio = questão não aparece nesse filtro.
+              Término que se muestra en la tarjeta &quot;Lo que aprenderás&quot;. Si queda vacío, la pregunta no aparece en ese filtro.
             </p>
 
             <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Explicación (se muestra tras responder)</label>

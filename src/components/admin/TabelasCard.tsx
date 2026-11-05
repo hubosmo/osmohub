@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition, useRef, useState, useEffect } from "react";
+import { useTransition, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 import { Plus, Trash2, Columns, Check, Pencil, ChevronDown } from "lucide-react";
 import { SectionToggle } from "@/components/admin/SectionToggle";
 import {
@@ -48,17 +49,10 @@ function useAction(successMsg: string) {
 export function TabelasCard({ topicoId, tabelas_ativo, tabelas }: Props) {
   const { run: runCreate } = useAction("Tabla creada");
   const createRef = useRef<HTMLFormElement>(null);
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(`adm-card:tabelas-${topicoId}`);
-      if (v !== null) setOpen(v === "1");
-    } catch {}
-  }, [topicoId]);
+  const [storedOpen, setStoredOpen] = useLocalStorageValue(`adm-card:tabelas-${topicoId}`);
+  const open = storedOpen === "1";
   function toggleOpen() {
-    const next = !open;
-    setOpen(next);
-    try { localStorage.setItem(`adm-card:tabelas-${topicoId}`, next ? "1" : "0"); } catch {}
+    setStoredOpen(open ? "0" : "1");
   }
 
   function handleCreate(e: React.FormEvent<HTMLFormElement>) {

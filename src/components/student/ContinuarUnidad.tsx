@@ -1,29 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 import type { LastTopicData } from "./LastTopicTracker";
 
 export function ContinuarUnidad({ serverData }: { serverData?: LastTopicData | null }) {
-  const [topic, setTopic] = useState<LastTopicData | null>(serverData ?? null);
-  const [mounted, setMounted] = useState(!!serverData);
+  const isClient = useIsClient();
+  const [rawLocal] = useLocalStorageValue("osmo_last_topic");
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  useEffect(() => {
-    setMounted(true);
-    // Só usa localStorage se o servidor não trouxe dados
-    if (!serverData) {
-      try {
-        const raw = localStorage.getItem("osmo_last_topic");
-        if (raw) setTopic(JSON.parse(raw) as LastTopicData);
-      } catch {}
+  // Só usa localStorage se o servidor não trouxe dados
+  const topic = useMemo<LastTopicData | null>(() => {
+    if (serverData) return serverData;
+    if (!rawLocal) return null;
+    try {
+      return JSON.parse(rawLocal) as LastTopicData;
+    } catch {
+      return null;
     }
-  }, [serverData]);
+  }, [serverData, rawLocal]);
 
-  if (!mounted) return <ContinuarSkeleton />;
+  if (!serverData && !isClient) return <ContinuarSkeleton />;
 
   if (!topic) {
     return (

@@ -2,31 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { OsmoLogo } from "@/components/brand/OsmoLogo";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useSessionStorageValue } from "@/hooks/useStoredValue";
 
 export function SplashScreen() {
-  const [visible, setVisible] = useState(false);
+  const isClient = useIsClient();
+  const [shown, markShown] = useSessionStorageValue("osmo-splash-shown");
   const [fading, setFading] = useState(false);
+  const visible = isClient && shown === null;
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem("osmo-splash-shown")) return;
-    } catch {
-      return;
-    }
+    if (!visible) return;
 
-    setVisible(true);
-
-    const fadeTimer  = setTimeout(() => setFading(true), 1500);
-    const hideTimer  = setTimeout(() => {
-      setVisible(false);
-      try { sessionStorage.setItem("osmo-splash-shown", "1"); } catch {}
-    }, 1900);
+    const fadeTimer = setTimeout(() => setFading(true), 1500);
+    const hideTimer = setTimeout(() => markShown("1"), 1900);
 
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [visible, markShown]);
 
   if (!visible) return null;
 

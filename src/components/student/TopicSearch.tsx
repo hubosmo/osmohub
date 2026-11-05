@@ -20,7 +20,7 @@ export function TopicSearch() {
   // Debounced search
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (query.trim().length < 2) { setResults([]); setOpen(false); return; }
+    if (query.trim().length < 2) return;
     timerRef.current = setTimeout(() => {
       startTransition(async () => {
         const res = await buscarTopicos(query);
@@ -36,8 +36,14 @@ export function TopicSearch() {
     return `/cursos/${r.cursoSlug}/${r.disciplinaSlug}/${r.areaSlug}/${r.slug}`;
   }
 
+  function onQueryChange(value: string) {
+    setQuery(value);
+    if (value.trim().length < 2) { setResults([]); setOpen(false); }
+  }
+
   function go(r: TopicResult) {
     setOpen(false);
+    setResults([]);
     setQuery("");
     router.push(buildPath(r));
   }
@@ -73,7 +79,7 @@ export function TopicSearch() {
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={onKeyDown}
             onFocus={() => results.length > 0 && setOpen(true)}
             onBlur={() => setTimeout(() => setOpen(false), 150)}

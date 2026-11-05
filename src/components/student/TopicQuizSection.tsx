@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, Settings, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -97,22 +98,20 @@ function TermChips({
 function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
   const router = useRouter();
   const [configOpen, setConfigOpen] = useState(false);
-  const [selectedTime, setSelectedTime] = useState(10);
-  const [selectedAttempts, setSelectedAttempts] = useState(1);
   const [saveScope, setSaveScope] = useState<"this" | "default">("this");
   const [deselectedTermos, setDeselectedTermos] = useState<Set<string>>(new Set());
   const [termsExpanded, setTermsExpanded] = useState(false);
   const [modalTermsExpanded, setModalTermsExpanded] = useState(false);
 
-  // Lê preferências salvas no primeiro render
-  useEffect(() => {
-    try {
-      const t = parseInt(localStorage.getItem("osmo_quiz_default_time") ?? "");
-      if (TIME_OPTIONS.some(o => o.value === t)) setSelectedTime(t);
-      const a = parseInt(localStorage.getItem("osmo_quiz_default_attempts") ?? "");
-      if (a === 1 || a === 2) setSelectedAttempts(a);
-    } catch {}
-  }, []);
+  // Preferência salva vale como padrão; a escolha do aluno nesta sessão tem prioridade sobre ela
+  const [storedTime, setStoredTime] = useLocalStorageValue("osmo_quiz_default_time");
+  const [storedAttempts, setStoredAttempts] = useLocalStorageValue("osmo_quiz_default_attempts");
+  const [timeChoice, setTimeChoice] = useState<number | null>(null);
+  const [attemptsChoice, setAttemptsChoice] = useState<number | null>(null);
+  const savedTime = parseInt(storedTime ?? "");
+  const savedAttempts = parseInt(storedAttempts ?? "");
+  const selectedTime = timeChoice ?? (TIME_OPTIONS.some(o => o.value === savedTime) ? savedTime : 10);
+  const selectedAttempts = attemptsChoice ?? (savedAttempts === 1 || savedAttempts === 2 ? savedAttempts : 1);
 
   const termos = [...new Set(
     quiz.questoes.map(q => q.termo).filter((t): t is string => !!t?.trim())
@@ -131,10 +130,8 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
   // fromModal: se true, pode salvar preferências conforme saveScope
   function startSession(fromModal = false) {
     if (fromModal && saveScope === "default") {
-      try {
-        localStorage.setItem("osmo_quiz_default_time", String(selectedTime));
-        localStorage.setItem("osmo_quiz_default_attempts", String(selectedAttempts));
-      } catch {}
+      setStoredTime(String(selectedTime));
+      setStoredAttempts(String(selectedAttempts));
     }
     const params = new URLSearchParams({ back: backUrl, time: String(selectedTime), attempts: String(selectedAttempts) });
     if (deselectedTermos.size > 0) {
@@ -326,7 +323,7 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setSelectedTime(opt.value)}
+                    onClick={() => setTimeChoice(opt.value)}
                     className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
                     style={{
                       border: `2px solid ${selectedTime === opt.value ? "var(--accent)" : "var(--border)"}`,
@@ -351,7 +348,7 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setSelectedAttempts(opt.value)}
+                    onClick={() => setAttemptsChoice(opt.value)}
                     className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all text-left"
                     style={{
                       border: `2px solid ${selectedAttempts === opt.value ? "var(--accent)" : "var(--border)"}`,

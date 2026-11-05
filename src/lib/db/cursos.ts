@@ -285,10 +285,10 @@ export function getTopicoPorSlug(
 export async function getUltimoTopico(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { ultimo_topico_id: true } as any,
+    select: { ultimo_topico_id: true },
   });
 
-  const topicoId = (user as any)?.ultimo_topico_id as string | null;
+  const topicoId = user?.ultimo_topico_id;
   if (!topicoId) return null;
 
   const topico = await prisma.topico.findUnique({

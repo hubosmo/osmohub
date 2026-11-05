@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ChevronLeft } from "lucide-react";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 
 const TOUR_KEY = "osmo-topico-tour-v1";
 const CARD_W = 300;
@@ -49,7 +51,9 @@ const STEPS = [
 ];
 
 export function TopicTour() {
-  const [visible, setVisible] = useState(false);
+  const isClient = useIsClient();
+  const [tourSeen, markTourSeen] = useLocalStorageValue(TOUR_KEY);
+  const visible = isClient && tourSeen === null;
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<TargetRect | null>(null);
   const [vp, setVp] = useState({ w: 0, h: 0 });
@@ -88,13 +92,6 @@ export function TopicTour() {
       height: Math.min(bottom - top, maxH),
       radius,
     });
-  }, []);
-
-  // Show on first visit
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem(TOUR_KEY)) setVisible(true);
-    } catch {}
   }, []);
 
   // Desktop only: lock scroll with scrollbar-width compensation to prevent layout shift.
@@ -163,8 +160,7 @@ export function TopicTour() {
   function dismiss() {
     if (scrollTimer.current) clearTimeout(scrollTimer.current);
     unlockScroll();
-    try { localStorage.setItem(TOUR_KEY, "1"); } catch {}
-    setVisible(false);
+    markTourSeen("1");
   }
 
   function goTo(s: number) { setStep(s); }

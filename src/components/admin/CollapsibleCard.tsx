@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
@@ -19,19 +19,11 @@ interface Props {
 export function CollapsibleCard({
   storageKey, icon, iconColor = "var(--accent)", label, action, defaultOpen = false, className = "", children,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(`adm-card:${storageKey}`);
-      if (v !== null) setOpen(v === "1");
-    } catch {}
-  }, [storageKey]);
+  const [stored, setStored] = useLocalStorageValue(`adm-card:${storageKey}`);
+  const open = stored === null ? defaultOpen : stored === "1";
 
   function toggle() {
-    const next = !open;
-    setOpen(next);
-    try { localStorage.setItem(`adm-card:${storageKey}`, next ? "1" : "0"); } catch {}
+    setStored(open ? "0" : "1");
   }
 
   return (

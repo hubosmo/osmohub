@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect } from "react";
+import { useLocalStorageValue } from "@/hooks/useStoredValue";
 
 type Theme = "dark" | "light";
 
@@ -11,39 +12,25 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function applyTheme(t: Theme) {
+  const root = document.documentElement;
+  if (t === "light") {
+    root.setAttribute("data-theme", "light");
+  } else {
+    root.removeAttribute("data-theme");
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [stored, setStored] = useLocalStorageValue("osmo-theme");
+  const theme: Theme = stored === "light" ? "light" : "dark";
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("osmo-theme") as Theme | null;
-      if (stored === "dark" || stored === "light") {
-        setTheme(stored);
-        applyTheme(stored);
-      }
-    } catch {
-      // localStorage bloqueado — mantém dark
-    }
-  }, []);
-
-  function applyTheme(t: Theme) {
-    const root = document.documentElement;
-    if (t === "light") {
-      root.setAttribute("data-theme", "light");
-    } else {
-      root.removeAttribute("data-theme");
-    }
-  }
+    applyTheme(theme);
+  }, [theme]);
 
   function toggleTheme() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    applyTheme(next);
-    try {
-      localStorage.setItem("osmo-theme", next);
-    } catch {
-      // silencia erro de localStorage
-    }
+    setStored(theme === "dark" ? "light" : "dark");
   }
 
   return (
