@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db/prisma";
+import { sincronizarUsuario } from "@/lib/db/users";
 
 interface LoginResult {
   error?: string;
@@ -33,25 +33,12 @@ export async function loginAction(email: string, password: string): Promise<Logi
     return { error: "No se pudo conectar con el servidor de autenticación. Intenta nuevamente." };
   }
 
-  // Sync auth user → tabela users do Prisma (falha silenciosa — login não depende disso)
   if (data.user) {
-    try {
-      await prisma.user.upsert({
-        where: { id: data.user.id },
-        create: {
-          id: data.user.id,
-          email: data.user.email!,
-          nome:
-            (data.user.user_metadata?.full_name as string | undefined) ??
-            email.split("@")[0],
-        },
-        update: {
-          email: data.user.email!,
-        },
-      });
-    } catch {
-      // DB indisponível — o login com Supabase já foi bem-sucedido, continua
-    }
+    await sincronizarUsuario({
+      id: data.user.id,
+      email: data.user.email!,
+      nome: (data.user.user_metadata?.full_name as string | undefined) ?? email.split("@")[0],
+    });
   }
 
   return {};

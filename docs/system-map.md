@@ -303,9 +303,10 @@ src/lib/db/
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
   admin.ts      → queries admin (listagem, contagens, árvore completa)
   quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
+  users.ts      → sincronizarUsuario: mantém `users` alinhada com o Supabase Auth (usado por login e cadastro; não lança erro)
 ```
 
-**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. `npm run check:db` falha se um arquivo fora de `src/lib/` importar o Prisma. Exceções registradas: as actions de `login` e `cadastro`, que fazem a mesma sincronização de usuário duplicada (dívida: extrair para `lib/db/`).
+**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. `npm run check:db` falha se um arquivo fora de `src/lib/` importar o Prisma (hoje sem exceções).
 
 ---
 

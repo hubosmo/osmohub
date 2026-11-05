@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db/prisma";
+import { sincronizarUsuario } from "@/lib/db/users";
 
 interface SignUpResult {
   error?: string;
@@ -33,16 +33,12 @@ export async function signUpAction(
     return { error: "Ocurrió un error al crear la cuenta. Intenta nuevamente." };
   }
 
-  // Sync auth user → tabela users do Prisma
+  // Se falhar, a linha em users é criada no primeiro login
   if (data.user) {
-    await prisma.user.upsert({
-      where: { id: data.user.id },
-      create: {
-        id: data.user.id,
-        email: data.user.email!,
-        nome: name.trim() || email.split("@")[0],
-      },
-      update: {},
+    await sincronizarUsuario({
+      id: data.user.id,
+      email: data.user.email!,
+      nome: name.trim() || email.split("@")[0],
     });
   }
 

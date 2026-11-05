@@ -4,10 +4,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
 const ROOT = process.cwd();
-const ALLOWED = new Map([
-  ["src/app/(auth)/login/actions.ts", "sincroniza o usuário do Supabase com a tabela users (dívida: duplicado em cadastro)"],
-  ["src/app/(auth)/cadastro/actions.ts", "sincroniza o usuário do Supabase com a tabela users (dívida: duplicado em login)"],
-]);
+// caminho -> motivo. Hoje não há exceções; adicionar aqui só com justificativa.
+const ALLOWED = new Map();
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
