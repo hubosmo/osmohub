@@ -160,7 +160,12 @@ Regras de quiz: ver [ADR 0006](decisions/0006-tentativas-em-questoes-binarias.md
 ```
 src/components/layout/
   StudentLayout.tsx     → wrapper px-4 lg:px-8 py-6 para área do aluno
-  StudentHeader.tsx     → header com logo, mega-menu cursos, avatar, tema
+  StudentHeader.tsx     → header do aluno: monta logo, barra de utilidades, navegação e gaveta mobile
+  header/
+    HeaderUtilityBar.tsx → barra superior desktop: tema, notificações, menu do usuário (perfil, admin, logout)
+    DesktopNav.tsx       → navegação desktop com mega-menu de cursos (estado de hover próprio)
+    MobileDrawer.tsx     → gaveta mobile com acordeão de cursos e disciplinas, tema, usuário e logout
+    nav-links.ts         → OTHER_NAV, isCursosActive, isPathActive
   Header.tsx            → header alternativo (legado)
   Sidebar.tsx           → sidebar colapsável desktop
   AdminLayout.tsx       → layout admin (sidebar + conteúdo)
