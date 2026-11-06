@@ -103,7 +103,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
   const R             = 44;
   const C             = 2 * Math.PI * R;
   const ringOffset    = C * (1 - pct / 100);
-  const ringColor     = pct >= 70 ? "#22C55E" : "#EF4444";
+  const ringColor     = pct >= 70 ? "var(--success)" : "var(--error)";
   const phrase        = PHRASES[getPhraseKey(pct)];
 
   return (
@@ -166,8 +166,8 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
             </svg>
             <div className="absolute flex items-center justify-center">
               {pct >= 70
-                ? <Trophy className="h-8 w-8" style={{ color: "#22C55E" }} />
-                : <X      className="h-8 w-8" style={{ color: "#EF4444" }} />}
+                ? <Trophy className="h-8 w-8" style={{ color: "var(--success)" }} />
+                : <X      className="h-8 w-8" style={{ color: "var(--error)" }} />}
             </div>
           </div>
         </div>
@@ -188,12 +188,12 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
           style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)" }}
         >
           <div className="text-center">
-            <p className="text-xl font-bold tabular-nums" style={{ color: "#22C55E" }}>{correctCount}</p>
+            <p className="text-xl font-bold tabular-nums" style={{ color: "var(--success)" }}>{correctCount}</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Correctas</p>
           </div>
           <div className="w-px self-stretch" style={{ backgroundColor: "var(--border)" }} />
           <div className="text-center">
-            <p className="text-xl font-bold tabular-nums" style={{ color: wrongCount > 0 ? "#EF4444" : "var(--text-muted)" }}>
+            <p className="text-xl font-bold tabular-nums" style={{ color: wrongCount > 0 ? "var(--error)" : "var(--text-muted)" }}>
               {wrongCount}
             </p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Incorrectas</p>

@@ -55,7 +55,7 @@ export function Header({ userName = "Estudiante", userEmail, onMenuClick }: Head
             {/* Badge */}
             <span
               className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full"
-              style={{ backgroundColor: "#00A6FF" }}
+              style={{ backgroundColor: "var(--accent)" }}
             />
           </button>
 
@@ -87,7 +87,7 @@ export function Header({ userName = "Estudiante", userEmail, onMenuClick }: Head
           <button
             onClick={() => { setShowUser((v) => !v); setShowNotif(false); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-85"
-            style={{ backgroundColor: "#00A6FF" }}
+            style={{ backgroundColor: "var(--accent)" }}
             aria-label="Menú de usuario"
           >
             {initials}

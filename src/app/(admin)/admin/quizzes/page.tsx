@@ -88,9 +88,9 @@ export default async function QuizzesAdminPage() {
               <span
                 className="text-[11px] px-2.5 py-1 rounded-full shrink-0"
                 style={{
-                  backgroundColor: q.publicado ? "#22C55E22" : "var(--bg-elevated)",
-                  color: q.publicado ? "#22C55E" : "var(--text-muted)",
-                  border: `1px solid ${q.publicado ? "#22C55E55" : "var(--border)"}`,
+                  backgroundColor: q.publicado ? "color-mix(in srgb, var(--success) 13%, transparent)" : "var(--bg-elevated)",
+                  color: q.publicado ? "var(--success)" : "var(--text-muted)",
+                  border: `1px solid ${q.publicado ? "color-mix(in srgb, var(--success) 33%, transparent)" : "var(--border)"}`,
                 }}
               >
                 {q.publicado ? "Publicado" : "Borrador"}

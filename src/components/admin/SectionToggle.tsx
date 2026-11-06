@@ -36,16 +36,16 @@ export function SectionToggle({ topicoId, section, initialValue, hasContent }: P
         opacity: !enabled ? 0.4 : 1,
         cursor: !enabled ? "not-allowed" : "pointer",
         backgroundColor: isActive
-          ? "color-mix(in srgb, #22C55E 15%, var(--bg-elevated))"
+          ? "color-mix(in srgb, var(--success) 15%, var(--bg-elevated))"
           : "var(--bg-elevated)",
-        color: isActive ? "#22C55E" : "var(--text-muted)",
-        border: `1px solid ${isActive ? "#22C55E55" : "var(--border)"}`,
+        color: isActive ? "var(--success)" : "var(--text-muted)",
+        border: `1px solid ${isActive ? "color-mix(in srgb, var(--success) 33%, transparent)" : "var(--border)"}`,
       }}
     >
       {/* Dot indicator */}
       <span
         className="h-1.5 w-1.5 rounded-full shrink-0"
-        style={{ backgroundColor: isActive ? "#22C55E" : "var(--text-muted)" }}
+        style={{ backgroundColor: isActive ? "var(--success)" : "var(--text-muted)" }}
       />
       {isPending ? "..." : isActive ? "Visible" : "Oculto"}
     </button>

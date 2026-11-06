@@ -151,8 +151,8 @@ export function ImagemOpcaoCard({
     <div
       className="rounded-xl overflow-hidden flex flex-col"
       style={{
-        border: `2px solid ${opcao.correta ? "#22C55E" : "var(--border)"}`,
-        backgroundColor: opcao.correta ? "color-mix(in srgb, #22C55E 6%, var(--bg-base))" : "var(--bg-base)",
+        border: `2px solid ${opcao.correta ? "var(--success)" : "var(--border)"}`,
+        backgroundColor: opcao.correta ? "color-mix(in srgb, var(--success) 6%, var(--bg-base))" : "var(--bg-base)",
       }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "4 / 3", maxHeight: 140, backgroundColor: "var(--bg-elevated)" }}>
@@ -172,7 +172,7 @@ export function ImagemOpcaoCard({
           >
             <div
               className="h-8 w-8 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#22C55E", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+              style={{ backgroundColor: "var(--success)", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
             >
               <Check className="h-4 w-4 text-white" />
             </div>
@@ -202,8 +202,8 @@ export function ImagemOpcaoCard({
             type="submit"
             className="w-full py-1 rounded text-[11px] font-semibold transition-colors"
             style={{
-              backgroundColor: opcao.correta ? "#22C55E" : "transparent",
-              border: `1px solid ${opcao.correta ? "#22C55E" : "var(--border)"}`,
+              backgroundColor: opcao.correta ? "var(--success)" : "transparent",
+              border: `1px solid ${opcao.correta ? "var(--success)" : "var(--border)"}`,
               color: opcao.correta ? "#fff" : "var(--text-muted)",
             }}
           >

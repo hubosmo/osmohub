@@ -58,9 +58,9 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
         </div>
         <span className="text-xs px-2.5 py-1 rounded-full shrink-0"
           style={{
-            backgroundColor: data.publicado ? "#22C55E22" : "var(--bg-elevated)",
-            color: data.publicado ? "#22C55E" : "var(--text-muted)",
-            border: `1px solid ${data.publicado ? "#22C55E" : "var(--border)"}`,
+            backgroundColor: data.publicado ? "color-mix(in srgb, var(--success) 13%, transparent)" : "var(--bg-elevated)",
+            color: data.publicado ? "var(--success)" : "var(--text-muted)",
+            border: `1px solid ${data.publicado ? "var(--success)" : "var(--border)"}`,
           }}>
           {data.publicado ? "Publicado" : "Borrador"}
         </span>
@@ -259,7 +259,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
       {/* Simulaciones placeholder */}
       <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", opacity: 0.6 }}>
         <div className="flex items-center gap-2 mb-1">
-          <Gamepad2 className="h-4 w-4" style={{ color: "#22C55E" }} />
+          <Gamepad2 className="h-4 w-4" style={{ color: "var(--success)" }} />
           <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Simulaciones</span>
         </div>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>Disponible en Fase 6</p>

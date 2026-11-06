@@ -49,14 +49,14 @@ export function opcaoStyle(
   const isSelected = op.id === selectedId;
   const wasWrong   = wrongIds?.has(op.id) ?? false;
   if (answerState === "idle") {
-    if (wasWrong) return { border: "1px solid #EF4444", backgroundColor: "#EF444411", color: "var(--text-primary)", opacity: 0.5 };
+    if (wasWrong) return { border: "1px solid var(--error)", backgroundColor: "color-mix(in srgb, var(--error) 7%, transparent)", color: "var(--text-primary)", opacity: 0.5 };
     return { border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", color: "var(--text-primary)" };
   }
-  if (answerState === "correct" && isSelected) return { border: "2px solid #22C55E", backgroundColor: "#22C55E22", color: "var(--text-primary)" };
+  if (answerState === "correct" && isSelected) return { border: "2px solid var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 13%, transparent)", color: "var(--text-primary)" };
   if (answerState === "wrong") {
-    if (isSelected) return { border: "2px solid #EF4444", backgroundColor: "#EF444422", color: "var(--text-primary)" };
-    if (op.correta && !hideCorrect) return { border: "2px solid #22C55E", backgroundColor: "#22C55E22", color: "var(--text-primary)" };
-    if (wasWrong) return { border: "1px solid #EF4444", backgroundColor: "#EF444411", color: "var(--text-primary)", opacity: 0.5 };
+    if (isSelected) return { border: "2px solid var(--error)", backgroundColor: "color-mix(in srgb, var(--error) 13%, transparent)", color: "var(--text-primary)" };
+    if (op.correta && !hideCorrect) return { border: "2px solid var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 13%, transparent)", color: "var(--text-primary)" };
+    if (wasWrong) return { border: "1px solid var(--error)", backgroundColor: "color-mix(in srgb, var(--error) 7%, transparent)", color: "var(--text-primary)", opacity: 0.5 };
     return { border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", color: "var(--text-primary)", opacity: 0.4 };
   }
   return { border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", color: "var(--text-primary)" };
@@ -156,7 +156,7 @@ export function QuestionLayout({ q, isMobile, answerState, selectedId, wrongIds,
 
 function Explicacao({ text }: { text: string }) {
   return (
-    <div className="mt-4 w-full rounded-xl p-4 text-sm" style={{ backgroundColor: "color-mix(in srgb, #EF4444 10%, var(--bg-surface))", border: "1px solid #EF4444", color: "var(--text-secondary)" }}>
+    <div className="mt-4 w-full rounded-xl p-4 text-sm" style={{ backgroundColor: "color-mix(in srgb, var(--error) 10%, var(--bg-surface))", border: "1px solid var(--error)", color: "var(--text-secondary)" }}>
       {text}
     </div>
   );
@@ -229,14 +229,14 @@ function imgOpcaoStyle(
   const isSelected = op.id === selectedId;
   const wasWrong   = wrongIds?.has(op.id) ?? false;
   if (answerState === "idle") {
-    if (wasWrong) return { border: "3px solid #EF4444", opacity: 0.5 };
+    if (wasWrong) return { border: "3px solid var(--error)", opacity: 0.5 };
     return { border: "3px solid transparent" };
   }
-  if (answerState === "correct" && isSelected) return { border: "3px solid #22C55E" };
+  if (answerState === "correct" && isSelected) return { border: "3px solid var(--success)" };
   if (answerState === "wrong") {
-    if (isSelected) return { border: "3px solid #EF4444" };
-    if (op.correta && !hideCorrect) return { border: "3px solid #22C55E" };
-    if (wasWrong) return { border: "3px solid #EF4444", opacity: 0.5 };
+    if (isSelected) return { border: "3px solid var(--error)" };
+    if (op.correta && !hideCorrect) return { border: "3px solid var(--success)" };
+    if (wasWrong) return { border: "3px solid var(--error)", opacity: 0.5 };
     return { border: "3px solid transparent", opacity: 0.4 };
   }
   return { border: "3px solid transparent" };

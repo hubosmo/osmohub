@@ -88,8 +88,8 @@ export function TopLoader() {
         height: 3,
         width: "0%",
         opacity: 0,
-        backgroundColor: "#00a6ff",
-        boxShadow: "0 0 8px #00a6ff88",
+        backgroundColor: "var(--accent)",
+        boxShadow: "0 0 8px color-mix(in srgb, var(--accent) 53%, transparent)",
         zIndex: 99999,
         pointerEvents: "none",
       }}

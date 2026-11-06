@@ -61,7 +61,7 @@ export function Sidebar({ userName = "Estudiante", userEmail, isAdmin, onCollaps
         {collapsed ? (
           <Link href="/dashboard">
             {/* Ícone mínimo: círculo com letra O na cor brand */}
-            <span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-black" style={{ backgroundColor: "var(--accent-subtle)", color: "#00A6FF" }}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-black" style={{ backgroundColor: "var(--accent-subtle)", color: "var(--accent)" }}>
               O
             </span>
           </Link>
@@ -112,7 +112,7 @@ export function Sidebar({ userName = "Estudiante", userEmail, isAdmin, onCollaps
             href="/admin"
             title={collapsed ? "Admin" : undefined}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors"
-            style={{ color: "#F59E0B" }}
+            style={{ color: "var(--warning)" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = "rgba(245,158,11,0.1)";
             }}
@@ -152,7 +152,7 @@ export function Sidebar({ userName = "Estudiante", userEmail, isAdmin, onCollaps
         <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: "#00A6FF" }}
+            style={{ backgroundColor: "var(--accent)" }}
           >
             {initials}
           </div>
