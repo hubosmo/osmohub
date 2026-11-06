@@ -186,7 +186,7 @@
 
 ## Fase 9 — Plano de Estudos
 
-- [ ] Página `/plano-de-estudos`
+- [ ] Página `/plan-de-estudios`
 - [ ] Criar e nomear planos
 - [ ] Adicionar tópicos ao plano (busca ou navegação)
 - [ ] Reordenação de itens

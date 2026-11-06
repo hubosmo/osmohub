@@ -1,6 +1,6 @@
 export const OTHER_NAV = [
-  { href: "/plano-de-estudios", label: "MI PLAN" },
-  { href: "/simulacoes", label: "SIMULACIONES" },
+  { href: "/plan-de-estudios", label: "MI PLAN" },
+  { href: "/simulaciones", label: "SIMULACIONES" },
 ];
 
 export function isCursosActive(pathname: string) {

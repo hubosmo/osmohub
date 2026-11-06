@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/cursos") ||
     pathname.startsWith("/quizzes") ||
-    pathname.startsWith("/plano-de-estudos") ||
     pathname.startsWith("/plan-de-estudios") ||
     pathname.startsWith("/simulaciones") ||
     pathname.startsWith("/biblioteca") ||

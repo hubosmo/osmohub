@@ -48,7 +48,7 @@ src/
 │   ├── (admin)/            # painel administrativo
 │   │   └── admin/
 │   │       ├── content/    # ContentTree — gestão completa de conteúdo
-│   │       ├── simulacoes/ # (pendente)
+│   │       ├── simulaciones/ # (pendente)
 │   │       ├── quizzes/    # (pendente)
 │   │       └── usuarios/   # (pendente)
 │   └── api/
