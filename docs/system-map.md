@@ -33,7 +33,7 @@
 |---|---|
 | Hospedagem de vídeo própria | Decisão em [ADR 0009](decisions/0009-hospedagem-de-video.md) (Mux vs Cloudflare Stream) |
 | Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. (pasta `components/simulations/` vazia) |
-| Persistir tentativas de quiz | Tabela `tentativas_quiz` existe mas nenhum código grava; `modo`/`tempo_limite_seg` do quiz também não são lidos |
+| Quiz: modo simulado | `modo` e `tempo_limite_seg` do quiz existem no schema mas não são lidos; as tentativas já são gravadas ([ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md)) |
 | Progresso do aluno | progresso.ts, marcação automática em vídeo/artigo |
 | Plano de estudos | plano.ts, UI de plano |
 | Biblioteca (busca) | lib/db/busca.ts |
@@ -126,7 +126,7 @@
         ↓ "Volver a intentar" → nova sessão
 ```
 
-Regras de quiz: ver [ADR 0006](decisions/0006-tentativas-em-questoes-binarias.md). Nenhum resultado é gravado no banco hoje.
+Regras de quiz: ver [ADR 0006](decisions/0006-tentativas-em-questoes-binarias.md). Ao terminar, o `QuizPlayer` envia as respostas a `registrarTentativaQuiz`, que calcula a pontuação no servidor e grava em `tentativas_quiz` ([ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md)); o card do quiz no tópico mostra última e melhor pontuação.
 
 ---
 
@@ -270,6 +270,8 @@ src/hooks/useImagePreload.ts    → pré-carrega uma lista de URLs de imagem
 src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValue: valor persistido no navegador, sem setState em efeito (ADR 0013)
 src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
+src/lib/quiz-scoring.ts        → avaliarTentativa: pontuação a partir do gabarito (função pura)
+src/lib/auth/session.ts         → getSessionUser: usuário da sessão, com cache por requisição
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
 src/lib/utils.ts                → cn() (classes) e toggleInSet() (alterna item num Set sem mutar)
 src/lib/video/thumbnail.ts      → resolveVideoThumbnail: miniatura de vídeo YouTube/Vimeo (servidor)
@@ -280,9 +282,10 @@ scripts/check-file-sizes.mjs    → verifica limites de linhas do CLAUDE.md (cat
 scripts/check-admin-actions.mjs → falha se uma server action de admin não começar com requireAdmin()
 scripts/check-db-access.mjs     → falha se um arquivo fora de src/lib/ importar o Prisma (queries ficam em lib/db/)
 scripts/check-colors.mjs        → falha se um arquivo ganhar literal hex (catraca com color-baseline.json)
+scripts/check-module-map.mjs    → falha se um módulo não planejado de module-map.json citar arquivo que não existe
 scripts/db-guard.mjs            → bloqueia `npm run db:migrate` se DATABASE_URL não for banco local (ADR 0012)
 ```
-Comandos: `npm run check:size`, `npm run check:auth`, `npm run check:db`, `npm run check:colors`, `npm run typecheck`, `npm run lint` e `npm run check` (todos). O lint usa cache (`.eslintcache`): a primeira execução leva alguns minutos neste disco, as seguintes são rápidas.
+Comandos: `npm run check:size`, `npm run check:auth`, `npm run check:db`, `npm run check:colors`, `npm run check:docs`, `npm run typecheck`, `npm run lint` e `npm run check` (todos). O lint usa cache (`.eslintcache`): a primeira execução leva alguns minutos neste disco, as seguintes são rápidas.
 
 ---
 
@@ -297,6 +300,7 @@ src/lib/actions/
   content-atlas.ts           → imagens standalone + grupos de imagens
   content-tabelas.ts         → tabelas e linhas
   content-media.ts           → vídeo e artigo (upsert, deletar, salvar)
+  quiz-tentativas.ts         → registrarTentativaQuiz (ação do aluno: grava a tentativa; pontuação calculada no servidor)
   content-quizzes.ts         → quiz, questões, opções, vínculo com tópico
   content-quiz-imagens.ts    → upload de imagem do quiz e galeria unificada (quiz + atlas)
 ```
@@ -316,6 +320,7 @@ src/lib/db/
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
   admin.ts      → queries admin (listagem, contagens, árvore completa)
   quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
+  tentativas.ts → registrarTentativa, getResumoTentativas (última, melhor e total do aluno por quiz)
   users.ts      → sincronizarUsuario: mantém `users` alinhada com o Supabase Auth (usado por login e cadastro; não lança erro)
 ```
 
@@ -394,7 +399,7 @@ imagens_grupo        → imagens dentro de um grupo (ordem, url, legenda)
 tabelas              → tabelas por tópico (titulo, tipo, cabecalhos JSON)
 linhas_tabela        → linhas de uma tabela (categoria, conteudo, valores_extra JSON)
 progresso_topicos    → video_assistido, artigo_lido, simulacoes_concluidas por (user, topico)
-tentativas_quiz      → histórico de quizzes do aluno
+tentativas_quiz      → histórico de quizzes do aluno (pontuação calculada no servidor)
 planos_estudos       → planos nomeados por aluno
 itens_plano          → tópicos no plano + ordem + concluido
 simulacoes           → biblioteca de simulações reutilizáveis (tipo, config JSON)

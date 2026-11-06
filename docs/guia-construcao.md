@@ -2,6 +2,7 @@
 
 > Documento vivo. Marcar cada item como concluído conforme avança.
 > Status: `[ ]` pendente · `[x]` concluído · `[~]` em progresso · `[-]` bloqueado
+> Última reconciliação com o código: 2026-11-06 (cada item foi conferido contra os arquivos). Decisões e o porquê: `docs/decisions/`.
 
 ---
 
@@ -14,8 +15,8 @@
 - [x] Configurar fonte Montserrat via `next/font`
 - [x] Estrutura de pastas por contexto (student, admin, editor, simulations)
 - [x] Configurar Prisma + conectar Supabase
-- [x] Criar schema completo do banco (14 tabelas)
-- [x] Rodar migração inicial no Supabase
+- [x] Criar schema completo do banco (21 tabelas hoje)
+- [x] Rodar migração inicial no Supabase (histórico reiniciado com um baseline em 2026-11-05, [ADR 0012](decisions/0012-historico-de-migrations-reiniciado.md))
 - [x] Middleware de autenticação (Supabase SSR)
 - [x] Criar `lib/env.ts` com validação Zod
 - [x] Criar clientes Supabase (browser + server)
@@ -36,7 +37,7 @@
 - [x] `components/layout/StudentLayout.tsx` — layout raiz da área do aluno
 - [x] `components/layout/AdminLayout.tsx` — layout raiz do admin
 - [x] `components/layout/ThemeToggle.tsx` — botão dark/light
-- [ ] Drawer mobile (sidebar colapsável em telas pequenas) — pendente
+- [x] Drawer mobile: gaveta no header (`layout/header/MobileDrawer.tsx`)
 
 ### 1.3 Providers
 - [x] `QueryProvider` (TanStack Query)
@@ -49,13 +50,16 @@
 
 - [x] Página `/login` — form com email/senha
 - [x] Página `/cadastro` — form de registro
-- [ ] Página `/recuperar-senha`
+- [ ] Página `/recuperar-senha` (o link "¿Olvidaste tu contraseña?" do login leva a 404)
 - [x] Server Actions de auth (login, cadastro, logout)
 - [x] Página `/verificar-email` — aviso pós-cadastro para confirmar e-mail
 - [x] Callback de OAuth do Supabase (`/auth/callback`)
 - [x] Sincronizar usuário Supabase Auth → tabela `users` (trigger + upsert nas actions)
-- [ ] Proteção de rotas no middleware validando role (STUDENT/ADMIN)
+- [x] Proteção por papel: o middleware exige login; o papel ADMIN é verificado no layout do admin e em cada server action ([ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md))
 - [x] Hook `useUser()` para acesso ao usuário no client
+- [ ] Login com Google (o botão existe, mas não faz nada)
+- [ ] Política de senha de 8 caracteres (o formulário promete 8; o Supabase aceita 6)
+- [ ] Páginas `/terminos` e `/privacidad` (o cadastro exige aceitar e linka para elas; hoje dão 404)
 
 ---
 
@@ -64,7 +68,7 @@
 ### 3.1 Dashboard
 - [x] Página `/dashboard`
 - [x] Card de boas-vindas com nome do aluno (com ícone por hora do dia)
-- [ ] Bloco "Continue de onde parou" (último tópico acessado)
+- [x] Bloco "Continue de onde parou" (último tópico acessado, salvo no banco e no navegador)
 - [ ] Grid de disciplinas com progresso
 - [ ] Bloco do plano de estudos (próximos itens)
 - [ ] Stats rápidas (vídeos, artigos, simulações, pontuação)
@@ -81,9 +85,11 @@
 ### 3.3 Página de Tópico (unificada)
 - [x] Página `/cursos/[curso]/[disciplina]/[area]/[topico]`
 - [x] Seção de vídeo (YouTube embed / placeholder se sem vídeo)
-- [x] Seção de artigo (placeholder — editor Tiptap na Fase 5)
+- [x] Seção de artigo (renderizador Tiptap)
 - [ ] Seção de simulações vinculadas
-- [x] Seção de quiz
+- [x] Seção de quiz (cards com configuração de sessão e histórico do aluno)
+- [x] Atlas de imagens (imagem única, carrossel com preload, lupa) e tabelas de resumo
+- [x] Tour de onboarding, busca de tópicos, índice lateral (desktop) e índice recolhível (mobile)
 - [x] Navegação anterior/próximo tópico
 - [ ] Marcação automática de progresso
 
@@ -93,7 +99,7 @@
 
 - [ ] Criar conta Mux e configurar variáveis de ambiente
 - [ ] Componente `VideoPlayer.tsx` com `@mux/mux-player-react`
-- [ ] Suporte a fallback YouTube/Vimeo (embed iframe)
+- [x] Embed de YouTube/Vimeo (`TopicVideoSection`, miniatura em `lib/video/thumbnail.ts`). Decisão de hospedagem própria pendente: [ADR 0009](decisions/0009-hospedagem-de-video.md)
 - [ ] Registrar `video_assistido = true` ao atingir 90% do vídeo
 - [ ] Thumbnail com skeleton durante carregamento
 
@@ -102,18 +108,18 @@
 ## Fase 5 — Artigo Interativo (Editor Tiptap)
 
 ### 5.1 Setup Tiptap
-- [ ] Instalar Tiptap e extensões base
+- [x] Instalar Tiptap e extensões base
 - [ ] Extensões customizadas: `SimulacaoBlock`, `QuizInlineBlock`, `CalloutBlock`
 
 ### 5.2 Renderizador de artigo (área do aluno)
-- [ ] Componente `ArtigoRenderer.tsx` — renderiza JSON Tiptap como HTML
-- [ ] Estilos tipográficos para artigo (headings, listas, callouts)
+- [x] Componente `editor/ArtigoRenderer.tsx` — renderiza JSON Tiptap como HTML
+- [x] Estilos tipográficos para artigo (`.artigo-content` em `globals.css`; callouts dependem do bloco customizado)
 - [ ] Renderização de bloco `simulation` → busca simulação e renderiza componente
 - [ ] Barra de progresso de leitura
 - [ ] Marcação automática `artigo_lido = true` ao rolar até o final
 
 ### 5.3 Editor de artigo (admin)
-- [ ] Componente `ArtigoEditor.tsx` com barra de ferramentas
+- [x] Componente `editor/ArtigoEditor.tsx` com barra de ferramentas (negrito, itálico, sublinhado, títulos, listas, alinhamento, cor, destaque, link)
 - [ ] Upload de imagem inline → Supabase Storage
 - [ ] Inserção de bloco simulação via busca da biblioteca
 - [ ] Preview do artigo em tempo real
@@ -142,7 +148,8 @@
 - [x] Auto-advance após resposta correta (1.2s) e errada (2.2s)
 - [x] Menu: silenciar, encerrar antecipado
 - [ ] Componente `QuizSimulado.tsx` (modo simulado com tempo rígido — fase futura)
-- [ ] Histórico de tentativas salvo no banco
+- [x] Histórico de tentativas salvo no banco (`registrarTentativaQuiz`; pontuação calculada no servidor, [ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md))
+- [x] Última pontuação, melhor e nº de tentativas no card do quiz
 - [ ] Quiz inline no artigo (`QuizInlineBlock`)
 
 ---
@@ -150,16 +157,16 @@
 ## Fase 8 — Painel Admin
 
 ### 8.1 Layout e Navegação Admin
-- [ ] Layout admin com sidebar (`AdminLayout`)
-- [ ] Proteção de rota por role ADMIN
+- [x] Layout admin com sidebar (`AdminLayout`)
+- [x] Proteção de rota por role ADMIN (layout + `requireAdmin` em todas as actions, verificado com conta de aluno)
 
 ### 8.2 Gestão de Conteúdo
-- [ ] CRUD de Disciplinas (com upload de capa)
-- [ ] CRUD de Áreas
-- [ ] CRUD de Tópicos
-- [ ] Upload de vídeo (Mux direct upload flow)
-- [ ] Editor de artigo completo (Tiptap)
-- [ ] Reordenação drag-and-drop de áreas e tópicos
+- [x] CRUD de Disciplinas (com upload de capa)
+- [x] CRUD de Áreas
+- [x] CRUD de Tópicos (vídeo por URL, artigo, atlas, tabelas e quizzes vinculados)
+- [ ] Upload de vídeo (Mux direct upload flow): hoje o vídeo é informado por URL
+- [x] Editor de artigo (Tiptap) no painel do tópico; faltam upload de imagem inline e blocos customizados
+- [x] Reordenação drag-and-drop de cursos, disciplinas, áreas e tópicos (`ContentTree`)
 
 ### 8.3 Biblioteca de Simulações
 - [ ] Listagem de simulações
@@ -168,7 +175,7 @@
 - [ ] Preview de simulação antes de salvar
 
 ### 8.4 Quiz Builder
-- [x] Schema N:N: `Quiz` standalone + junction `TopicQuiz` + campos `capa_url`, `termos[]`, `publicado`
+- [x] Schema N:N: `Quiz` standalone + junction `TopicQuiz` + campos `capa_url` e `publicado`, e `termo` em cada questão
 - [x] `lib/db/quizzes.ts` — listarQuizzes, getQuizAdmin, getQuizzesDoTopico, listarImagensDisponiveis
 - [x] `lib/actions/content-quizzes.ts` — CRUD quiz/questão/opção + vincular/desvincular tópico
 - [x] `/admin/quizzes` — lista de quizzes com status + botão criar
@@ -207,14 +214,25 @@
 
 ## Fase 11 — Polish & Deploy
 
-- [ ] SEO: metadata dinâmica por página
-- [ ] Loading skeletons em todas as listas
-- [ ] Error boundaries e páginas de erro (404, 500)
+- [~] SEO: metadata dinâmica por página (existe em algumas páginas; falta cobrir o conteúdo do aluno)
+- [~] Loading skeletons em todas as listas (só atlas e "continuar" têm)
+- [ ] Error boundaries e páginas de erro (404, 500): não existem `not-found.tsx` nem `error.tsx`
 - [ ] Testes E2E das rotas críticas
-- [ ] Configurar Vercel (variáveis de ambiente de produção)
+- [~] Configurar Vercel (variáveis de ambiente de produção): o deploy existe; conferir `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `ADMIN_EMAIL`
 - [ ] Configurar domínio personalizado
-- [ ] RLS do Supabase em produção
+- [x] RLS do Supabase em produção (verificado em 2026-11-06: tabelas fechadas e política de escrita do Storage corrigida, [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md))
 - [ ] Auditoria de performance (Lighthouse)
+
+---
+
+## Qualidade e Segurança ✅ (concluído em 2026-11)
+
+- [x] Autorização do admin em camadas: middleware, layout e `requireAdmin()` em todas as 54 actions ([ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md))
+- [x] Redirects validados (`safeInternalPath`) em `?back=` e no callback do OAuth
+- [x] Histórico de migrations que reproduz o banco em um Postgres vazio ([ADR 0012](decisions/0012-historico-de-migrations-reiniciado.md)); `db:migrate` bloqueado contra banco remoto
+- [x] `npm run check`: limites de tamanho de arquivo, proteção das actions de admin, acesso a dados só em `lib/`, cores hex travadas, typecheck e lint com zero erros e zero avisos
+- [x] Componentes compartilhados: `LoadingButton`, `Modal`, `AuthShell`, hooks de estado no navegador ([ADR 0013](decisions/0013-estado-no-navegador-sem-setstate-em-efeito.md))
+- [x] Documentação: 14 ADRs, `design-system.md`, `system-map.md`
 
 ---
 
@@ -226,7 +244,7 @@
 
 | Exportação | Uso |
 |---|---|
-| `PAGE_VARIANTS` + `PAGE_TRANSITION` | Transição entre páginas (via `PageTransition`) |
+| `PAGE_VARIANTS` + `PAGE_TRANSITION` | Sem uso: a troca de página é só um fade-in em `PageTransition` ([ADR 0007](decisions/0007-transicao-de-pagina-fade-simples.md)) |
 | `MODAL_BACKDROP` + `MODAL_PANEL` + `MODAL_TRANSITION` | Modais centralizados com backdrop |
 | `BOTTOM_SHEET` + `SHEET_TRANSITION` | Drawers mobile que sobem do rodapé |
 | `OVERLAY` | Backdrop de qualquer overlay (fade simples) |
@@ -237,25 +255,15 @@
 
 ### Como implementar
 
-**Transição de página** — automática. `PageTransition` já está nos layouts `StudentLayout` e `AdminLayout`. Não adicionar em rotas com animação própria (ex: `/quizzes/*/session`).
+**Transição de página** — automática: fade-in de 200 ms em `PageTransition`, já nos layouts `StudentLayout` e `AdminLayout`. Não usar `AnimatePresence` em volta de páginas. Não adicionar em rotas com animação própria (ex: `/quizzes/*/session`).
 
-**Modal novo:**
+**Modal novo:** usar `components/ui/Modal.tsx`, que já traz fundo, animação, clique fora, Escape e `role="dialog"`. Nunca escrever `fixed inset-0` à mão.
 ```tsx
-import { motion, AnimatePresence } from "framer-motion";
-import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
+import { Modal } from "@/components/ui/Modal";
 
-<AnimatePresence>
-  {open && (
-    <motion.div variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
-      transition={{ duration: 0.18 }} className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.65)" }} onClick={handleClose}>
-      <motion.div variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
-        transition={MODAL_TRANSITION} className="..." onClick={e => e.stopPropagation()}>
-        {/* conteúdo */}
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+<Modal open={open} onClose={() => setOpen(false)} label="Título para leitores de tela" maxWidth="max-w-md">
+  {/* conteúdo */}
+</Modal>
 ```
 
 **Dropdown novo:**
@@ -291,7 +299,7 @@ import { INLINE_PANEL, STANDARD } from "@/lib/motion";
 ### Exceções — NÃO usar `PageTransition`
 
 - `/quizzes/*/session` — o `QuizPlayer` tem sua própria animação de slide entre questões
-- Páginas de autenticação (`(auth)`) — transição de layout diferente
+- Páginas de autenticação (`(auth)`) — têm layout próprio (`AuthShell`), sem `PageTransition`
 
 ---
 

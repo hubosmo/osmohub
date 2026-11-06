@@ -186,6 +186,7 @@ model TopicoSimulacao {
 // Quiz é uma entidade independente: vincula-se a N tópicos via TopicoQuiz.
 // Campos `modo` e `tempo_limite_seg` existem mas ainda não são lidos pelo código
 // (tempo e tentativas hoje vêm da tela de configuração, via query string).
+// `TentativaQuiz` é gravada ao fim de cada sessão (ADR 0014).
 
 model Quiz {
   id               String   @id @default(uuid())

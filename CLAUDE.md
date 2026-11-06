@@ -115,7 +115,7 @@ Antes de implementar qualquer módulo novo:
 1. Verificar status no `docs/guia-construcao.md`
 2. Consultar `docs/module-map.json` → campo `depends_on` e `used_by` do módulo
 3. Implementar sem afetar módulos com status `done`
-4. Atualizar `module-map.json` (status, files) e marcar `[x]` no guia ao concluir
+4. Atualizar `module-map.json` (status, files) e marcar `[x]` no guia ao concluir (`npm run check:docs` falha se um módulo citar arquivo que não existe)
 5. Se tomou uma decisão relevante (escolha entre alternativas, nova regra, bug que revelou uma regra), criar um ADR em `docs/decisions/` e atualizar o índice
 6. Se mudou rota, componente, action, query ou schema, atualizar `docs/system-map.md` (e `docs/database-schema.md` se for schema) na mesma tarefa
 
