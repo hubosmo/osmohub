@@ -2,9 +2,8 @@
 
 import { useState, useRef, useTransition } from "react";
 import { Upload, Images, BookImage, X, Loader2, Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { uploadImagemQuiz, listarImagensGaleria } from "@/lib/actions/content-quiz-imagens";
-import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
+import { Modal } from "@/components/ui/Modal";
 
 interface GaleriaData {
   quiz: { id: string; url: string; nome: string }[];
@@ -154,146 +153,135 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
       </div>
 
       {/* Modal */}
-      <AnimatePresence>
-      {open && (
-        <motion.div
-          variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
-          transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          label="Seleccionar imagen"
+          panelClassName="overflow-hidden flex flex-col"
+          panelStyle={{ maxHeight: "80vh" }}
         >
-          <motion.div
-            variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
-            transition={MODAL_TRANSITION}
-            className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-            style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", maxHeight: "80vh" }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                Seleccionar imagen
-              </p>
-              <button type="button" onClick={() => setOpen(false)} style={{ color: "var(--text-muted)" }}>
-                <X className="h-4 w-4" />
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            Seleccionar imagen
+          </p>
+          <button type="button" onClick={() => setOpen(false)} style={{ color: "var(--text-muted)" }}>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex px-5 pt-3 gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          {tabs.map(({ key, label, icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleTabChange(key)}
+              className="flex items-center gap-1.5 pb-2.5 text-xs font-semibold border-b-2 transition-colors"
+              style={{
+                borderColor: tab === key ? "var(--accent)" : "transparent",
+                color: tab === key ? "var(--accent)" : "var(--text-muted)",
+                marginBottom: -1,
+              }}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5 pt-4">
+          {tab === "upload" && (
+            <div className="flex flex-col gap-4">
+              {preview && (
+                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={preview} alt="" className="w-full max-h-48 object-contain" style={{ backgroundColor: "var(--bg-elevated)" }} />
+                </div>
+              )}
+
+              <label
+                className="flex flex-col items-center justify-center gap-2 rounded-xl cursor-pointer py-8 transition-opacity hover:opacity-80"
+                style={{
+                  border: "2px dashed var(--border)",
+                  backgroundColor: "var(--bg-elevated)",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <Upload className="h-6 w-6" />
+                <span className="text-xs">
+                  {preview ? "Cambiar archivo" : "Clic para seleccionar imagen"}
+                </span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
+                  JPG, PNG, WebP — máx 5 MB
+                </span>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={handleUpload}
+                disabled={!preview || isPending}
+                className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-40"
+                style={{ backgroundColor: "var(--accent)" }}
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {isPending ? "Subiendo..." : "Subir imagen"}
               </button>
             </div>
+          )}
 
-            {/* Tabs */}
-            <div className="flex px-5 pt-3 gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
-              {tabs.map(({ key, label, icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleTabChange(key)}
-                  className="flex items-center gap-1.5 pb-2.5 text-xs font-semibold border-b-2 transition-colors"
-                  style={{
-                    borderColor: tab === key ? "var(--accent)" : "transparent",
-                    color: tab === key ? "var(--accent)" : "var(--text-muted)",
-                    marginBottom: -1,
-                  }}
-                >
-                  {icon}
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 pb-5 pt-4">
-              {tab === "upload" && (
-                <div className="flex flex-col gap-4">
-                  {preview && (
-                    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={preview} alt="" className="w-full max-h-48 object-contain" style={{ backgroundColor: "var(--bg-elevated)" }} />
-                    </div>
-                  )}
-
-                  <label
-                    className="flex flex-col items-center justify-center gap-2 rounded-xl cursor-pointer py-8 transition-opacity hover:opacity-80"
-                    style={{
-                      border: "2px dashed var(--border)",
-                      backgroundColor: "var(--bg-elevated)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <Upload className="h-6 w-6" />
-                    <span className="text-xs">
-                      {preview ? "Cambiar archivo" : "Clic para seleccionar imagen"}
-                    </span>
-                    <span className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
-                      JPG, PNG, WebP — máx 5 MB
-                    </span>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={handleUpload}
-                    disabled={!preview || isPending}
-                    className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-40"
-                    style={{ backgroundColor: "var(--accent)" }}
-                  >
-                    {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {isPending ? "Subiendo..." : "Subir imagen"}
-                  </button>
+          {(tab === "gallery" || tab === "atlas") && (
+            <div>
+              {loadingGallery ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--text-muted)" }} />
                 </div>
-              )}
-
-              {(tab === "gallery" || tab === "atlas") && (
-                <div>
-                  {loadingGallery ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--text-muted)" }} />
-                    </div>
-                  ) : currentList.length === 0 ? (
-                    <p className="text-sm text-center py-12" style={{ color: "var(--text-muted)" }}>
-                      {tab === "atlas" ? "Sin imágenes de atlas disponibles." : "Sin imágenes en la galería aún."}
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      {currentList.map((img) => {
-                        const selected = img.url === value;
-                        return (
-                          <button
-                            key={img.id}
-                            type="button"
-                            onClick={() => selectFromGallery(img.url)}
-                            className="relative aspect-square rounded-lg overflow-hidden transition-all hover:opacity-90"
-                            title={img.nome}
-                            style={{
-                              border: `2px solid ${selected ? "var(--accent)" : "var(--border)"}`,
-                            }}
+              ) : currentList.length === 0 ? (
+                <p className="text-sm text-center py-12" style={{ color: "var(--text-muted)" }}>
+                  {tab === "atlas" ? "Sin imágenes de atlas disponibles." : "Sin imágenes en la galería aún."}
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {currentList.map((img) => {
+                    const selected = img.url === value;
+                    return (
+                      <button
+                        key={img.id}
+                        type="button"
+                        onClick={() => selectFromGallery(img.url)}
+                        className="relative aspect-square rounded-lg overflow-hidden transition-all hover:opacity-90"
+                        title={img.nome}
+                        style={{
+                          border: `2px solid ${selected ? "var(--accent)" : "var(--border)"}`,
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt={img.nome} className="w-full h-full object-cover" />
+                        {selected && (
+                          <div
+                            className="absolute inset-0 flex items-center justify-center"
+                            style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={img.url} alt={img.nome} className="w-full h-full object-cover" />
-                            {selected && (
-                              <div
-                                className="absolute inset-0 flex items-center justify-center"
-                                style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-                              >
-                                <Check className="h-6 w-6 text-white" />
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                            <Check className="h-6 w-6 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
+          )}
+        </div>
+        </Modal>
     </div>
   );
 }

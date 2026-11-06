@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useLocalStorageValue } from "@/hooks/useStoredValue";
+import { Modal } from "@/components/ui/Modal";
 import { toggleInSet } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, Settings, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION, ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
+import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
 const TIME_OPTIONS = [
   { label: "5 min",  value: 5 },
@@ -255,208 +256,195 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
       </div>
 
       {/* ── Modal de configuración ── */}
-      <AnimatePresence>
-      {configOpen && (
-        <motion.div
-          variants={MODAL_BACKDROP}
-          initial="initial" animate="animate" exit="exit"
-          transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}
-        >
-          <motion.div
-            variants={MODAL_PANEL}
-            initial="initial" animate="animate" exit="exit"
-            transition={MODAL_TRANSITION}
-            className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl"
-            style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", maxHeight: "90dvh", overflowY: "auto" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Capa */}
-            {quiz.capa_url && (
-              <div className="relative h-28 overflow-hidden shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={quiz.capa_url} alt="" className="w-full h-full object-cover" />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to bottom, transparent 30%, var(--bg-surface))" }}
-                />
-              </div>
-            )}
+      <Modal
+        open={configOpen}
+        onClose={() => setConfigOpen(false)}
+        label={quiz.titulo}
+        maxWidth="max-w-lg"
+        panelClassName="overflow-hidden"
+        panelStyle={{ maxHeight: "90dvh", overflowY: "auto" }}
+      >
+        {/* Capa */}
+        {quiz.capa_url && (
+          <div className="relative h-28 overflow-hidden shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={quiz.capa_url} alt="" className="w-full h-full object-cover" />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(to bottom, transparent 30%, var(--bg-surface))" }}
+            />
+          </div>
+        )}
 
-            <div className="px-5 pb-6 pt-4">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-1">
-                <span
-                  className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded"
-                  style={{ backgroundColor: "var(--accent)", color: "#fff" }}
-                >
-                  Cuestionario
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setConfigOpen(false)}
-                  className="p-1 rounded-lg transition-opacity hover:opacity-70"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+        <div className="px-5 pb-6 pt-4">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-1">
+            <span
+              className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded"
+              style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+            >
+              Cuestionario
+            </span>
+            <button
+              type="button"
+              onClick={() => setConfigOpen(false)}
+              className="p-1 rounded-lg transition-opacity hover:opacity-70"
+              style={{ color: "var(--text-muted)" }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-              <h2 className="text-base font-bold mb-1 leading-snug" style={{ color: "var(--text-primary)" }}>
-                {quiz.titulo}
-              </h2>
-              <p className="text-xs mb-5 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                {descricao}
-              </p>
+          <h2 className="text-base font-bold mb-1 leading-snug" style={{ color: "var(--text-primary)" }}>
+            {quiz.titulo}
+          </h2>
+          <p className="text-xs mb-5 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            {descricao}
+          </p>
 
-              {/* Tiempo */}
-              <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
-                ¿Cuánto tiempo quieres estudiar?
-              </p>
-              <div className="flex gap-2 mb-5">
-                {TIME_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setTimeChoice(opt.value)}
-                    className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
-                    style={{
-                      border: `2px solid ${selectedTime === opt.value ? "var(--accent)" : "var(--border)"}`,
-                      backgroundColor: selectedTime === opt.value ? "var(--accent)" : "transparent",
-                      color: selectedTime === opt.value ? "#fff" : "var(--text-secondary)",
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+          {/* Tiempo */}
+          <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+            ¿Cuánto tiempo quieres estudiar?
+          </p>
+          <div className="flex gap-2 mb-5">
+            {TIME_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTimeChoice(opt.value)}
+                className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
+                style={{
+                  border: `2px solid ${selectedTime === opt.value ? "var(--accent)" : "var(--border)"}`,
+                  backgroundColor: selectedTime === opt.value ? "var(--accent)" : "transparent",
+                  color: selectedTime === opt.value ? "#fff" : "var(--text-secondary)",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
-              {/* Intentos por pregunta */}
-              <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
-                Intentos por pregunta
-              </p>
-              <div className="flex gap-2 mb-5">
-                {([
-                  { label: "1 intento",  value: 1, desc: "Sin segunda oportunidad" },
-                  { label: "2 intentos", value: 2, desc: "Permite corregir una vez" },
-                ] as const).map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setAttemptsChoice(opt.value)}
-                    className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all text-left"
-                    style={{
-                      border: `2px solid ${selectedAttempts === opt.value ? "var(--accent)" : "var(--border)"}`,
-                      backgroundColor: selectedAttempts === opt.value ? "var(--accent)" : "transparent",
-                      color: selectedAttempts === opt.value ? "#fff" : "var(--text-secondary)",
-                    }}
-                  >
-                    <div className="font-bold">{opt.label}</div>
-                    <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>{opt.desc}</div>
-                  </button>
-                ))}
-              </div>
+          {/* Intentos por pregunta */}
+          <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+            Intentos por pregunta
+          </p>
+          <div className="flex gap-2 mb-5">
+            {([
+              { label: "1 intento",  value: 1, desc: "Sin segunda oportunidad" },
+              { label: "2 intentos", value: 2, desc: "Permite corregir una vez" },
+            ] as const).map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setAttemptsChoice(opt.value)}
+                className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all text-left"
+                style={{
+                  border: `2px solid ${selectedAttempts === opt.value ? "var(--accent)" : "var(--border)"}`,
+                  backgroundColor: selectedAttempts === opt.value ? "var(--accent)" : "transparent",
+                  color: selectedAttempts === opt.value ? "#fff" : "var(--text-secondary)",
+                }}
+              >
+                <div className="font-bold">{opt.label}</div>
+                <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>{opt.desc}</div>
+              </button>
+            ))}
+          </div>
 
-              {/* Lo que aprenderás */}
-              {termos.length > 0 && (
-                <div className="mb-5" style={{ borderTop: "1px solid var(--border)" }}>
-                  <button
-                    type="button"
-                    onClick={() => setModalTermsExpanded(v => !v)}
-                    className="flex items-center gap-2 w-full py-3 text-sm"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    <span className="flex-1 text-left font-medium">Lo que aprenderás</span>
-                    {deselectedTermos.size > 0 && (
-                      <span
-                        className="text-xs px-1.5 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)",
-                          color: "var(--accent)",
-                        }}
-                      >
-                        {activeCount}/{termos.length}
-                      </span>
-                    )}
-                    <ChevronRight
-                      className="h-4 w-4 shrink-0 transition-transform"
-                      style={{
-                        color: "var(--text-muted)",
-                        transform: modalTermsExpanded ? "rotate(90deg)" : "none",
-                      }}
-                    />
-                  </button>
-
-                  <AnimatePresence initial={false}>
-                  {modalTermsExpanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE} transition={STANDARD} style={ACCORDION_STYLE}>
-                      <div className="pb-2">
-                        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-                          Haz clic para quitar contenido de la sesión:
-                        </p>
-                        <div style={{ maxHeight: 140, overflowY: "auto" }}>
-                          <TermChips termos={termos} deselected={deselectedTermos} onToggle={toggleTermo} />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  </AnimatePresence>
-                </div>
-              )}
-
-              {/* Aplicar a */}
-              <div className="mb-5">
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2.5" style={{ color: "var(--text-muted)" }}>
-                  Aplicar configuración a:
-                </p>
-                <div className="flex flex-col gap-2">
-                  {([
-                    { value: "this",    label: "Solo para este cuestionario" },
-                    { value: "default", label: "Establecer como predeterminado" },
-                  ] as const).map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setSaveScope(opt.value)}
-                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-left transition-all"
-                      style={{
-                        border: `2px solid ${saveScope === opt.value ? "var(--accent)" : "var(--border)"}`,
-                        backgroundColor: saveScope === opt.value
-                          ? "color-mix(in srgb, var(--accent) 8%, transparent)"
-                          : "transparent",
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      <span
-                        className="h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                        style={{ borderColor: saveScope === opt.value ? "var(--accent)" : "var(--border)" }}
-                      >
-                        {saveScope === opt.value && (
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
-                        )}
-                      </span>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comenzar */}
+          {/* Lo que aprenderás */}
+          {termos.length > 0 && (
+            <div className="mb-5" style={{ borderTop: "1px solid var(--border)" }}>
               <button
                 type="button"
-                onClick={() => startSession(true)}
-                className="w-full py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "var(--accent)" }}
+                onClick={() => setModalTermsExpanded(v => !v)}
+                className="flex items-center gap-2 w-full py-3 text-sm"
+                style={{ color: "var(--text-secondary)" }}
               >
-                Comenzar ▶ {selectedTime} min
+                <span className="flex-1 text-left font-medium">Lo que aprenderás</span>
+                {deselectedTermos.size > 0 && (
+                  <span
+                    className="text-xs px-1.5 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)",
+                      color: "var(--accent)",
+                    }}
+                  >
+                    {activeCount}/{termos.length}
+                  </span>
+                )}
+                <ChevronRight
+                  className="h-4 w-4 shrink-0 transition-transform"
+                  style={{
+                    color: "var(--text-muted)",
+                    transform: modalTermsExpanded ? "rotate(90deg)" : "none",
+                  }}
+                />
               </button>
+
+              <AnimatePresence initial={false}>
+              {modalTermsExpanded && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={ACCORDION_OPEN} exit={ACCORDION_CLOSE} transition={STANDARD} style={ACCORDION_STYLE}>
+                  <div className="pb-2">
+                    <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+                      Haz clic para quitar contenido de la sesión:
+                    </p>
+                    <div style={{ maxHeight: 140, overflowY: "auto" }}>
+                      <TermChips termos={termos} deselected={deselectedTermos} onToggle={toggleTermo} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
+          )}
+
+          {/* Aplicar a */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold uppercase tracking-wide mb-2.5" style={{ color: "var(--text-muted)" }}>
+              Aplicar configuración a:
+            </p>
+            <div className="flex flex-col gap-2">
+              {([
+                { value: "this",    label: "Solo para este cuestionario" },
+                { value: "default", label: "Establecer como predeterminado" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSaveScope(opt.value)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-left transition-all"
+                  style={{
+                    border: `2px solid ${saveScope === opt.value ? "var(--accent)" : "var(--border)"}`,
+                    backgroundColor: saveScope === opt.value
+                      ? "color-mix(in srgb, var(--accent) 8%, transparent)"
+                      : "transparent",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <span
+                    className="h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                    style={{ borderColor: saveScope === opt.value ? "var(--accent)" : "var(--border)" }}
+                  >
+                    {saveScope === opt.value && (
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+                    )}
+                  </span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Comenzar */}
+          <button
+            type="button"
+            onClick={() => startSession(true)}
+            className="w-full py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            Comenzar ▶ {selectedTime} min
+          </button>
+        </div>
+      </Modal>
     </>
   );
 }

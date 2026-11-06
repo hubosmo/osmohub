@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useUnsavedChanges } from "@/stores/unsaved-changes";
-import { MODAL_BACKDROP, MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
+import { Modal } from "@/components/ui/Modal";
 
 export function AdminNavGuard() {
   const { isDirty, setDirty } = useUnsavedChanges();
@@ -55,66 +54,56 @@ export function AdminNavGuard() {
   }
 
   return (
-    <AnimatePresence>
-    {showModal && (
-      <motion.div
-        variants={MODAL_BACKDROP} initial="initial" animate="animate" exit="exit"
-        transition={{ duration: 0.18 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center"
-        style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
-        onClick={handleStay}
-      >
-      <motion.div
-        variants={MODAL_PANEL} initial="initial" animate="animate" exit="exit"
-        transition={MODAL_TRANSITION}
-        className="w-full max-w-sm mx-4 rounded-2xl p-6 shadow-2xl"
-        style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: "color-mix(in srgb, var(--error) 15%, var(--bg-elevated))" }}
-          >
-            <AlertTriangle className="h-5 w-5" style={{ color: "var(--error)" }} />
-          </div>
-          <div>
-            <h3 className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
-              Cambios sin guardar
-            </h3>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              ¿Salir sin guardar?
-            </p>
-          </div>
+    <Modal
+      open={showModal}
+      onClose={handleStay}
+      label="Cambios sin guardar"
+      maxWidth="max-w-sm"
+      panelClassName="p-6"
+      zIndex={200}
+      blurBackdrop
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div
+          className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: "color-mix(in srgb, var(--error) 15%, var(--bg-elevated))" }}
+        >
+          <AlertTriangle className="h-5 w-5" style={{ color: "var(--error)" }} />
         </div>
-
-        <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
-          Tienes cambios que no han sido guardados. Si sales ahora, perderás las modificaciones realizadas.
-        </p>
-
-        <div className="flex gap-3">
-          <button
-            onClick={handleStay}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: "var(--bg-elevated)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            Seguir editando
-          </button>
-          <button
-            onClick={handleDiscard}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
-            style={{ backgroundColor: "var(--error)", color: "#fff" }}
-          >
-            Salir sin guardar
-          </button>
+        <div>
+          <h3 className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
+            Cambios sin guardar
+          </h3>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            ¿Salir sin guardar?
+          </p>
         </div>
-      </motion.div>
-      </motion.div>
-    )}
-    </AnimatePresence>
+      </div>
+
+      <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+        Tienes cambios que no han sido guardados. Si sales ahora, perderás las modificaciones realizadas.
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={handleStay}
+          className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          style={{
+            backgroundColor: "var(--bg-elevated)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          Seguir editando
+        </button>
+        <button
+          onClick={handleDiscard}
+          className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          style={{ backgroundColor: "var(--error)", color: "#fff" }}
+        >
+          Salir sin guardar
+        </button>
+      </div>
+    </Modal>
   );
 }

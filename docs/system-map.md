@@ -179,6 +179,7 @@ src/components/layout/
 src/components/
   ui/          → shadcn base (badge, button, card, dialog, dropdown-menu, input, separator, skeleton, sonner)
                  + LoadingButton (botão de ação primário/secundário com estado de loading)
+                 + Modal (fundo, animação, clique fora, Escape e role=dialog; usado pelos 4 modais)
   auth/        → AuthShell (fundo, painéis, logo e rodapé das 3 telas de auth), AuthInput, AuthGoogleOption (divisor "o" + botão Google), useAuthTheme (paleta própria das telas de auth)
   brand/       → OsmoLogo, OrbitalDecor, GoogleIcon, SplashScreen
   providers/   → ThemeProvider, UserProvider, QueryProvider

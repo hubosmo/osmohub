@@ -60,7 +60,7 @@ Regras:
 
 **Input:** altura e raio iguais ao botão (`rounded-lg`), borda `1.5px solid var(--border)`, foco com borda `--accent` e anel `0 0 0 3px` em acento com 12% de opacidade, ícone à esquerda. Referência: `components/auth/AuthInput.tsx`.
 
-**Modal:** backdrop `rgba(0,0,0,0.65)`, clique fora fecha, painel `rounded-2xl` com `MODAL_PANEL`, `max-height: 90dvh` com rolagem interna. Referência: `TopicQuizSection.tsx` (modal de configuração).
+**Modal:** usar `components/ui/Modal.tsx` (props `open`, `onClose`, `label`, `maxWidth`, `panelClassName`, `panelStyle`, `zIndex`). Ele já traz o fundo escuro (`rgba(0,0,0,0.6)`), a animação (`MODAL_BACKDROP` + `MODAL_PANEL`), o clique fora e a tecla Escape para fechar, e `role="dialog"` com `aria-modal`. Painel `rounded-2xl`; para conteúdo longo passe `panelStyle={{ maxHeight: "90dvh", overflowY: "auto" }}`. Não escrever `fixed inset-0` à mão. Referência: `TopicQuizSection.tsx`.
 
 **Imagem que carrega** (atlas, capas): skeleton com a altura do container, fade-in de 200 ms quando pronta, preload das vizinhas em carrosséis com `useImagePreload(urls)` (`hooks/`) e `preloadImage(src)` (`lib/image-preload.ts`) ([ADR 0008](decisions/0008-imagens-do-atlas-preload-decode.md)).
 
@@ -87,7 +87,7 @@ Todo texto visível em espanhol latino ([ADR 0001](decisions/0001-idioma-es-419.
 
 **Cor hardcoded.** Em 2026-11-06, 41 usos em `style` das cores de acento e de estado (acerto, erro, aviso) em 10 arquivos passaram para `var(--accent)`, `var(--success)`, `var(--error)` e `var(--warning)` (transparências com `color-mix`). Efeito visível: no tema claro, verde, vermelho e âmbar agora seguem os tokens (`#16a34a`, `#dc2626`, `#d97706`, mais escuros que no escuro), como o `brand.md` define. Restam 94 literais hex em 24 arquivos, travados por `npm run check:colors` (nenhum arquivo pode ganhar hex): a paleta própria das telas de auth (`useAuthTheme`, `AuthInput`, páginas), o SVG do Google e da marca, os ícones do PWA, o splash (aparece antes do tema), o canvas do confete, `themeColor`, e cores que vêm do banco (`cor_destaque`) ou são concatenadas com sufixo de transparência em hex. Ao migrar um deles, rode `npm run check:colors -- --write-baseline` para baixar o teto.
 
-**Modais próprios.** 4 modais são feitos à mão com `fixed inset-0` (`ConfirmModal`, `QuizImagePicker`, `TopicQuizSection`, `AdminNavGuard`), cada um com seu fundo e animação, apesar de existir `ui/dialog.tsx`.
+**Modais.** Os 4 modais que eram feitos à mão (`ConfirmModal`, `QuizImagePicker`, `TopicQuizSection`, `AdminNavGuard`) passaram a usar `ui/Modal` em 2026-11-06. Antes tinham fundo com 4 opacidades diferentes (0,5 a 0,65), `z-index` próprios, só 3 de 4 animavam, e nenhum fechava com Escape nem declarava `role="dialog"`. O `ConfirmModal` passou a animar e a ignorar fechamento enquanto a ação está em andamento. Ainda existe `ui/dialog.tsx` (shadcn), sem uso: remover ou adotar.
 
 **Spinner e loading.** `animate-spin` aparece em 9 arquivos com variações de tamanho e texto. O `LoadingButton` já existe e é usado no login e em "Volver al tema"; os demais botões com spinner (`ConfirmModal`, `QuestaoRow`, `QuizImagePicker`, `verificar-email`) devem migrar quando forem tocados.
 
