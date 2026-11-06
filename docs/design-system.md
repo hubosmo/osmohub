@@ -95,4 +95,4 @@ Todo texto visível em espanhol latino ([ADR 0001](decisions/0001-idioma-es-419.
 
 **Tokens órfãos.** `PAGE_VARIANTS` e `PAGE_TRANSITION` em `motion.ts` não são mais usados.
 
-**Arquivos acima do limite** (limites do `CLAUDE.md`, verificados por `npm run check:size`): as páginas de auth `cadastro` 258, `login` 227 e `verificar-email` 208 (limite 200 para `page.tsx`). Esses 3 estão registrados em `scripts/file-size-baseline.json` e não podem crescer. Arquivos grandes sem limite definido no `CLAUDE.md`: `ContentTree.tsx` 495, `TopicTour.tsx` 480, `TopicQuizSection.tsx` 468, `TabelasCard.tsx` 390.
+**Arquivos acima do limite.** Nenhum arquivo passa dos limites do `CLAUDE.md` (verificados por `npm run check:size`, com `scripts/file-size-baseline.json` vazio): qualquer arquivo novo acima do limite quebra o `check`. Arquivos grandes sem limite definido no `CLAUDE.md`: `ContentTree.tsx` 495, `TopicTour.tsx` 480, `TopicQuizSection.tsx` 468, `TabelasCard.tsx` 390.

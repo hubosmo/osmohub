@@ -14,3 +14,4 @@ Todo texto visível ao aluno (UI, labels, erros, metadados, placeholders) usa es
 - Mensagens de erro vindas de server actions também são em espanhol.
 - Vale também para o painel admin, pois quem edita conteúdo é o mesmo público.
 - URLs que o aluno vê também são em espanhol: `/plan-de-estudios`, `/simulaciones`, `/biblioteca`, `/configuracion`, `/admin/simulaciones`. Em 2026-11-06 foram unificadas as grafias que estavam misturadas (`/plano-de-estudios`, `/plano-de-estudos`, `/simulacoes`). Toda rota nova de aluno precisa entrar na lista de rotas protegidas de `src/middleware.ts` com a mesma grafia do menu.
+- **Pendência:** `/cadastro` e `/recuperar-senha` ainda estão em português (a primeira existe; a segunda ainda não tem página, e `/terminos` e `/privacidad`, linkadas no cadastro, também não). Renomear `/cadastro` para `/registro` mexe em links e no fluxo de confirmação de e-mail, então fica para uma tarefa própria.
