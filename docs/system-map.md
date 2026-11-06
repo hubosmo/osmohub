@@ -37,7 +37,7 @@
 | Progresso do aluno | progresso.ts, marcação automática em vídeo/artigo |
 | Plano de estudos | plano.ts, UI de plano |
 | Biblioteca (busca) | lib/db/busca.ts |
-| Revisão de segurança restante | RLS do Supabase, limites de tamanho/tipo em uploads, queries de `lib/db/admin.ts` sem guarda própria (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
+| Revisão de segurança restante | Queries de `lib/db/admin.ts` sem guarda própria. RLS e Storage foram verificados e corrigidos em 2026-11-06 (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
 
 ---
 
