@@ -431,10 +431,19 @@
       ]
     },
     "student.plano": {
-      "status": "planned",
-      "description": "Plano de estudos personalizado do aluno",
+      "status": "in_progress",
+      "description": "Mi plan: pastas pessoais do aluno (até 3 níveis) com tópicos salvos por referência",
       "files": [
-        "src/app/(student)/plan-de-estudios/page.tsx"
+        "src/app/(student)/plan-de-estudios/page.tsx",
+        "src/app/(student)/plan-de-estudios/[pasta]/page.tsx",
+        "src/components/student/pastas/PastaCard.tsx",
+        "src/components/student/pastas/PastaFormModal.tsx",
+        "src/components/student/pastas/PastaAcoes.tsx",
+        "src/components/student/pastas/NuevaPastaCard.tsx",
+        "src/components/student/pastas/ItemPastaRow.tsx",
+        "src/components/student/pastas/SalvarTopicoButton.tsx",
+        "src/components/student/pastas/SalvarTopicoSlot.tsx",
+        "src/components/student/StatusBadge.tsx"
       ],
       "depends_on": [
         "layout.student",
@@ -444,10 +453,11 @@
         "student.dashboard"
       ],
       "tables": [
-        "planos_estudos",
-        "itens_plano",
+        "pastas",
+        "itens_pasta",
         "topicos"
-      ]
+      ],
+      "notes": "Pendente: bloco de próximos itens no dashboard e aplicar a migration no Supabase (ADR 0016)."
     },
     "content.video": {
       "status": "in_progress",
@@ -585,7 +595,7 @@
         "src/components/admin/AdminSaveForm.tsx",
         "src/components/editor/MiniEditor.tsx",
         "src/components/admin/CollapsibleCard.tsx",
-        "src/components/admin/ConfirmModal.tsx"
+        "src/components/ui/ConfirmModal.tsx"
       ],
       "depends_on": [
         "layout.admin",
@@ -799,10 +809,12 @@
       ]
     },
     "lib.db.plano": {
-      "status": "planned",
-      "description": "Queries de plano de estudos",
+      "status": "done",
+      "description": "Pastas do aluno (Mi plan): consultas filtradas pelo dono, regras puras e actions",
       "files": [
-        "src/lib/db/plano.ts"
+        "src/lib/db/pastas.ts",
+        "src/lib/pastas.ts",
+        "src/lib/actions/pastas.ts"
       ],
       "depends_on": [
         "foundation.prisma"
@@ -812,8 +824,8 @@
         "student.dashboard"
       ],
       "tables": [
-        "planos_estudos",
-        "itens_plano"
+        "pastas",
+        "itens_pasta"
       ]
     },
     "lib.video": {
@@ -963,7 +975,7 @@
         "relations": [
           "progresso_topicos",
           "tentativas_quiz",
-          "planos_estudos"
+          "pastas"
         ]
       },
       "disciplinas": {
@@ -989,7 +1001,7 @@
           "topico_quizzes",
           "topico_simulacoes",
           "progresso_topicos",
-          "itens_plano"
+          "itens_pasta"
         ]
       },
       "videos": {
@@ -1064,17 +1076,17 @@
           "quizzes"
         ]
       },
-      "planos_estudos": {
+      "pastas": {
         "module": "lib.db.plano",
         "relations": [
           "users",
-          "itens_plano"
+          "itens_pasta"
         ]
       },
-      "itens_plano": {
+      "itens_pasta": {
         "module": "lib.db.plano",
         "relations": [
-          "planos_estudos",
+          "pastas",
           "topicos"
         ]
       }

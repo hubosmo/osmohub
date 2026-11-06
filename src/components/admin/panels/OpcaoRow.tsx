@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Trash2, Check } from "lucide-react";
 import { atualizarOpcao, deletarOpcao, marcarOpcaoCorreta } from "@/lib/actions/content-quizzes";
 import { QuizImagePicker } from "@/components/admin/QuizImagePicker";
-import { ConfirmModal } from "@/components/admin/ConfirmModal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import type { Opcao } from "./quiz-types";
 
 // ── Row de opção (texto / V-F / múltiple) ─────────────────

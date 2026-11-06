@@ -12,6 +12,7 @@ import { TopicTour } from "@/components/student/TopicTour";
 import { TopicSidebarNav } from "@/components/student/TopicSidebarNav";
 import { TopicBreadcrumb } from "@/components/student/TopicBreadcrumb";
 import { TopicHeader } from "@/components/student/TopicHeader";
+import { SalvarTopicoSlot } from "@/components/student/pastas/SalvarTopicoSlot";
 import { TopicSections, type TopicSection } from "@/components/student/TopicSections";
 import { TopicPrevNext } from "@/components/student/TopicPrevNext";
 
@@ -115,7 +116,7 @@ export default async function TopicoPage({ params }: PageProps) {
           className="flex-1 min-w-0 py-8 lg:pl-10 lg:border-l"
           style={{ borderColor: "var(--border)" }}
         >
-          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} />
+          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} acaoGuardar={<SalvarTopicoSlot usuarioId={user?.id ?? null} topicoId={topico.id} />} />
           <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} />
           <TopicPrevNext areaPath={areaPath} prevTopico={prevTopico} nextTopico={nextTopico} />
         </div>

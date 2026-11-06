@@ -1,10 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth/session";
+import { getUsuarioSincronizado } from "@/lib/auth/session";
 import { getGabaritoQuiz } from "@/lib/db/quizzes";
 import { registrarTentativa } from "@/lib/db/tentativas";
-import { sincronizarUsuario } from "@/lib/db/users";
 import { avaliarTentativa } from "@/lib/quiz-scoring";
 
 const entradaSchema = z.object({
@@ -26,8 +25,8 @@ export async function registrarTentativaQuiz(entrada: EntradaTentativa): Promise
   const parsed = entradaSchema.safeParse(entrada);
   if (!parsed.success) return null;
 
-  const user = await getSessionUser();
-  if (!user?.email) return null;
+  const user = await getUsuarioSincronizado();
+  if (!user) return null;
 
   const { quizId, questaoIds, respostas, tempoSeg } = parsed.data;
 
@@ -36,13 +35,6 @@ export async function registrarTentativaQuiz(entrada: EntradaTentativa): Promise
 
   const avaliada = avaliarTentativa(gabarito, questaoIds, respostas);
   if (!avaliada) return null;
-
-  // Garante a linha em users (a tentativa referencia o usuário por chave estrangeira)
-  await sincronizarUsuario({
-    id: user.id,
-    email: user.email,
-    nome: (user.user_metadata?.full_name as string | undefined) ?? user.email.split("@")[0],
-  });
 
   await registrarTentativa({ usuarioId: user.id, quizId, pontuacao: avaliada.pontuacao, tempoSeg, respostas: avaliada.respostas });
   return { pontuacao: avaliada.pontuacao };

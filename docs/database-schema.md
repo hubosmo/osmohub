@@ -33,7 +33,7 @@ model User {
 
   progresso     ProgressoTopico[]
   tentativas    TentativaQuiz[]
-  planos        PlanoEstudos[]
+  pastas        Pasta[]
 
   @@map("users")
 }
@@ -100,7 +100,7 @@ model Topico {
   quizzes           TopicoQuiz[]
   simulacoes        TopicoSimulacao[]
   progresso         ProgressoTopico[]
-  itens_plano       ItemPlano[]
+  itens_pasta       ItemPasta[]
 
   @@unique([area_id, slug])
   @@map("topicos")
@@ -291,32 +291,39 @@ model TentativaQuiz {
   @@map("tentativas_quiz")
 }
 
-// ─── PLANO DE ESTUDOS ──────────────────────────────────
+// ─── MI PLAN (ADR 0016) ────────────────────────────────
 
-model PlanoEstudos {
-  id         String      @id @default(uuid())
-  usuario_id String
-  nome       String
-  criado_em  DateTime    @default(now())
+model Pasta {
+  id            String   @id @default(uuid())
+  usuario_id    String
+  pai_id        String?
+  nivel         Int      @default(1)
+  nome          String
+  descricao     String?
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
 
-  usuario    User        @relation(fields: [usuario_id], references: [id])
-  itens      ItemPlano[]
+  usuario User        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  pai     Pasta?      @relation("PastaHierarquia", fields: [pai_id], references: [id], onDelete: Cascade)
+  filhas  Pasta[]     @relation("PastaHierarquia")
+  itens   ItemPasta[]
 
-  @@map("planos_estudos")
+  @@index([usuario_id, pai_id])
+  @@map("pastas")
 }
 
-model ItemPlano {
-  id             String       @id @default(uuid())
-  plano_id       String
-  topico_id      String
-  ordem          Int          @default(0)
-  concluido      Boolean      @default(false)
-  data_prevista  DateTime?
+model ItemPasta {
+  pasta_id  String
+  topico_id String
+  concluido Boolean  @default(false)
+  criado_em DateTime @default(now())
 
-  plano          PlanoEstudos @relation(fields: [plano_id], references: [id])
-  topico         Topico       @relation(fields: [topico_id], references: [id])
+  pasta  Pasta  @relation(fields: [pasta_id], references: [id], onDelete: Cascade)
+  topico Topico @relation(fields: [topico_id], references: [id], onDelete: Cascade)
 
-  @@map("itens_plano")
+  @@id([pasta_id, topico_id])
+  @@index([topico_id])
+  @@map("itens_pasta")
 }
 ```
 

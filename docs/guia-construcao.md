@@ -195,15 +195,15 @@
 
 > Pastas pessoais do aluno com subpastas e tópicos salvos. Desenho e regras em [ADR 0016](decisions/0016-mi-plan-pastas-do-aluno.md).
 
-- [ ] Modelo `Pasta` e `ItemPasta` (substituem `PlanoEstudos` e `ItemPlano`) e migration
-- [ ] Regras puras: limite de 3 níveis, validação de nome e descrição, limites por aluno
-- [ ] Consultas e actions do aluno, sempre filtradas pelo dono (`usuario_id` da sessão)
-- [ ] Página `/plan-de-estudios`: pastas da raiz como cards altos e "Nueva carpeta"
-- [ ] Página `/plan-de-estudios/[pasta]`: subpastas (cards como as disciplinas) e tópicos salvos
-- [ ] Criar, editar (nome e descrição) e excluir pasta, com confirmação
-- [ ] Capa padrão da pasta (upload de capa: fase futura, em bucket separado)
-- [ ] Marcador do tópico abre o seletor de pastas (um tópico em várias pastas, criar pasta ali mesmo)
-- [ ] Marcar item como concluído e mostrar o status automático do tópico
+- [x] Modelo `Pasta` e `ItemPasta` (substituem `PlanoEstudos` e `ItemPlano`) e migration
+- [x] Regras puras: limite de 3 níveis, validação de nome e descrição, limites por aluno
+- [x] Consultas e actions do aluno, sempre filtradas pelo dono (`usuario_id` da sessão)
+- [x] Página `/plan-de-estudios`: pastas da raiz como cards altos e "Nueva carpeta"
+- [x] Página `/plan-de-estudios/[pasta]`: subpastas (cards como as disciplinas) e tópicos salvos
+- [x] Criar, editar (nome e descrição) e excluir pasta, com confirmação
+- [x] Capa padrão da pasta (upload de capa: fase futura, em bucket separado)
+- [x] Marcador do tópico abre o seletor de pastas (um tópico em várias pastas, criar pasta ali mesmo)
+- [x] Marcar item como concluído e mostrar o status automático do tópico
 - [ ] Bloco de próximos itens no dashboard
 - [ ] Fora do escopo por ora: reordenar por arrastar, mover pasta, compartilhar
 

@@ -35,7 +35,7 @@
 | Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. (pasta `components/simulations/` vazia) |
 | Quiz: modo simulado | `modo` e `tempo_limite_seg` do quiz existem no schema mas não são lidos; as tentativas já são gravadas ([ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md)) |
 | Progresso do aluno: vídeo e visões agregadas | Artigo lido e quiz aprovado já definem o status do tópico ([ADR 0015](decisions/0015-progresso-do-topico.md)). Faltam medir o vídeo (depende do [ADR 0009](decisions/0009-hospedagem-de-video.md)) e mostrar o status na lista da área, no dashboard e em "Meu progreso" |
-| Plano de estudos | plano.ts, UI de plano |
+| Plano de estudos (Mi plan) | pastas.ts, components/student/pastas/ |
 | Biblioteca (busca) | lib/db/busca.ts |
 | Revisão de segurança restante | Queries de `lib/db/admin.ts` sem guarda própria. RLS e Storage foram verificados e corrigidos em 2026-11-06 (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
 
@@ -232,7 +232,6 @@ src/components/admin/
   AtlasActions.tsx          → ações de atlas (adicionar imagem, etc.)
   AtlasBlocksManager.tsx    → gerencia grupos e imagens do atlas
   CollapsibleCard.tsx       → card recolhível usado nos painéis
-  ConfirmModal.tsx          → modal de confirmação para ações destrutivas
   QuizImagePicker.tsx       → seletor de imagem do quiz (upload + galeria unificada quiz/atlas)
   QuizLinker.tsx            → vincula/desvincula quizzes de um tópico
   ContentTree.tsx           → árvore de conteúdo (painel principal)
@@ -328,7 +327,9 @@ src/lib/db/
   users.ts      → sincronizarUsuario: mantém `users` alinhada com o Supabase Auth (usado por login e cadastro; não lança erro)
 ```
 
-**Pendentes:** `progresso.ts`, `plano.ts`, `simulacoes.ts`. `npm run check:db` falha se um arquivo fora de `src/lib/` importar o Prisma (hoje sem exceções).
+`pastas.ts` (Mi plan): listarPastasDoUsuario, criarPasta, atualizarPasta, excluirPasta, idsDasPastasComTopico, definirTopicoNaPasta, definirItemConcluido, listarItensDaPasta. `progresso.ts` também tem getStatusDosTopicos.
+
+**Pendentes:** `simulacoes.ts`. `npm run check:db` falha se um arquivo fora de `src/lib/` importar o Prisma (hoje sem exceções).
 
 ---
 
@@ -404,8 +405,8 @@ tabelas              → tabelas por tópico (titulo, tipo, cabecalhos JSON)
 linhas_tabela        → linhas de uma tabela (categoria, conteudo, valores_extra JSON)
 progresso_topicos    → video_assistido, artigo_lido, simulacoes_concluidas por (user, topico)
 tentativas_quiz      → histórico de quizzes do aluno (pontuação calculada no servidor)
-planos_estudos       → planos nomeados por aluno
-itens_plano          → tópicos no plano + ordem + concluido
+pastas               → pastas do aluno (pai_id, nivel 1..3, nome, descricao); RLS ligado, sem acesso direto do cliente
+itens_pasta          → referência pasta ↔ tópico + concluido (um tópico pode estar em várias pastas)
 simulacoes           → biblioteca de simulações reutilizáveis (tipo, config JSON)
 topico_simulacoes    → vinculo simulação ↔ tópico
 quizzes              → quiz independente (titulo, capa_url, publicado)
@@ -413,3 +414,11 @@ topico_quizzes       → vínculo N:N tópico ↔ quiz
 questoes             → questões de um quiz (tipo, enunciado, imagem_url, termo, explicacao)
 opcoes               → opções de uma questão (texto, imagem_url, correta)
 ```
+
+---
+
+## Mi plan (ADR 0016)
+
+- Rotas: `/plan-de-estudios` (pastas da raiz) e `/plan-de-estudios/[pasta]` (subpastas e tópicos salvos).
+- Actions (`lib/actions/pastas.ts`, públicas do aluno): criarPastaAction, atualizarPastaAction, excluirPastaAction, salvarTopicoNaPastaAction, marcarItemConcluidoAction.
+- Componentes em `components/student/pastas/`; o marcador do cabeçalho do tópico é `SalvarTopicoButton` (via `SalvarTopicoSlot` no `TopicHeader`). Selo de status compartilhado: `student/StatusBadge.tsx`. `ConfirmModal` agora vive em `components/ui/`.

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toggleInSet } from "@/lib/utils";
 import { atualizarQuiz, deletarQuiz, criarQuestao } from "@/lib/actions/content-quizzes";
 import { QuizImagePicker } from "@/components/admin/QuizImagePicker";
-import { ConfirmModal } from "@/components/admin/ConfirmModal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { QuestaoRow, NuevaQuestaoForm } from "./QuestaoRow";
 import type { QuizData } from "./quiz-types";
 

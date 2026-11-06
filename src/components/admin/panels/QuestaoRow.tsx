@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Trash2, Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { atualizarQuestao, deletarQuestao, criarOpcao } from "@/lib/actions/content-quizzes";
 import { QuizImagePicker } from "@/components/admin/QuizImagePicker";
-import { ConfirmModal } from "@/components/admin/ConfirmModal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { OpcaoRow, ImagemOpcaoCard } from "./OpcaoRow";
 import { TIPO_LABELS } from "./quiz-types";
 import type { Questao } from "./quiz-types";

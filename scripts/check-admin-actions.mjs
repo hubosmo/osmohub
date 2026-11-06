@@ -12,6 +12,7 @@ const PUBLIC_ACTION_FILES = new Set([
   "content-ultimo-topico.ts", // grava o último tópico do usuário da sessão
   "quiz-tentativas.ts", // grava a tentativa de quiz do usuário da sessão; a pontuação é calculada no servidor
   "progresso.ts", // marca o artigo como lido para o usuário da sessão
+  "pastas.ts", // Mi Plan: pastas do aluno; toda action usa o usuário da sessão e a camada de dados filtra pelo dono
 ]);
 
 function isRequireAdminCall(stmt) {
