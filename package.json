@@ -6,7 +6,7 @@
     "dev": "cross-env NODE_OPTIONS=\"--max-http-header-size=80000\" next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint src scripts --cache --max-warnings 26",
+    "lint": "eslint src scripts --cache --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "check:size": "node scripts/check-file-sizes.mjs",
     "check:auth": "node scripts/check-admin-actions.mjs",

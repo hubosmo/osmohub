@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, ImageIcon, ChevronDown, ChevronUp, Images } from "lucide-react";
+import { ImageIcon, ChevronDown, ChevronUp, Images } from "lucide-react";
 import { ImageUploadForm } from "./ImageUploadForm";
 
 type Props = {

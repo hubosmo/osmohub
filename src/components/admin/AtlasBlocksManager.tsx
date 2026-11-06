@@ -43,7 +43,7 @@ export function AtlasBlocksManager({ topicoId, grupos, imagens, addImagemAction,
 
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
   const [showAddSingle, setShowAddSingle] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Keep a ref in sync so handleDragEnd can read current order without stale closure
   const blocksRef = useRef(blocks);
@@ -154,7 +154,7 @@ export function AtlasBlocksManager({ topicoId, grupos, imagens, addImagemAction,
                       )}
                     </div>
                     <ImageLegendaEditor imgId={block.id} topicoId={topicoId} legenda={block.legenda} />
-                    <form action={deletarImagemContent.bind(null, block.id, topicoId)} className="shrink-0">
+                    <form action={deletarImagemContent.bind(null, block.id)} className="shrink-0">
                       <button type="submit" className="h-6 w-6 flex items-center justify-center rounded"
                         style={{ color: "var(--error)" }}>
                         <Trash2 className="h-3.5 w-3.5" />

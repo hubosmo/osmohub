@@ -270,6 +270,7 @@ src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValu
 src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
+src/lib/utils.ts                → cn() (classes) e toggleInSet() (alterna item num Set sem mutar)
 src/lib/video/thumbnail.ts      → resolveVideoThumbnail: miniatura de vídeo YouTube/Vimeo (servidor)
 src/lib/motion.ts               → tokens de animação (framer-motion)
 src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (autorização, ADR 0011)

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { toggleInSet } from "@/lib/utils";
 import {
   DndContext,
   DragEndEvent,
@@ -277,12 +278,7 @@ export function ContentTree({ tree, selectedId, selectedType }: Props) {
   }
 
   // ── Tree helpers ─────────────────────────────────────────────────────────
-  const toggle = (id: string) =>
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const toggle = (id: string) => setExpanded((prev) => toggleInSet(prev, id));
 
   const select = (type: string, id: string) => router.push(`/admin/content?${type}=${id}`);
 

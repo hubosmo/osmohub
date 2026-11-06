@@ -91,7 +91,7 @@ Todo texto visível em espanhol latino ([ADR 0001](decisions/0001-idioma-es-419.
 
 **Spinner e loading.** `animate-spin` aparece em 9 arquivos com variações de tamanho e texto. O `LoadingButton` já existe e é usado no login e em "Volver al tema"; os demais botões com spinner (`ConfirmModal`, `QuestaoRow`, `QuizImagePicker`, `verificar-email`) devem migrar quando forem tocados.
 
-**Lint.** Zero erros (eram 18, corrigidos em 2026-11-05; ver [ADR 0013](decisions/0013-estado-no-navegador-sem-setstate-em-efeito.md)). Restam 26 avisos, com teto em `--max-warnings 26`: 13 de `no-unused-vars`, 4 de `no-unused-expressions`, 4 de `no-img-element`, 1 de `alt-text`, 1 de `exhaustive-deps` e 3 diretivas `eslint-disable` sem efeito. Corrigir avisos e baixar o teto em `package.json`.
+**Lint.** Zero erros e zero avisos, com `--max-warnings 0` (eram 18 erros e 26 avisos antes de 2026-11-05; ver [ADR 0013](decisions/0013-estado-no-navegador-sem-setstate-em-efeito.md)). Exceção deliberada: 4 usos de `<img>` em capas vindas do Supabase Storage (`CapaUploadSection`, `AreaTopicos`, `DisciplinaAreas`, `ThemeAwareCapa`) estão marcados com `eslint-disable-next-line @next/next/no-img-element` e a justificativa. Migrar para `next/image` exigiria configurar `images.remotePatterns` e definir dimensões para capas de proporção variável; decisão de desempenho em aberto.
 
 **Tokens órfãos.** `PAGE_VARIANTS` e `PAGE_TRANSITION` em `motion.ts` não são mais usados.
 

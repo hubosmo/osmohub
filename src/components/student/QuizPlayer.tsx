@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { toggleInSet } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -102,11 +103,7 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
   const [deselectedTermos, setDeselectedTermos] = useState<Set<string>>(new Set(initialExclude ?? []));
 
   function toggleTermo(t: string) {
-    setDeselectedTermos(prev => {
-      const next = new Set(prev);
-      next.has(t) ? next.delete(t) : next.add(t);
-      return next;
-    });
+    setDeselectedTermos(prev => toggleInSet(prev, t));
   }
 
   const [questions, setQuestions]       = useState<Questao[]>([]);

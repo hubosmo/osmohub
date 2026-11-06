@@ -246,7 +246,7 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
           </form>
           {/* Delete table */}
           <button type="button"
-            onClick={() => runDelete(() => deletarTabelaContent(tabela.id, topicoId))}
+            onClick={() => runDelete(() => deletarTabelaContent(tabela.id))}
             className="h-6 w-6 flex items-center justify-center rounded ml-1"
             style={{ color: "var(--error)" }}>
             <Trash2 className="h-3.5 w-3.5" />
@@ -333,7 +333,7 @@ function TabelaBlock({ tabela, topicoId }: { tabela: Tabela; topicoId: string })
                   <Pencil className="h-3 w-3" />
                 </button>
                 <button type="button"
-                  onClick={() => runDeleteRow(() => deletarLinhaContent(linha.id, topicoId))}
+                  onClick={() => runDeleteRow(() => deletarLinhaContent(linha.id))}
                   className="h-6 w-6 flex items-center justify-center rounded"
                   style={{ color: "var(--text-muted)" }}>
                   <Trash2 className="h-3 w-3" />

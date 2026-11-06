@@ -28,5 +28,6 @@ export function ThemeAwareCapa({ capaUrlDark, capaUrlLight, alt, className }: Pr
     ? (capaUrlDark ?? capaUrlLight)
     : (capaUrlLight ?? capaUrlDark);
   if (!src) return null;
+  // eslint-disable-next-line @next/next/no-img-element -- capa externa (Supabase Storage) com proporção definida pelo contêiner
   return <img src={src} alt={alt} className={className} />;
 }

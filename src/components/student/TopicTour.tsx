@@ -109,7 +109,6 @@ export function TopicTour() {
     if (!visible || isMobile) return;
     lockScroll();
     return () => unlockScroll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, isMobile]);
 
   // On step change: scroll to target, then measure
@@ -138,7 +137,6 @@ export function TopicTour() {
       if (!isMobile) lockScroll();
       requestAnimationFrame(() => syncRect(step));
     }, 450);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, visible, syncRect, isMobile]);
 
   // On mobile: keep rect in sync while user scrolls (no scroll lock)

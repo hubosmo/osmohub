@@ -200,10 +200,9 @@ export function QuestaoRow({
 // ── Formulário para nova questão ──────────────────────────
 
 export function NuevaQuestaoForm({
-  addAction, quizId, onCreated,
+  addAction, onCreated,
 }: {
   addAction: (fd: FormData) => Promise<string>;
-  quizId: string;
   onCreated: (id: string) => void;
 }) {
   const [tipo, setTipo] = useState("MULTIPLA_ESCOLHA");

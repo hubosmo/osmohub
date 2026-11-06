@@ -18,8 +18,6 @@ export default async function DisciplinaPage({ params }: PageProps) {
         disciplinaSlug={disciplinaSlug}
         cursoNome={disciplina.curso.nome}
         disciplinaNome={disciplina.nome}
-        disciplinaDescricao={disciplina.descricao ?? null}
-        disciplinaIcone={disciplina.icone ?? null}
         accentColor={disciplina.cor_destaque ?? "#00A6FF"}
         areas={disciplina.areas}
       />

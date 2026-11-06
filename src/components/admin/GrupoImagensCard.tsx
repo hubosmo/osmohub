@@ -30,7 +30,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
   const [collapsed, setCollapsed] = useState(true);
   const [editingTitle, setEditingTitle] = useState(false);
   const [localImagens, setLocalImagens] = useState<Imagem[]>(imagens);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Keep ref in sync for stale-closure-free drag end
   const imRef = useRef(localImagens);
@@ -77,7 +77,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
     });
   }
 
-  const deleteGrupoAction  = deletarGrupoImagens.bind(null, grupoId, topicoId);
+  const deleteGrupoAction  = deletarGrupoImagens.bind(null, grupoId);
   const updateTitleAction  = atualizarTituloGrupo.bind(null, grupoId, topicoId);
   const addImageAction     = adicionarImagemAoGrupo.bind(null, grupoId, topicoId);
   const updateModoAction   = atualizarModoLegendaGrupo.bind(null, grupoId, topicoId);
@@ -211,7 +211,7 @@ export function GrupoImagensCard({ grupoId, topicoId, titulo, legenda, modo_lege
             >
               {localImagens.map((img) => {
                 const isDragging = draggingImgId === img.id;
-                const removeAction = deletarImagemContent.bind(null, img.id, topicoId);
+                const removeAction = deletarImagemContent.bind(null, img.id);
                 return (
                   <div
                     key={img.id}

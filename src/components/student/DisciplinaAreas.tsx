@@ -34,8 +34,6 @@ type Props = {
   disciplinaSlug: string;
   cursoNome: string;
   disciplinaNome: string;
-  disciplinaDescricao: string | null;
-  disciplinaIcone: string | null;
   accentColor: string;
   areas: Area[];
 };
@@ -45,8 +43,6 @@ export function DisciplinaAreas({
   disciplinaSlug,
   cursoNome,
   disciplinaNome,
-  disciplinaDescricao,
-  disciplinaIcone,
   accentColor,
   areas,
 }: Props) {
@@ -239,6 +235,7 @@ export function DisciplinaAreas({
                 }}
               >
                 {capaDisplay ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- capa externa (Supabase Storage) com proporção definida pelo contêiner
                   <img src={capaDisplay} alt={selectedArea.nome} className="w-full h-full object-cover object-top" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

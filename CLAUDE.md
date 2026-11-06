@@ -121,7 +121,7 @@ Antes de implementar qualquer módulo novo:
 
 ### Definição de pronto (antes de commitar)
 
-- [ ] `npm run check` passa (limites de tamanho, proteção das actions de admin, acesso a dados só em `lib/`, typecheck e lint). O lint tem erro zero e um teto de 26 avisos (`--max-warnings`): novo aviso quebra o check; ao corrigir avisos, baixe o teto em `package.json`
+- [ ] `npm run check` passa (limites de tamanho, proteção das actions de admin, acesso a dados só em `lib/`, typecheck e lint). O lint tem zero erros e zero avisos (`--max-warnings 0`): qualquer aviso novo quebra o check. Se for mesmo necessário silenciar uma regra, use `eslint-disable-next-line` com a justificativa depois de `--`
 - [ ] Ler `localStorage` ou `sessionStorage` com `useLocalStorageValue` / `useSessionStorageValue`, nunca `setState` dentro de `useEffect` (ADR 0013)
 - [ ] Nenhuma cor hex nova: só variáveis do tema (ver `docs/design-system.md`)
 - [ ] Botão de ação com carregamento usa `LoadingButton`; imagens em slide usam `useImagePreload`

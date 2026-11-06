@@ -142,6 +142,7 @@ export function CapaUploadSection({ entityId, capaUrlDark, capaUrlLight, uploadA
           onClick={() => inputRef.current?.click()}
         >
           {displaySrc ? (
+            // eslint-disable-next-line @next/next/no-img-element -- capa externa (Supabase Storage) com proporção definida pelo contêiner
             <img src={displaySrc} alt="Portada" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-1">

@@ -192,6 +192,7 @@ export function AreaTopicos({
                   className="w-full sm:w-36 shrink-0 aspect-[4/3] sm:aspect-auto border-b sm:border-b-0 sm:border-r overflow-hidden"
                   style={{ borderColor: "var(--border)" }}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- capa externa (Supabase Storage) com proporção definida pelo contêiner */}
                   <img src={capaDisplay} alt={areaNome} className="w-full h-full object-cover object-top" />
                 </div>
               )}

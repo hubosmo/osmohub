@@ -50,7 +50,6 @@ export function TopLoader() {
   // finish when pathname changes (navigation complete)
   useEffect(() => {
     finish();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   // intercept link clicks to start the bar

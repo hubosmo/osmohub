@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toggleInSet } from "@/lib/utils";
 import { atualizarQuiz, deletarQuiz, criarQuestao } from "@/lib/actions/content-quizzes";
 import { QuizImagePicker } from "@/components/admin/QuizImagePicker";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
@@ -15,12 +16,7 @@ export function QuizPanel({ data }: { data: QuizData }) {
   const [confirmDeleteQuiz, setConfirmDeleteQuiz] = useState(false);
   const [deletingQuiz, startDeleteQuiz] = useTransition();
 
-  const toggleQ = (id: string) =>
-    setOpenQIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const toggleQ = (id: string) => setOpenQIds((prev) => toggleInSet(prev, id));
 
   const openQ = (id: string) =>
     setOpenQIds((prev) => new Set([...prev, id]));
@@ -102,7 +98,7 @@ export function QuizPanel({ data }: { data: QuizData }) {
           <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Preguntas ({data.questoes.length})
           </h3>
-          <NuevaQuestaoForm addAction={addQuestaoAction} quizId={data.id} onCreated={openQ} />
+          <NuevaQuestaoForm addAction={addQuestaoAction} onCreated={openQ} />
         </div>
 
         <div className="flex flex-col divide-y" style={{ "--tw-divide-opacity": 1 } as React.CSSProperties}>

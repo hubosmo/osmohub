@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Link2, Unlink, HelpCircle, Search } from "lucide-react";
 import { vincularQuizAoTopico, desvincularQuizDoTopico } from "@/lib/actions/content-quizzes";
 
@@ -15,7 +15,6 @@ interface Props {
 
 export function QuizLinker({ topicoId, quizzesVinculados, todosQuizzes }: Props) {
   const [query, setQuery] = useState("");
-  const [, startTransition] = useTransition();
 
   const vinculadosIds = new Set(quizzesVinculados.map((j) => j.quiz.id));
 

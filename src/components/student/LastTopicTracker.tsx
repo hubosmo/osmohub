@@ -17,12 +17,18 @@ export type LastTopicData = {
 };
 
 export function LastTopicTracker({ data }: { data: LastTopicData }) {
+  const serialized = JSON.stringify(data);
+  const { topicoId } = data;
+
   useEffect(() => {
     try {
-      localStorage.setItem("osmo_last_topic", JSON.stringify(data));
+      localStorage.setItem("osmo_last_topic", serialized);
     } catch {}
-    salvarUltimoTopico(data.topicoId).catch(() => {});
-  }, [data.topicoId]);
+  }, [serialized]);
+
+  useEffect(() => {
+    salvarUltimoTopico(topicoId).catch(() => {});
+  }, [topicoId]);
 
   return null;
 }

@@ -1,4 +1,4 @@
-import { Play, Image, FileText, Gamepad2, BookOpen, HelpCircle } from "lucide-react";
+import { Play, Image as ImageIcon, FileText, Gamepad2, BookOpen, HelpCircle } from "lucide-react";
 import { DuracaoInput } from "@/components/admin/DuracaoInput";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { SectionToggle } from "@/components/admin/SectionToggle";
@@ -6,7 +6,6 @@ import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
 import { ArtigoEditor } from "@/components/editor/ArtigoEditor";
 import { MiniEditor } from "@/components/editor/MiniEditor";
 import { TabelasCard } from "@/components/admin/TabelasCard";
-import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 import { AtlasBlocksManager } from "@/components/admin/AtlasBlocksManager";
 import { QuizLinker } from "@/components/admin/QuizLinker";
 import { atualizarTopicoContent, deletarTopicoContent } from "@/lib/actions/content-structure";
@@ -202,7 +201,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
         {/* Imágenes */}
         <CollapsibleCard
           storageKey={`imagenes-${data.id}`}
-          icon={<Image className="h-4 w-4" />}
+          icon={<ImageIcon className="h-4 w-4" />}
           iconColor="#6C63FF"
           label={`Imágenes / Atlas (${totalImgs})`}
           action={

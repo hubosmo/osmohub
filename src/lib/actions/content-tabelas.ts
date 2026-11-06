@@ -31,7 +31,7 @@ export async function criarTabelaContent(topicoId: string, formData: FormData) {
   revalidate();
 }
 
-export async function deletarTabelaContent(id: string, topicoId: string) {
+export async function deletarTabelaContent(id: string) {
   await requireAdmin();
   await prisma.tabelaTopico.delete({ where: { id } });
   revalidate();
@@ -93,7 +93,7 @@ export async function adicionarLinhaContent(
   revalidate();
 }
 
-export async function deletarLinhaContent(id: string, topicoId: string) {
+export async function deletarLinhaContent(id: string) {
   await requireAdmin();
   await prisma.tabelaLinha.delete({ where: { id } });
   revalidate();

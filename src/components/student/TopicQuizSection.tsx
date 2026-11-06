@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocalStorageValue } from "@/hooks/useStoredValue";
+import { toggleInSet } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, Settings, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -120,11 +121,7 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
     ?? `Demuestra lo que has aprendido con nuestro cuestionario de ${quiz.titulo.toLowerCase()}.`;
 
   function toggleTermo(t: string) {
-    setDeselectedTermos(prev => {
-      const next = new Set(prev);
-      next.has(t) ? next.delete(t) : next.add(t);
-      return next;
-    });
+    setDeselectedTermos(prev => toggleInSet(prev, t));
   }
 
   // fromModal: se true, pode salvar preferências conforme saveScope

@@ -16,7 +16,7 @@ function revalidate() {
 
 // ─── GRUPOS DE IMAGENS ────────────────────────────────
 
-export async function criarGrupoImagens(topicoId: string, _fd?: FormData) {
+export async function criarGrupoImagens(topicoId: string) {
   await requireAdmin();
   const last = await prisma.grupoImagensTopico.findFirst({
     where: { topico_id: topicoId },
@@ -51,7 +51,7 @@ export async function reordenarBlocosAtlas(
   revalidate();
 }
 
-export async function deletarGrupoImagens(grupoId: string, topicoId: string) {
+export async function deletarGrupoImagens(grupoId: string) {
   await requireAdmin();
   await prisma.grupoImagensTopico.deleteMany({ where: { id: grupoId } });
   revalidate();
@@ -164,7 +164,7 @@ export async function atualizarLegendaImagem(id: string, topicoId: string, formD
   revalidate();
 }
 
-export async function deletarImagemContent(id: string, topicoId: string) {
+export async function deletarImagemContent(id: string) {
   await requireAdmin();
   await prisma.imagemTopico.delete({ where: { id } });
   revalidate();
