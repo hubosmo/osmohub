@@ -373,13 +373,15 @@
         "src/components/student/TopicSidebarNav.tsx",
         "src/components/student/TopicQuizSection.tsx",
         "src/components/editor/ArtigoRenderer.tsx",
-        "src/lib/video/thumbnail.ts"
+        "src/lib/video/thumbnail.ts",
+        "src/components/student/ArtigoLidoTracker.tsx"
       ],
       "depends_on": [
         "layout.student",
         "lib.db.cursos",
         "content.quiz",
-        "lib.db.tentativas"
+        "lib.db.tentativas",
+        "lib.db.progresso"
       ],
       "used_by": [],
       "tables": [
@@ -390,7 +392,7 @@
         "grupos_imagens",
         "tabelas"
       ],
-      "notes": "A página só orquestra; as seções ficam em Topic*.tsx. Vídeo (YouTube/Vimeo embed), artigo (Tiptap), atlas, tabelas e quiz prontos. Pendentes: simulações e marcação de progresso (video_assistido, artigo_lido)."
+      "notes": "A página só orquestra; as seções ficam em Topic*.tsx. Vídeo (YouTube/Vimeo embed), artigo (Tiptap), atlas, tabelas e quiz prontos. O selo de status e os vistos do índice refletem artigo lido e quiz aprovado (ADR 0015). Pendentes: simulações e medir o vídeo."
     },
     "student.progresso": {
       "status": "planned",
@@ -499,7 +501,7 @@
         "simulation",
         "quiz_inline"
       ],
-      "notes": "Renderizador e editor prontos (negrito, itálico, sublinhado, títulos, listas, alinhamento, cor, destaque, link). Pendentes: blocos customizados (simulation, quiz_inline, callout), upload de imagem inline, barra de progresso de leitura e artigo_lido. Os block_types acima são o plano, não o implementado."
+      "notes": "Renderizador e editor prontos (negrito, itálico, sublinhado, títulos, listas, alinhamento, cor, destaque, link). artigo_lido é marcado por ArtigoLidoTracker. Pendentes: blocos customizados (simulation, quiz_inline, callout), upload de imagem inline e barra de progresso de leitura. Os block_types acima são o plano, não o implementado."
     },
     "content.simulacoes": {
       "status": "planned",
@@ -727,14 +729,20 @@
       ]
     },
     "lib.db.progresso": {
-      "status": "planned",
-      "description": "Queries de leitura e escrita de progresso do aluno",
+      "status": "in_progress",
+      "description": "Progresso do aluno por tópico: artigo lido e quiz aprovado definem o status",
       "files": [
-        "src/lib/db/progresso.ts"
+        "src/lib/db/progresso.ts",
+        "src/lib/actions/progresso.ts",
+        "src/lib/progresso.ts",
+        "src/components/student/ArtigoLidoTracker.tsx"
       ],
-      "notes": "Arquivo ainda não existe — a ser criado na Fase de Progresso. Diferente de content-ultimo-topico.ts que só salva o último tópico acessado.",
+      "notes": "Implementado: artigo_lido (fim do artigo visível por 2 s) e status Incompleta, En progreso, Completa com calcularStatusTopico (ADR 0015). Pendentes: video_assistido, simulacoes_concluidas e consultas agregadas (lista da área, dashboard, Meu progreso).",
       "depends_on": [
-        "foundation.prisma"
+        "foundation.prisma",
+        "lib.db.users",
+        "security.auth",
+        "lib.db.tentativas"
       ],
       "used_by": [
         "content.video",

@@ -91,7 +91,7 @@
 - [x] Atlas de imagens (imagem única, carrossel com preload, lupa) e tabelas de resumo
 - [x] Tour de onboarding, busca de tópicos, índice lateral (desktop) e índice recolhível (mobile)
 - [x] Navegação anterior/próximo tópico
-- [ ] Marcação automática de progresso
+- [~] Marcação automática de progresso: artigo lido e quiz aprovado definem o status do tópico ([ADR 0015](decisions/0015-progresso-do-topico.md)); faltam vídeo e simulações
 
 ---
 
@@ -116,7 +116,7 @@
 - [x] Estilos tipográficos para artigo (`.artigo-content` em `globals.css`; callouts dependem do bloco customizado)
 - [ ] Renderização de bloco `simulation` → busca simulação e renderiza componente
 - [ ] Barra de progresso de leitura
-- [ ] Marcação automática `artigo_lido = true` ao rolar até o final
+- [x] Marcação automática `artigo_lido = true` ao chegar ao fim do artigo e permanecer 2 segundos (`ArtigoLidoTracker`)
 
 ### 5.3 Editor de artigo (admin)
 - [x] Componente `editor/ArtigoEditor.tsx` com barra de ferramentas (negrito, itálico, sublinhado, títulos, listas, alinhamento, cor, destaque, link)

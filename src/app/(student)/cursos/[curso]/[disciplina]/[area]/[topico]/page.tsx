@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { PlayCircle, BookOpen, HelpCircle, ImageIcon, Table2 as Table2Icon } from "lucide-react";
 import { getTopicoPorSlug } from "@/lib/db/cursos";
-import { getResumoTentativas } from "@/lib/db/tentativas";
+import { getResumoTentativas, type ResumoTentativas } from "@/lib/db/tentativas";
+import { getProgressoTopico } from "@/lib/db/progresso";
+import { PONTUACAO_APROVACAO, calcularStatusTopico } from "@/lib/progresso";
 import { getSessionUser } from "@/lib/auth/session";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { MobileIndiceBar } from "@/components/student/MobileIndiceBar";
@@ -35,7 +37,21 @@ export default async function TopicoPage({ params }: PageProps) {
   // Histórico do aluno nos quizzes deste tópico (última e melhor pontuação)
   const user = await getSessionUser();
   const quizIds = (topico.quizzes ?? []).map((j) => j.quiz.id);
-  const resumoQuizzes = user ? await getResumoTentativas(user.id, quizIds).catch(() => ({})) : {};
+  const resumoQuizzes: Record<string, ResumoTentativas> = user
+    ? await getResumoTentativas(user.id, quizIds).catch(() => ({} as Record<string, ResumoTentativas>))
+    : {};
+
+  // Progresso: artigo lido e quiz aprovado
+  const progresso = user ? await getProgressoTopico(user.id, topico.id).catch(() => ({ artigoLido: false })) : { artigoLido: false };
+  const quizzesPublicados = (topico.quizzes ?? []).map((j) => j.quiz).filter((q) => q.publicado);
+  const quizAprovado = quizzesPublicados.some((q) => (resumoQuizzes[q.id]?.melhor ?? 0) >= PONTUACAO_APROVACAO);
+  const temArtigo = !!(topico.artigo_ativo && topico.artigo);
+  const statusTopico = calcularStatusTopico({
+    temArtigo,
+    artigoLido: progresso.artigoLido,
+    temQuiz: quizzesPublicados.length > 0,
+    quizAprovado,
+  });
 
   const hasQuiz = topico._count.quizzes > 0;
   const hasTables = topico.tabelas_ativo && topico.tabelas && topico.tabelas.length > 0;
@@ -47,9 +63,9 @@ export default async function TopicoPage({ params }: PageProps) {
   // Seções ativas — só aparecem se o toggle estiver ligado no admin
   const sections: TopicSection[] = [
     ...(topico.video_ativo ? [{ id: "video", label: "Mira el video", icon: <PlayCircle className="h-4 w-4" /> }] : []),
-    ...(topico.artigo_ativo && topico.artigo ? [{ id: "articulo", label: "Lee el artículo", icon: <BookOpen className="h-4 w-4" /> }] : []),
+    ...(topico.artigo_ativo && topico.artigo ? [{ id: "articulo", label: "Lee el artículo", icon: <BookOpen className="h-4 w-4" />, done: progresso.artigoLido }] : []),
     ...(hasImages ? [{ id: "atlas", label: "Navega por el atlas", icon: <ImageIcon className="h-4 w-4" /> }] : []),
-    ...(hasQuiz ? [{ id: "cuestionario", label: "Haz un cuestionario", icon: <HelpCircle className="h-4 w-4" /> }] : []),
+    ...(hasQuiz ? [{ id: "cuestionario", label: "Haz un cuestionario", icon: <HelpCircle className="h-4 w-4" />, done: quizAprovado }] : []),
     ...(hasTables ? [{ id: "tablas", label: "Tablas de resumen", icon: <Table2Icon className="h-4 w-4" /> }] : []),
   ];
 
@@ -81,7 +97,7 @@ export default async function TopicoPage({ params }: PageProps) {
       />
 
       {/* ── Índice collapsível — mobile only ── */}
-      <MobileIndiceBar sections={sections.map(s => ({ id: s.id, label: s.label }))} />
+      <MobileIndiceBar sections={sections.map(s => ({ id: s.id, label: s.label, done: s.done }))} />
 
       {/* ── Layout 2 colunas ───────────────────────────────────────── */}
       <div className="flex max-w-5xl mx-auto px-4 lg:px-8">
@@ -99,8 +115,8 @@ export default async function TopicoPage({ params }: PageProps) {
           className="flex-1 min-w-0 py-8 lg:pl-10 lg:border-l"
           style={{ borderColor: "var(--border)" }}
         >
-          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} />
-          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} />
+          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} />
+          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} />
           <TopicPrevNext areaPath={areaPath} prevTopico={prevTopico} nextTopico={nextTopico} />
         </div>
       </div>

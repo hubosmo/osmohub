@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  ChevronDown, ChevronUp, ChevronRight,
+  Check, ChevronDown, ChevronUp, ChevronRight,
   PlayCircle, BookOpen, ImageIcon, Table2, HelpCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ACCORDION_OPEN, ACCORDION_CLOSE, ACCORDION_STYLE, STANDARD } from "@/lib/motion";
 
-type Section = { id: string; label: string };
+type Section = { id: string; label: string; done?: boolean };
 
 const ICON: Record<string, React.ReactNode> = {
   video:        <PlayCircle className="h-4 w-4 shrink-0" />,
@@ -65,6 +65,7 @@ export function MobileIndiceBar({ sections }: { sections: Section[] }) {
                 {ICON[s.id] ?? <ChevronRight className="h-4 w-4 shrink-0" />}
               </span>
               <span className="text-sm">{s.label}</span>
+              {s.done && <Check className="h-4 w-4 ml-auto shrink-0" style={{ color: "var(--success)" }} aria-label="Completado" />}
             </a>
           ))}
           <a

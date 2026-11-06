@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Trophy, X } from "lucide-react";
 import { LoadingButton } from "@/components/ui/LoadingButton";
+import { PONTUACAO_APROVACAO } from "@/lib/progresso";
 import { useUser } from "@/components/providers/UserProvider";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -103,7 +104,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
   const R             = 44;
   const C             = 2 * Math.PI * R;
   const ringOffset    = C * (1 - pct / 100);
-  const ringColor     = pct >= 70 ? "var(--success)" : "var(--error)";
+  const ringColor     = pct >= PONTUACAO_APROVACAO ? "var(--success)" : "var(--error)";
   const phrase        = PHRASES[getPhraseKey(pct)];
 
   return (
@@ -132,7 +133,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
         />
       )}
 
-      {pct >= 70 && <ConfettiEffect />}
+      {pct >= PONTUACAO_APROVACAO && <ConfettiEffect />}
 
       <div
         className="w-full max-w-sm rounded-2xl p-8 text-center shadow-xl"
@@ -165,7 +166,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
               />
             </svg>
             <div className="absolute flex items-center justify-center">
-              {pct >= 70
+              {pct >= PONTUACAO_APROVACAO
                 ? <Trophy className="h-8 w-8" style={{ color: "var(--success)" }} />
                 : <X      className="h-8 w-8" style={{ color: "var(--error)" }} />}
             </div>

@@ -5,20 +5,22 @@ import { TablasSection } from "@/components/student/TablasSection";
 import { TopicVideoSection } from "@/components/student/TopicVideoSection";
 import { TopicAtlasSection, type AtlasBlock } from "@/components/student/TopicAtlasSection";
 import { TopicQuizSection } from "@/components/student/TopicQuizSection";
+import { ArtigoLidoTracker } from "@/components/student/ArtigoLidoTracker";
 import type { ResumoTentativas } from "@/lib/db/tentativas";
 
 type Topico = NonNullable<Awaited<ReturnType<typeof getTopicoPorSlug>>>;
 
-export type TopicSection = { id: string; label: string; icon: React.ReactNode };
+export type TopicSection = { id: string; label: string; icon: React.ReactNode; done?: boolean };
 
 interface TopicSectionsProps {
   sections: Pick<TopicSection, "id" | "label">[];
   topico: Topico;
   backUrl: string;
   resumoQuizzes?: Record<string, ResumoTentativas>;
+  artigoLido?: boolean;
 }
 
-export function TopicSections({ sections, topico, backUrl, resumoQuizzes }: TopicSectionsProps) {
+export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigoLido = false }: TopicSectionsProps) {
   return (
     <div className="flex flex-col gap-12">
       {sections.map((section, idx) => (
@@ -40,7 +42,12 @@ export function TopicSections({ sections, topico, backUrl, resumoQuizzes }: Topi
           {section.id === "video" && <TopicVideoSection video={topico.video} playerId="video-tour" />}
           {section.id === "articulo" && (
             topico.artigo?.content
-              ? <ArtigoRenderer content={topico.artigo.content as JSONContent} />
+              ? (
+                <>
+                  <ArtigoRenderer content={topico.artigo.content as JSONContent} />
+                  <ArtigoLidoTracker topicoId={topico.id} jaLido={artigoLido} />
+                </>
+              )
               : <div className="rounded-xl p-6 min-h-[120px] flex items-center justify-center" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
                   <p className="text-sm" style={{ color: "var(--text-muted)" }}>Artículo no disponible aún.</p>
                 </div>

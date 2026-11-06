@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 
 interface Section {
   id: string;
   label: string;
   icon: React.ReactNode;
+  done?: boolean;
 }
 
 interface Props {
@@ -77,6 +78,7 @@ export function TopicSidebarNav({ sections }: Props) {
             {s.icon}
           </span>
           {s.label}
+          {s.done && <Check className="h-3.5 w-3.5 ml-auto shrink-0" style={{ color: "var(--success)" }} aria-label="Completado" />}
         </button>
       ))}
 

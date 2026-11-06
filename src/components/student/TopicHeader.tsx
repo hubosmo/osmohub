@@ -1,13 +1,22 @@
 import { Bookmark, Target } from "lucide-react";
+import { ROTULO_STATUS, type StatusTopico } from "@/lib/progresso";
 import { RichOrPlain } from "@/components/student/RichOrPlain";
 
 interface TopicHeaderProps {
   titulo: string;
   objetivo?: string | null;
   descricaoCurta?: string | null;
+  // null: o tópico não tem parte mensurável (artigo ou quiz), então não mostra status
+  status?: StatusTopico | null;
 }
 
-export function TopicHeader({ titulo, objetivo, descricaoCurta }: TopicHeaderProps) {
+const COR_STATUS: Record<StatusTopico, string> = {
+  "incompleta": "var(--text-muted)",
+  "em-progresso": "var(--accent)",
+  "completa": "var(--success)",
+};
+
+export function TopicHeader({ titulo, objetivo, descricaoCurta, status = null }: TopicHeaderProps) {
   return (
     <>
       {/* Título + bookmark */}
@@ -24,15 +33,17 @@ export function TopicHeader({ titulo, objetivo, descricaoCurta }: TopicHeaderPro
         </button>
       </div>
 
-      {/* Badge de status */}
+      {/* Badge de status: artigo lido e quiz aprovado */}
       <div className="mb-8">
-        <span
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full border uppercase tracking-wider"
-          style={{ color: "var(--text-muted)", borderColor: "var(--border)", backgroundColor: "var(--bg-elevated)" }}
-        >
-          <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ backgroundColor: "var(--text-muted)" }} />
-          Incompleta
-        </span>
+        {status && (
+          <span
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full border uppercase tracking-wider"
+            style={{ color: COR_STATUS[status], borderColor: status === "incompleta" ? "var(--border)" : COR_STATUS[status], backgroundColor: "var(--bg-elevated)" }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ backgroundColor: COR_STATUS[status] }} />
+            {ROTULO_STATUS[status]}
+          </span>
+        )}
       </div>
 
       {/* Objetivos de aprendizaje */}

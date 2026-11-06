@@ -34,7 +34,7 @@
 | Hospedagem de vídeo própria | Decisão em [ADR 0009](decisions/0009-hospedagem-de-video.md) (Mux vs Cloudflare Stream) |
 | Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. (pasta `components/simulations/` vazia) |
 | Quiz: modo simulado | `modo` e `tempo_limite_seg` do quiz existem no schema mas não são lidos; as tentativas já são gravadas ([ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md)) |
-| Progresso do aluno | progresso.ts, marcação automática em vídeo/artigo |
+| Progresso do aluno: vídeo e visões agregadas | Artigo lido e quiz aprovado já definem o status do tópico ([ADR 0015](decisions/0015-progresso-do-topico.md)). Faltam medir o vídeo (depende do [ADR 0009](decisions/0009-hospedagem-de-video.md)) e mostrar o status na lista da área, no dashboard e em "Meu progreso" |
 | Plano de estudos | plano.ts, UI de plano |
 | Biblioteca (busca) | lib/db/busca.ts |
 | Revisão de segurança restante | Queries de `lib/db/admin.ts` sem guarda própria. RLS e Storage foram verificados e corrigidos em 2026-11-06 (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
@@ -205,8 +205,9 @@ src/components/student/
   EstudiarBtn.tsx         → rótulo-botão "Estudiar" com hover na cor de acento da disciplina
   TopicSidebarNav.tsx     → sidebar do tópico (desktop): links de seção com destaque da seção ativa pelo scroll
   TopicBreadcrumb.tsx     → breadcrumb fixo da página do tópico
-  TopicHeader.tsx         → título, bookmark, status, objetivos de aprendizado (id "objetivo" do tour)
+  TopicHeader.tsx         → título, bookmark, selo de status (Incompleta, En progreso, Completa), objetivos (id "objetivo" do tour)
   TopicSections.tsx       → seções numeradas (vídeo, artigo, atlas, quiz, tabelas); define os ids de âncora do tour
+  ArtigoLidoTracker.tsx   → marca o artigo como lido quando o fim fica visível por 2 s
   TopicPrevNext.tsx       → "Continúa tu aprendizaje": tópico anterior e seguinte (id "continua" do tour)
   TopicQuizSection.tsx    → cards de quiz do tópico + modal de configuração de sessão
   QuizPlayer.tsx          → orquestra a sessão (estado, timer, histórico, tentativas)
@@ -270,6 +271,7 @@ src/hooks/useImagePreload.ts    → pré-carrega uma lista de URLs de imagem
 src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValue: valor persistido no navegador, sem setState em efeito (ADR 0013)
 src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
+src/lib/progresso.ts           → PONTUACAO_APROVACAO e calcularStatusTopico (regra pura do status do tópico)
 src/lib/quiz-scoring.ts        → avaliarTentativa: pontuação a partir do gabarito (função pura)
 src/lib/auth/session.ts         → getSessionUser: usuário da sessão, com cache por requisição
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
@@ -300,6 +302,7 @@ src/lib/actions/
   content-atlas.ts           → imagens standalone + grupos de imagens
   content-tabelas.ts         → tabelas e linhas
   content-media.ts           → vídeo e artigo (upsert, deletar, salvar)
+  progresso.ts               → marcarArtigoLido (ação do aluno)
   quiz-tentativas.ts         → registrarTentativaQuiz (ação do aluno: grava a tentativa; pontuação calculada no servidor)
   content-quizzes.ts         → quiz, questões, opções, vínculo com tópico
   content-quiz-imagens.ts    → upload de imagem do quiz e galeria unificada (quiz + atlas)
@@ -320,6 +323,7 @@ src/lib/db/
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
   admin.ts      → queries admin (listagem, contagens, árvore completa)
   quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
+  progresso.ts  → getProgressoTopico, registrarArtigoLido, existeTopicoPublicado
   tentativas.ts → registrarTentativa, getResumoTentativas (última, melhor e total do aluno por quiz)
   users.ts      → sincronizarUsuario: mantém `users` alinhada com o Supabase Auth (usado por login e cadastro; não lança erro)
 ```
