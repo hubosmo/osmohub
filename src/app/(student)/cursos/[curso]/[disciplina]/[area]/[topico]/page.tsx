@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { PlayCircle, BookOpen, HelpCircle, ImageIcon, Table2 as Table2Icon } from "lucide-react";
 import { getTopicoPorSlug } from "@/lib/db/cursos";
+import { getResumoTentativas } from "@/lib/db/tentativas";
+import { getSessionUser } from "@/lib/auth/session";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { MobileIndiceBar } from "@/components/student/MobileIndiceBar";
 import { LastTopicTracker } from "@/components/student/LastTopicTracker";
@@ -29,6 +31,11 @@ export default async function TopicoPage({ params }: PageProps) {
   const currentIdx = area.topicos.findIndex((t) => t.slug === topicoSlug);
   const prevTopico = currentIdx > 0 ? area.topicos[currentIdx - 1] : null;
   const nextTopico = currentIdx < area.topicos.length - 1 ? area.topicos[currentIdx + 1] : null;
+
+  // Histórico do aluno nos quizzes deste tópico (última e melhor pontuação)
+  const user = await getSessionUser();
+  const quizIds = (topico.quizzes ?? []).map((j) => j.quiz.id);
+  const resumoQuizzes = user ? await getResumoTentativas(user.id, quizIds).catch(() => ({})) : {};
 
   const hasQuiz = topico._count.quizzes > 0;
   const hasTables = topico.tabelas_ativo && topico.tabelas && topico.tabelas.length > 0;
@@ -93,7 +100,7 @@ export default async function TopicoPage({ params }: PageProps) {
           style={{ borderColor: "var(--border)" }}
         >
           <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} />
-          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} />
+          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} />
           <TopicPrevNext areaPath={areaPath} prevTopico={prevTopico} nextTopico={nextTopico} />
         </div>
       </div>

@@ -85,6 +85,18 @@ export async function getQuizParaSessao(id: string) {
   });
 }
 
+// Gabarito de um quiz publicado (ids das questões e opções com a marca de correta), para avaliar tentativas no servidor
+export async function getGabaritoQuiz(id: string) {
+  return prisma.quiz.findUnique({
+    where: { id, publicado: true },
+    select: {
+      questoes: {
+        select: { id: true, opcoes: { select: { id: true, correta: true } } },
+      },
+    },
+  });
+}
+
 // Busca imagens já existentes no projeto para reusar em questões
 export async function listarImagensDisponiveis(topicoId?: string) {
   const where = topicoId ? { topico_id: topicoId } : {};

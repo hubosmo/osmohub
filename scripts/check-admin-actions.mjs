@@ -10,6 +10,7 @@ const PUBLIC_ACTION_FILES = new Set([
   "auth.ts", // logout: só encerra a própria sessão
   "search.ts", // busca de tópicos publicados
   "content-ultimo-topico.ts", // grava o último tópico do usuário da sessão
+  "quiz-tentativas.ts", // grava a tentativa de quiz do usuário da sessão; a pontuação é calculada no servidor
 ]);
 
 function isRequireAdminCall(stmt) {

@@ -5,6 +5,7 @@ import { TablasSection } from "@/components/student/TablasSection";
 import { TopicVideoSection } from "@/components/student/TopicVideoSection";
 import { TopicAtlasSection, type AtlasBlock } from "@/components/student/TopicAtlasSection";
 import { TopicQuizSection } from "@/components/student/TopicQuizSection";
+import type { ResumoTentativas } from "@/lib/db/tentativas";
 
 type Topico = NonNullable<Awaited<ReturnType<typeof getTopicoPorSlug>>>;
 
@@ -14,9 +15,10 @@ interface TopicSectionsProps {
   sections: Pick<TopicSection, "id" | "label">[];
   topico: Topico;
   backUrl: string;
+  resumoQuizzes?: Record<string, ResumoTentativas>;
 }
 
-export function TopicSections({ sections, topico, backUrl }: TopicSectionsProps) {
+export function TopicSections({ sections, topico, backUrl, resumoQuizzes }: TopicSectionsProps) {
   return (
     <div className="flex flex-col gap-12">
       {sections.map((section, idx) => (
@@ -49,6 +51,7 @@ export function TopicSections({ sections, topico, backUrl }: TopicSectionsProps)
               <TopicQuizSection
                 quizzes={(topico.quizzes ?? []).map((j) => j.quiz)}
                 backUrl={backUrl}
+                resumos={resumoQuizzes}
               />
             </div>
           )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocalStorageValue } from "@/hooks/useStoredValue";
 import { Modal } from "@/components/ui/Modal";
+import type { ResumoTentativas } from "@/lib/db/tentativas";
 import { toggleInSet } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, Settings, X } from "lucide-react";
@@ -29,9 +30,10 @@ type QuizCard = {
 interface Props {
   quizzes: QuizCard[];
   backUrl: string;
+  resumos?: Record<string, ResumoTentativas>;
 }
 
-export function TopicQuizSection({ quizzes, backUrl }: Props) {
+export function TopicQuizSection({ quizzes, backUrl, resumos }: Props) {
   const publicados = quizzes.filter((q) => q.publicado);
 
   if (publicados.length === 0) {
@@ -49,7 +51,7 @@ export function TopicQuizSection({ quizzes, backUrl }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {publicados.map((quiz) => <QuizCardView key={quiz.id} quiz={quiz} backUrl={backUrl} />)}
+      {publicados.map((quiz) => <QuizCardView key={quiz.id} quiz={quiz} backUrl={backUrl} resumo={resumos?.[quiz.id]} />)}
     </div>
   );
 }
@@ -97,7 +99,7 @@ function TermChips({
   );
 }
 
-function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
+function QuizCardView({ quiz, backUrl, resumo }: { quiz: QuizCard; backUrl: string; resumo?: ResumoTentativas }) {
   const router = useRouter();
   const [configOpen, setConfigOpen] = useState(false);
   const [saveScope, setSaveScope] = useState<"this" | "default">("this");
@@ -198,6 +200,20 @@ function QuizCardView({ quiz, backUrl }: { quiz: QuizCard; backUrl: string }) {
             </div>
           </div>
         </div>
+
+        {/* Historial del alumno */}
+        {resumo && (
+          <div
+            className="flex items-center justify-between gap-3 px-4 py-2 text-xs"
+            style={{ backgroundColor: "var(--bg-surface)", borderTop: "1px solid var(--border)", color: "var(--text-secondary)" }}
+          >
+            <span>Último resultado: <strong style={{ color: "var(--text-primary)" }}>{resumo.ultima}%</strong></span>
+            <span>
+              Mejor: <strong style={{ color: "var(--text-primary)" }}>{resumo.melhor}%</strong>
+              {" · "}{resumo.total} {resumo.total === 1 ? "intento" : "intentos"}
+            </span>
+          </div>
+        )}
 
         {/* Comenzar */}
         <button

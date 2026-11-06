@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toggleInSet } from "@/lib/utils";
+import { registrarTentativaQuiz } from "@/lib/actions/quiz-tentativas";
 import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -128,6 +129,8 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
 
   const [totalTime, setTotalTime] = useState(0);
   const elapsedRef = useRef(0);
+  const answersRef = useRef<Map<string, { opcaoId: string; tentativas: number }>>(new Map());
+  const savedRef = useRef(false);
 
   useEffect(() => {
     if (hasInitialConfig && phase === "playing" && questions.length === 0) {
@@ -151,6 +154,18 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     return () => clearInterval(id);
   }, [phase, selectedTime.value]);
 
+  // Grava a tentativa uma única vez ao terminar, qualquer que seja o motivo. Falha aqui não atrapalha o resultado.
+  useEffect(() => {
+    if (phase !== "finished" || savedRef.current || questions.length === 0) return;
+    savedRef.current = true;
+    registrarTentativaQuiz({
+      quizId: quiz.id,
+      questaoIds: questions.map((q) => q.id),
+      respostas: [...answersRef.current].map(([questaoId, r]) => ({ questaoId, ...r })),
+      tempoSeg: totalTime,
+    }).catch(() => {});
+  }, [phase, questions, quiz.id, totalTime]);
+
   function startSession() {
     const pool = deselectedTermos.size > 0
       ? quiz.questoes.filter(q => q.termo && !deselectedTermos.has(q.termo))
@@ -159,6 +174,8 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     setQuestions(shuffled);
     setCurrentIdx(0);
     elapsedRef.current = 0;
+    answersRef.current = new Map();
+    savedRef.current = false;
     setElapsed(0);
     setCorrectCount(0);
     setAnswerState("idle");
@@ -206,6 +223,8 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
     if (opcao.correta) {
       if (!muted) playSound("correct");
       setAnswerState("correct");
+      const questaoAtual = questions[currentIdx];
+      if (questaoAtual) answersRef.current.set(questaoAtual.id, { opcaoId: opcao.id, tentativas: attemptsUsed + 1 });
       setAnswerHistory(prev => ({ ...prev, [currentIdx]: { selectedId: opcao.id, answerState: "correct", wrongIds: new Set() } }));
       setCorrectCount((c) => c + 1);
       setTimeout(advanceQuestion, 1200);
@@ -221,6 +240,8 @@ export function QuizPlayer({ quiz, backUrl, initialTime, initialExclude, initial
         setTimeout(() => { setAnswerState("idle"); setSelectedId(null); }, 700);
       } else {
         const finalWrongIds = new Set([...wrongIds, opcao.id]);
+        const questaoAtual = questions[currentIdx];
+        if (questaoAtual) answersRef.current.set(questaoAtual.id, { opcaoId: opcao.id, tentativas: newUsed });
         setAnswerHistory(prev => ({ ...prev, [currentIdx]: { selectedId: opcao.id, answerState: "wrong", wrongIds: finalWrongIds } }));
         setAnswerState("wrong");
         setTimeout(advanceQuestion, 2200);

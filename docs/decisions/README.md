@@ -56,3 +56,4 @@ O que passa a valer no código. Riscos e pendências.
 | [0011](0011-autorizacao-admin-em-camadas.md) | Autorização do admin em camadas (middleware, layout, actions) | Aceita |
 | [0012](0012-historico-de-migrations-reiniciado.md) | Histórico de migrations reiniciado com um baseline | Aceita |
 | [0013](0013-estado-no-navegador-sem-setstate-em-efeito.md) | Estado do navegador sem `setState` dentro de `useEffect` | Aceita |
+| [0014](0014-tentativas-de-quiz-pontuacao-no-servidor.md) | Tentativas de quiz: a pontuação é calculada no servidor | Aceita |
