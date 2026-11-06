@@ -191,14 +191,21 @@
 
 ---
 
-## Fase 9 — Plano de Estudos
+## Fase 9 — Plano de Estudos (Mi Plan)
 
-- [ ] Página `/plan-de-estudios`
-- [ ] Criar e nomear planos
-- [ ] Adicionar tópicos ao plano (busca ou navegação)
-- [ ] Reordenação de itens
-- [ ] Marcar item como concluído
+> Pastas pessoais do aluno com subpastas e tópicos salvos. Desenho e regras em [ADR 0016](decisions/0016-mi-plan-pastas-do-aluno.md).
+
+- [ ] Modelo `Pasta` e `ItemPasta` (substituem `PlanoEstudos` e `ItemPlano`) e migration
+- [ ] Regras puras: limite de 3 níveis, validação de nome e descrição, limites por aluno
+- [ ] Consultas e actions do aluno, sempre filtradas pelo dono (`usuario_id` da sessão)
+- [ ] Página `/plan-de-estudios`: pastas da raiz como cards altos e "Nueva carpeta"
+- [ ] Página `/plan-de-estudios/[pasta]`: subpastas (cards como as disciplinas) e tópicos salvos
+- [ ] Criar, editar (nome e descrição) e excluir pasta, com confirmação
+- [ ] Capa padrão da pasta (upload de capa: fase futura, em bucket separado)
+- [ ] Marcador do tópico abre o seletor de pastas (um tópico em várias pastas, criar pasta ali mesmo)
+- [ ] Marcar item como concluído e mostrar o status automático do tópico
 - [ ] Bloco de próximos itens no dashboard
+- [ ] Fora do escopo por ora: reordenar por arrastar, mover pasta, compartilhar
 
 ---
 

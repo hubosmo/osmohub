@@ -58,3 +58,4 @@ O que passa a valer no código. Riscos e pendências.
 | [0013](0013-estado-no-navegador-sem-setstate-em-efeito.md) | Estado do navegador sem `setState` dentro de `useEffect` | Aceita |
 | [0014](0014-tentativas-de-quiz-pontuacao-no-servidor.md) | Tentativas de quiz: a pontuação é calculada no servidor | Aceita |
 | [0015](0015-progresso-do-topico.md) | Progresso do tópico: artigo lido e quiz aprovado | Aceita |
+| [0016](0016-mi-plan-pastas-do-aluno.md) | Mi Plan: pastas pessoais do aluno | Aceita |
