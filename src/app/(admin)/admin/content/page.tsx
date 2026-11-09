@@ -6,6 +6,7 @@ import {
   getTopicoAdmin,
 } from "@/lib/db/admin";
 import { listarQuizzes } from "@/lib/db/quizzes";
+import { getModelos3dVinculadosAoTopico, listarModelos3dParaVincular } from "@/lib/db/modelos3d";
 import { ContentTree } from "@/components/admin/ContentTree";
 import { EmptyPanel } from "@/components/admin/panels/EmptyPanel";
 import { CursoPanel } from "@/components/admin/panels/CursoPanel";
@@ -33,14 +34,19 @@ export default async function ContentPage({
   let selectedType: string | undefined;
 
   if (sp.topico) {
-    const [data, todosQuizzes] = await Promise.all([
+    // Atlas 3D: se as tabelas ainda não existem no banco, o cartão simplesmente não aparece (null)
+    const [data, todosQuizzes, modelos3d] = await Promise.all([
       getTopicoAdmin(sp.topico),
       listarQuizzes(),
+      Promise.all([getModelos3dVinculadosAoTopico(sp.topico), listarModelos3dParaVincular()])
+        .then(([vinculados, todos]) => ({ vinculados, todos }))
+        .catch(() => null),
     ]);
     if (data) {
       panel = <TopicoPanel data={{
         ...data,
         quizzesVinculados: data.quizzes,
+        modelos3d,
         todosQuizzes: todosQuizzes.map(q => ({ id: q.id, titulo: q.titulo, _count: { questoes: q._count.questoes } })),
       }} />;
       selectedId = sp.topico;

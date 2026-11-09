@@ -5,6 +5,7 @@ import { TablasSection } from "@/components/student/TablasSection";
 import { TopicVideoSection } from "@/components/student/TopicVideoSection";
 import { TopicAtlasSection, type AtlasBlock } from "@/components/student/TopicAtlasSection";
 import { TopicQuizSection } from "@/components/student/TopicQuizSection";
+import { TopicAtlas3DSection, type ModeloParaAluno } from "@/components/student/TopicAtlas3DSection";
 import { ArtigoLidoTracker } from "@/components/student/ArtigoLidoTracker";
 import type { ResumoTentativas } from "@/lib/db/tentativas";
 
@@ -18,9 +19,10 @@ interface TopicSectionsProps {
   backUrl: string;
   resumoQuizzes?: Record<string, ResumoTentativas>;
   artigoLido?: boolean;
+  modelos3d?: ModeloParaAluno[];
 }
 
-export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigoLido = false }: TopicSectionsProps) {
+export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigoLido = false, modelos3d = [] }: TopicSectionsProps) {
   return (
     <div className="flex flex-col gap-12">
       {sections.map((section, idx) => (
@@ -62,6 +64,7 @@ export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigo
               />
             </div>
           )}
+          {section.id === "atlas3d" && <TopicAtlas3DSection modelos={modelos3d} firstItemId="atlas3d-tour" />}
           {section.id === "atlas" && (() => {
             const allBlocks: AtlasBlock[] = [
               ...(topico.imagens ?? []).map(img => ({ type: "imagem" as const, ...img })),

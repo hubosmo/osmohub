@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
-import { PlayCircle, BookOpen, HelpCircle, ImageIcon, Table2 as Table2Icon } from "lucide-react";
+import { PlayCircle, BookOpen, HelpCircle, ImageIcon, Box, Table2 as Table2Icon } from "lucide-react";
 import { getTopicoPorSlug } from "@/lib/db/cursos";
 import { getResumoTentativas, type ResumoTentativas } from "@/lib/db/tentativas";
 import { getProgressoTopico } from "@/lib/db/progresso";
+import { getModelos3dDoTopico } from "@/lib/db/modelos3d";
+import { env } from "@/lib/env";
+import { urlPublicaDoArquivo } from "@/lib/modelos3d";
 import { PONTUACAO_APROVACAO, calcularStatusTopico } from "@/lib/progresso";
 import { getSessionUser } from "@/lib/auth/session";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
@@ -14,6 +17,7 @@ import { TopicBreadcrumb } from "@/components/student/TopicBreadcrumb";
 import { TopicHeader } from "@/components/student/TopicHeader";
 import { SalvarTopicoSlot } from "@/components/student/pastas/SalvarTopicoSlot";
 import { TopicSections, type TopicSection } from "@/components/student/TopicSections";
+import type { ModeloParaAluno } from "@/components/student/TopicAtlas3DSection";
 import { TopicPrevNext } from "@/components/student/TopicPrevNext";
 
 interface PageProps {
@@ -54,6 +58,11 @@ export default async function TopicoPage({ params }: PageProps) {
     quizAprovado,
   });
 
+  // Atlas 3D: consulta separada; se as tabelas ainda não existem no banco, a seção simplesmente não aparece
+  const modelos3d: ModeloParaAluno[] = (await getModelos3dDoTopico(topico.id).catch(() => [])).flatMap((m) =>
+    m.arquivo_path ? [{ id: m.id, titulo: m.titulo, descricao: m.descricao, licenca: m.licenca, creditos: m.creditos, url: urlPublicaDoArquivo(env.NEXT_PUBLIC_SUPABASE_URL, m.arquivo_path) }] : [],
+  );
+
   const hasQuiz = topico._count.quizzes > 0;
   const hasTables = topico.tabelas_ativo && topico.tabelas && topico.tabelas.length > 0;
   const hasImages = topico.atlas_ativo && (
@@ -66,6 +75,7 @@ export default async function TopicoPage({ params }: PageProps) {
     ...(topico.video_ativo ? [{ id: "video", label: "Mira el video", icon: <PlayCircle className="h-4 w-4" /> }] : []),
     ...(topico.artigo_ativo && topico.artigo ? [{ id: "articulo", label: "Lee el artículo", icon: <BookOpen className="h-4 w-4" />, done: progresso.artigoLido }] : []),
     ...(hasImages ? [{ id: "atlas", label: "Navega por el atlas", icon: <ImageIcon className="h-4 w-4" /> }] : []),
+    ...(modelos3d.length > 0 ? [{ id: "atlas3d", label: "Explora en 3D", icon: <Box className="h-4 w-4" /> }] : []),
     ...(hasQuiz ? [{ id: "cuestionario", label: "Haz un cuestionario", icon: <HelpCircle className="h-4 w-4" />, done: quizAprovado }] : []),
     ...(hasTables ? [{ id: "tablas", label: "Tablas de resumen", icon: <Table2Icon className="h-4 w-4" /> }] : []),
   ];
@@ -117,7 +127,7 @@ export default async function TopicoPage({ params }: PageProps) {
           style={{ borderColor: "var(--border)" }}
         >
           <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} acaoGuardar={<SalvarTopicoSlot usuarioId={user?.id ?? null} topicoId={topico.id} />} />
-          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} />
+          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} modelos3d={modelos3d} />
           <TopicPrevNext areaPath={areaPath} prevTopico={prevTopico} nextTopico={nextTopico} />
         </div>
       </div>

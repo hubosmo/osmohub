@@ -216,7 +216,7 @@
 - [x] Modelos `Modelo3D`, `PontoModelo3D`, `TopicoModelo3D` e migration
 - [x] Biblioteca no admin (`/admin/modelos-3d`): criar, editar dados, upload direto do GLB, pré-visualização, excluir
 - [ ] Criar o bucket `modelos-3d` no Supabase (`scripts/criar-bucket-modelos3d.mjs`) e aplicar a migration
-- [ ] Vincular modelos ao tópico no admin e seção "Atlas 3D" na página do tópico
+- [x] Vincular modelos ao tópico no admin e seção "Explora en 3D" na página do tópico (o aluno só baixa o modelo ao clicar em "Ver en 3D")
 - [ ] Editor de pontos no admin (clicar na superfície, posição, câmera, texto)
 - [ ] Navegação do aluno: pontos numerados, câmera automática, caixa de texto, lista lateral
 

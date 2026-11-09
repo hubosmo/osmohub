@@ -1,4 +1,4 @@
-import { Play, Image as ImageIcon, FileText, Gamepad2, BookOpen, HelpCircle } from "lucide-react";
+import { Play, Image as ImageIcon, FileText, Gamepad2, BookOpen, HelpCircle, Box } from "lucide-react";
 import { DuracaoInput } from "@/components/admin/DuracaoInput";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { SectionToggle } from "@/components/admin/SectionToggle";
@@ -8,6 +8,7 @@ import { MiniEditor } from "@/components/editor/MiniEditor";
 import { TabelasCard } from "@/components/admin/TabelasCard";
 import { AtlasBlocksManager } from "@/components/admin/AtlasBlocksManager";
 import { QuizLinker } from "@/components/admin/QuizLinker";
+import { Modelo3DLinker } from "@/components/admin/Modelo3DLinker";
 import { atualizarTopicoContent, deletarTopicoContent } from "@/lib/actions/content-structure";
 import { upsertVideoContent, deletarVideoContent } from "@/lib/actions/content-media";
 import { adicionarImagemContent, criarGrupoImagens } from "@/lib/actions/content-atlas";
@@ -34,6 +35,8 @@ type TopicoData = {
   tabelas: { id: string; titulo: string; tipo: string; cabecalhos: unknown; linhas: { id: string; categoria: string; conteudo: string; valores_extra: unknown }[] }[];
   quizzesVinculados: { quiz: QuizResumido }[];
   todosQuizzes: QuizResumido[];
+  // null: o Atlas 3D ainda não está disponível no banco
+  modelos3d: { vinculados: { id: string; titulo: string; publicado: boolean }[]; todos: { id: string; titulo: string; publicado: boolean }[] } | null;
 };
 
 export function TopicoPanel({ data }: { data: TopicoData }) {
@@ -255,6 +258,18 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
           todosQuizzes={data.todosQuizzes}
         />
       </CollapsibleCard>
+
+      {/* Modelos 3D vinculados (Atlas 3D, ADR 0017) */}
+      {data.modelos3d && (
+        <CollapsibleCard
+          storageKey={`modelos3d-${data.id}`}
+          icon={<Box className="h-4 w-4" />}
+          label={`Atlas 3D (${data.modelos3d.vinculados.length})`}
+          className="mt-4"
+        >
+          <Modelo3DLinker topicoId={data.id} vinculados={data.modelos3d.vinculados} todos={data.modelos3d.todos} />
+        </CollapsibleCard>
+      )}
 
       {/* Simulaciones placeholder */}
       <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", opacity: 0.6 }}>

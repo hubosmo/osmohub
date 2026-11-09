@@ -88,3 +88,31 @@ export async function confirmarUploadModelo3d(modeloId: string, caminho: string)
   if (anterior?.arquivo_path && anterior.arquivo_path !== caminho) await removerArquivo(anterior.arquivo_path);
   revalidate(modeloId);
 }
+
+// ── Vínculo com o tópico ───────────────────────────────
+
+export async function vincularModelo3dAoTopico(topicoId: string, fd: FormData): Promise<void> {
+  await requireAdmin();
+  const modeloId = fd.get("modeloId") as string | null;
+  if (!modeloId) return;
+
+  const ultimo = await prisma.topicoModelo3D.findFirst({
+    where: { topico_id: topicoId },
+    orderBy: { ordem: "desc" },
+    select: { ordem: true },
+  });
+  await prisma.topicoModelo3D.upsert({
+    where: { topico_id_modelo_id: { topico_id: topicoId, modelo_id: modeloId } },
+    create: { topico_id: topicoId, modelo_id: modeloId, ordem: (ultimo?.ordem ?? -1) + 1 },
+    update: {},
+  });
+  revalidatePath("/admin/content");
+  revalidatePath("/admin/modelos-3d");
+}
+
+export async function desvincularModelo3dDoTopico(topicoId: string, modeloId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.topicoModelo3D.deleteMany({ where: { topico_id: topicoId, modelo_id: modeloId } });
+  revalidatePath("/admin/content");
+  revalidatePath("/admin/modelos-3d");
+}

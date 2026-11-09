@@ -431,4 +431,4 @@ opcoes               → opções de uma questão (texto, imagem_url, correta)
 
 - Admin: `/admin/modelos-3d` (lista) e `/admin/modelos-3d/[id]` (arquivo + pré-visualização + dados). O GLB sobe direto do navegador ao bucket `modelos-3d` com URL assinada (`Modelo3DUpload` → `autorizarUploadModelo3d` / `confirmarUploadModelo3d`).
 - Visualizador: `student/ModeloViewer.tsx` (`<model-viewer>`, carrega a biblioteca só no cliente).
-- Tabelas: `modelos_3d`, `pontos_modelo_3d`, `topico_modelos_3d`. Falta o vínculo com o tópico e a visão do aluno.
+- Tabelas: `modelos_3d`, `pontos_modelo_3d`, `topico_modelos_3d`. Vínculo com o tópico: `Modelo3DLinker` no painel do tópico (admin). Aluno: seção "Explora en 3D" (`TopicAtlas3DSection`), alimentada por `getModelos3dDoTopico` numa consulta separada que falha em silêncio (se as tabelas não existem, a seção some e a página do tópico segue normal). Falta o editor de pontos e a navegação por pontos.

@@ -16,6 +16,7 @@ Queremos uma seção de conteúdo "Atlas 3D": o aluno gira um modelo (ex.: um co
 - Tabelas com RLS ligado e sem acesso para `anon`/`authenticated`, como as demais (ADR 0011).
 
 ## Consequências
-- Fase 1 entregue: schema, biblioteca no admin (`/admin/modelos-3d`) com upload e pré-visualização. Pendentes: vincular ao tópico e visualizador do aluno (fase 2); editor de pontos e navegação do aluno (fase 3).
+- Fases 1 e 2 entregues: schema, biblioteca no admin (`/admin/modelos-3d`) com upload e pré-visualização, vínculo com o tópico e seção do aluno (o modelo só é baixado ao clicar em "Ver en 3D"). Pendente (fase 3): editor de pontos e navegação do aluno.
+- Os modelos do tópico são buscados numa consulta separada da `getTopicoPorSlug` e com `.catch`, para que a página do tópico nunca quebre se as tabelas ainda não existirem no banco compartilhado.
 - O bucket é criado uma vez com `node --env-file=.env.local scripts/criar-bucket-modelos3d.mjs` (idempotente; mexe no Supabase compartilhado, só com aprovação).
 - A migration `20261109180000_atlas_3d` segue o fluxo do ADR 0012 (gerada contra banco local; aplicada no Supabase só com aprovação).
