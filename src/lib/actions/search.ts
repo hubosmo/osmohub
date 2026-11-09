@@ -32,12 +32,15 @@ type RawRow = {
   curso_nome: string;
 };
 
-export async function buscarTopicos(query: string): Promise<TopicResult[]> {
-  const q = query.trim();
-  if (q.length < 2) return [];
+const LIMITE_RAPIDO = 8;
+const TAMANHO_PAGINA = 20;
+const LIMITE_OFFSET = 1000;
 
-  const pattern = `%${q}%`;
+function padrao(query: string): string {
+  return `%${query.trim()}%`;
+}
 
+async function consultarTopicos(pattern: string, limite: number, offset: number): Promise<TopicResult[]> {
   const rows = await prisma.$queryRaw<RawRow[]>`
     SELECT
       t.id,
@@ -56,8 +59,9 @@ export async function buscarTopicos(query: string): Promise<TopicResult[]> {
     WHERE  t.publicado = true
       AND  translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO})
            LIKE translate(lower(${pattern}), ${ACC_FROM}, ${ACC_TO})
-    ORDER  BY t.titulo ASC
-    LIMIT  8
+    ORDER  BY t.titulo ASC, t.id ASC
+    LIMIT  ${limite}
+    OFFSET ${offset}
   `;
 
   return rows.map((r) => ({
@@ -71,4 +75,31 @@ export async function buscarTopicos(query: string): Promise<TopicResult[]> {
     cursoSlug: r.curso_slug,
     cursoNome: r.curso_nome,
   }));
+}
+
+// Menu rápido do cabeçalho: só os primeiros resultados
+export async function buscarTopicos(query: string): Promise<TopicResult[]> {
+  if (query.trim().length < 2) return [];
+  return consultarTopicos(padrao(query), LIMITE_RAPIDO, 0);
+}
+
+export type PaginaTopicos = { itens: TopicResult[]; total: number };
+
+// Busca paginada (buscador de temas das pastas): devolve uma página e o total de resultados
+export async function buscarTopicosPaginado(query: string, offset: number): Promise<PaginaTopicos> {
+  if (query.trim().length < 2) return { itens: [], total: 0 };
+  const inicio = Number.isInteger(offset) && offset > 0 ? Math.min(offset, LIMITE_OFFSET) : 0;
+  const pattern = padrao(query);
+
+  const [itens, contagem] = await Promise.all([
+    consultarTopicos(pattern, TAMANHO_PAGINA, inicio),
+    prisma.$queryRaw<{ total: number }[]>`
+      SELECT count(*)::int AS total
+      FROM   topicos t
+      WHERE  t.publicado = true
+        AND  translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO})
+             LIKE translate(lower(${pattern}), ${ACC_FROM}, ${ACC_TO})
+    `,
+  ]);
+  return { itens, total: contagem[0]?.total ?? 0 };
 }
