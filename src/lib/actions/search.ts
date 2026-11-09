@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db/prisma";
+import { radicaisDaBusca, semAcento } from "@/lib/busca-topicos";
 
 export type TopicResult = {
   id: string;
@@ -32,15 +33,17 @@ type RawRow = {
   curso_nome: string;
 };
 
+// A frase inteira (sem acento) serve para listar primeiro os temas que a contêm de forma exata
+function fraseDaBusca(query: string): string {
+  return semAcento(query).trim().replace(/[\%_]/g, "");
+}
+
 const LIMITE_RAPIDO = 8;
 const TAMANHO_PAGINA = 20;
 const LIMITE_OFFSET = 1000;
 
-function padrao(query: string): string {
-  return `%${query.trim()}%`;
-}
-
-async function consultarTopicos(pattern: string, limite: number, offset: number): Promise<TopicResult[]> {
+// Título sem acento e em minúsculas, igual ao que a consulta compara (translate cobre o que o lower() deixa acentuado)
+async function consultarTopicos(radicais: string[], frase: string, limite: number, offset: number): Promise<TopicResult[]> {
   const rows = await prisma.$queryRaw<RawRow[]>`
     SELECT
       t.id,
@@ -57,9 +60,11 @@ async function consultarTopicos(pattern: string, limite: number, offset: number)
     JOIN   disciplinas  d ON d.id           = a.disciplina_id
     JOIN   cursos       c ON c.id           = d.curso_id
     WHERE  t.publicado = true
-      AND  translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO})
-           LIKE translate(lower(${pattern}), ${ACC_FROM}, ${ACC_TO})
-    ORDER  BY t.titulo ASC, t.id ASC
+      AND  NOT EXISTS (
+             SELECT 1 FROM unnest(${radicais}::text[]) AS r
+             WHERE translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO}) NOT LIKE '%' || r || '%'
+           )
+    ORDER  BY (translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO}) LIKE '%' || ${frase} || '%') DESC, t.titulo ASC, t.id ASC
     LIMIT  ${limite}
     OFFSET ${offset}
   `;
@@ -80,7 +85,7 @@ async function consultarTopicos(pattern: string, limite: number, offset: number)
 // Menu rápido do cabeçalho: só os primeiros resultados
 export async function buscarTopicos(query: string): Promise<TopicResult[]> {
   if (query.trim().length < 2) return [];
-  return consultarTopicos(padrao(query), LIMITE_RAPIDO, 0);
+  return consultarTopicos(radicaisDaBusca(query), fraseDaBusca(query), LIMITE_RAPIDO, 0);
 }
 
 export type PaginaTopicos = { itens: TopicResult[]; total: number };
@@ -89,16 +94,20 @@ export type PaginaTopicos = { itens: TopicResult[]; total: number };
 export async function buscarTopicosPaginado(query: string, offset: number): Promise<PaginaTopicos> {
   if (query.trim().length < 2) return { itens: [], total: 0 };
   const inicio = Number.isInteger(offset) && offset > 0 ? Math.min(offset, LIMITE_OFFSET) : 0;
-  const pattern = padrao(query);
+  const radicais = radicaisDaBusca(query);
+  const frase = fraseDaBusca(query);
+  if (radicais.length === 0) return { itens: [], total: 0 };
 
   const [itens, contagem] = await Promise.all([
-    consultarTopicos(pattern, TAMANHO_PAGINA, inicio),
+    consultarTopicos(radicais, frase, TAMANHO_PAGINA, inicio),
     prisma.$queryRaw<{ total: number }[]>`
       SELECT count(*)::int AS total
       FROM   topicos t
       WHERE  t.publicado = true
-        AND  translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO})
-             LIKE translate(lower(${pattern}), ${ACC_FROM}, ${ACC_TO})
+        AND  NOT EXISTS (
+               SELECT 1 FROM unnest(${radicais}::text[]) AS r
+               WHERE translate(lower(t.titulo), ${ACC_FROM}, ${ACC_TO}) NOT LIKE '%' || r || '%'
+             )
     `,
   ]);
   return { itens, total: contagem[0]?.total ?? 0 };
