@@ -305,6 +305,7 @@ src/lib/actions/
   quiz-tentativas.ts         → registrarTentativaQuiz (ação do aluno: grava a tentativa; pontuação calculada no servidor)
   content-quizzes.ts         → quiz, questões, opções, vínculo com tópico
   content-quiz-imagens.ts    → upload de imagem do quiz e galeria unificada (quiz + atlas)
+  content-modelos3d.ts       → Atlas 3D: modelo, autorizar e confirmar upload direto do GLB (URL assinada)
 ```
 
 Todas as actions acima, exceto `auth`, `search` e `content-ultimo-topico`, começam com `await requireAdmin()`.
@@ -321,6 +322,7 @@ src/lib/db/
   cursos.ts     → listarCursos, getCursoPorSlug, getDisciplinaPorSlug,
                   getAreaPorSlug, getTopicoPorSlug (hierarquia completa)
   admin.ts      → queries admin (listagem, contagens, árvore completa)
+  modelos3d.ts  → listarModelos3d, getModelo3dAdmin (Atlas 3D)
   quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
   progresso.ts  → getProgressoTopico, registrarArtigoLido, existeTopicoPublicado
   tentativas.ts → registrarTentativa, getResumoTentativas (última, melhor e total do aluno por quiz)
@@ -422,3 +424,11 @@ opcoes               → opções de uma questão (texto, imagem_url, correta)
 - Rotas: `/plan-de-estudios` (pastas da raiz) e `/plan-de-estudios/[pasta]` (subpastas e tópicos salvos).
 - Actions (`lib/actions/pastas.ts`, públicas do aluno): criarPastaAction, atualizarPastaAction, excluirPastaAction, salvarTopicoNaPastaAction, marcarItemConcluidoAction.
 - Componentes em `components/student/pastas/`; o marcador do cabeçalho do tópico é `SalvarTopicoButton` (via `SalvarTopicoSlot` no `TopicHeader`). Editar e eliminar: botões na página da pasta e menu de três pontos sobre cada card (`PastaAcoes`, variantes `botoes` e `menu`); em pasta da raiz o formulário também muda a profundidade (`atualizarPasta` valida pela árvore). Na pasta do último nível da árvore (onde ficam os conteúdos) a página mostra `BuscadorTemasPasta`, que usa `buscarTopicosPaginado` (20 por página, com total; busca pelo radical das palavras em `lib/busca-topicos.ts`, então "anatomia" acha "anatómicos") e agrega o tema direto à pasta. Selo de status compartilhado: `student/StatusBadge.tsx`. `ConfirmModal` agora vive em `components/ui/`.
+
+---
+
+## Atlas 3D (ADR 0017)
+
+- Admin: `/admin/modelos-3d` (lista) e `/admin/modelos-3d/[id]` (arquivo + pré-visualização + dados). O GLB sobe direto do navegador ao bucket `modelos-3d` com URL assinada (`Modelo3DUpload` → `autorizarUploadModelo3d` / `confirmarUploadModelo3d`).
+- Visualizador: `student/ModeloViewer.tsx` (`<model-viewer>`, carrega a biblioteca só no cliente).
+- Tabelas: `modelos_3d`, `pontos_modelo_3d`, `topico_modelos_3d`. Falta o vínculo com o tópico e a visão do aluno.

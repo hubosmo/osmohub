@@ -209,6 +209,19 @@
 
 ---
 
+## Fase 9b — Atlas 3D
+
+> Modelos 3D interativos com pontos numerados. Desenho e regras em [ADR 0017](decisions/0017-atlas-3d-biblioteca-de-modelos.md).
+
+- [x] Modelos `Modelo3D`, `PontoModelo3D`, `TopicoModelo3D` e migration
+- [x] Biblioteca no admin (`/admin/modelos-3d`): criar, editar dados, upload direto do GLB, pré-visualização, excluir
+- [ ] Criar o bucket `modelos-3d` no Supabase (`scripts/criar-bucket-modelos3d.mjs`) e aplicar a migration
+- [ ] Vincular modelos ao tópico no admin e seção "Atlas 3D" na página do tópico
+- [ ] Editor de pontos no admin (clicar na superfície, posição, câmera, texto)
+- [ ] Navegação do aluno: pontos numerados, câmera automática, caixa de texto, lista lateral
+
+---
+
 ## Fase 10 — Progresso & Biblioteca
 
 - [ ] Página `/meu-progresso` com gráficos por disciplina

@@ -363,3 +363,44 @@ CREATE POLICY "aluno lê seu progresso" ON progresso_topicos
 
 -- Admin tem acesso total (via service role key nas API routes)
 ```
+
+## Atlas 3D (ADR 0017)
+
+```prisma
+model Modelo3D {
+  id            String   @id @default(uuid())
+  titulo        String
+  descricao     String?
+  arquivo_path  String?  // caminho do GLB no bucket `modelos-3d`
+  tamanho_bytes Int?
+  licenca       String?
+  creditos      String?
+  publicado     Boolean  @default(false)
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+  pontos        PontoModelo3D[]
+  topicos       TopicoModelo3D[]
+  @@map("modelos_3d")
+}
+
+model PontoModelo3D {   // ponto numerado sobre o modelo (formato do model-viewer)
+  id        String  @id @default(uuid())
+  modelo_id String
+  ordem     Int     @default(0)
+  titulo    String
+  texto     String?
+  posicao   String  // "x y z"
+  normal    String?
+  orbita    String? // "theta phi raio"
+  alvo      String? // "x y z"
+  @@map("pontos_modelo_3d")
+}
+
+model TopicoModelo3D {  // N:N tópico ↔ modelo
+  topico_id String
+  modelo_id String
+  ordem     Int @default(0)
+  @@id([topico_id, modelo_id])
+  @@map("topico_modelos_3d")
+}
+```

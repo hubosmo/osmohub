@@ -12,14 +12,14 @@ datasource db {
 // ─── USUÁRIOS ──────────────────────────────────────────
 
 model User {
-  id                 String   @id @default(uuid())
-  email              String   @unique
-  nome               String
-  role               Role     @default(STUDENT)
-  avatar_url         String?
-  ultimo_topico_id   String?
-  criado_em          DateTime @default(now())
-  atualizado_em      DateTime @updatedAt
+  id               String   @id @default(uuid())
+  email            String   @unique
+  nome             String
+  role             Role     @default(STUDENT)
+  avatar_url       String?
+  ultimo_topico_id String?
+  criado_em        DateTime @default(now())
+  atualizado_em    DateTime @updatedAt
 
   progresso  ProgressoTopico[]
   tentativas TentativaQuiz[]
@@ -36,18 +36,18 @@ enum Role {
 // ─── ESTRUTURA DE CONTEÚDO ─────────────────────────────
 
 model Curso {
-  id              String   @id @default(uuid())
-  slug            String   @unique
-  nome            String
-  descricao       String?
-  capa_url        String?
-  capa_url_light  String?
-  icone           String?
-  cor_destaque  String?
-  ordem         Int      @default(0)
-  publicado     Boolean  @default(false)
-  criado_em     DateTime @default(now())
-  atualizado_em DateTime @updatedAt
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  nome           String
+  descricao      String?
+  capa_url       String?
+  capa_url_light String?
+  icone          String?
+  cor_destaque   String?
+  ordem          Int      @default(0)
+  publicado      Boolean  @default(false)
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @updatedAt
 
   disciplinas Disciplina[]
 
@@ -55,21 +55,21 @@ model Curso {
 }
 
 model Disciplina {
-  id              String   @id @default(uuid())
-  curso_id        String
-  slug            String
-  nome            String
-  descricao       String?
-  capa_url        String?
-  capa_url_light  String?
-  icone           String?
-  cor_destaque  String?
-  ordem         Int      @default(0)
-  publicado     Boolean  @default(false)
-  criado_em     DateTime @default(now())
-  atualizado_em DateTime @updatedAt
+  id             String   @id @default(uuid())
+  curso_id       String
+  slug           String
+  nome           String
+  descricao      String?
+  capa_url       String?
+  capa_url_light String?
+  icone          String?
+  cor_destaque   String?
+  ordem          Int      @default(0)
+  publicado      Boolean  @default(false)
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @updatedAt
 
-  curso      Curso      @relation(fields: [curso_id], references: [id])
+  curso      Curso       @relation(fields: [curso_id], references: [id])
   areas      Area[]
   simulacoes Simulacao[]
 
@@ -78,17 +78,17 @@ model Disciplina {
 }
 
 model Area {
-  id              String   @id @default(uuid())
-  disciplina_id   String
-  slug            String
-  nome            String
-  descricao       String?
-  capa_url        String?
-  capa_url_light  String?
-  ordem           Int      @default(0)
-  publicado     Boolean    @default(false)
-  criado_em     DateTime   @default(now())
-  atualizado_em DateTime   @updatedAt
+  id             String   @id @default(uuid())
+  disciplina_id  String
+  slug           String
+  nome           String
+  descricao      String?
+  capa_url       String?
+  capa_url_light String?
+  ordem          Int      @default(0)
+  publicado      Boolean  @default(false)
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @updatedAt
 
   disciplina Disciplina @relation(fields: [disciplina_id], references: [id])
   topicos    Topico[]
@@ -114,16 +114,17 @@ model Topico {
   criado_em            DateTime @default(now())
   atualizado_em        DateTime @updatedAt
 
-  area        Area              @relation(fields: [area_id], references: [id])
-  video       Video?
-  artigo      Artigo?
+  area           Area                 @relation(fields: [area_id], references: [id])
+  video          Video?
+  artigo         Artigo?
   imagens        ImagemTopico[]
   grupos_imagens GrupoImagensTopico[]
   tabelas        TabelaTopico[]
-  quizzes     TopicoQuiz[]
-  simulacoes  TopicoSimulacao[]
-  progresso   ProgressoTopico[]
-  itens_pasta ItemPasta[]
+  quizzes        TopicoQuiz[]
+  simulacoes     TopicoSimulacao[]
+  progresso      ProgressoTopico[]
+  itens_pasta    ItemPasta[]
+  modelos_3d     TopicoModelo3D[]
 
   @@unique([area_id, slug])
   @@map("topicos")
@@ -135,8 +136,8 @@ model Video {
   id              String   @id @default(uuid())
   topico_id       String   @unique
   titulo          String
-  descricao       String?  // texto introdutório antes do vídeo
-  legenda         String?  // texto curto na caixa caption abaixo do vídeo
+  descricao       String? // texto introdutório antes do vídeo
+  legenda         String? // texto curto na caixa caption abaixo do vídeo
   mux_asset_id    String?
   mux_playback_id String?
   mux_status      String?
@@ -200,26 +201,26 @@ model ImagemTopico {
 // ─── TABELAS DE RESUMO ─────────────────────────────────
 
 model TabelaTopico {
-  id         String       @id @default(uuid())
+  id         String @id @default(uuid())
   topico_id  String
   titulo     String
-  tipo       String       @default("resumen") // resumen | estudio
-  ordem      Int          @default(0)
-  cabecalhos Json         @default("[]") // string[] extra column headers beyond Categoría+Contenido
+  tipo       String @default("resumen") // resumen | estudio
+  ordem      Int    @default(0)
+  cabecalhos Json   @default("[]") // string[] extra column headers beyond Categoría+Contenido
 
-  topico Topico       @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  topico Topico        @relation(fields: [topico_id], references: [id], onDelete: Cascade)
   linhas TabelaLinha[]
 
   @@map("tabelas_topico")
 }
 
 model TabelaLinha {
-  id           String @id @default(uuid())
-  tabela_id    String
-  categoria    String
-  conteudo     String @db.Text
-  ordem        Int    @default(0)
-  valores_extra Json  @default("[]") // string[] extra column values
+  id            String @id @default(uuid())
+  tabela_id     String
+  categoria     String
+  conteudo      String @db.Text
+  ordem         Int    @default(0)
+  valores_extra Json   @default("[]") // string[] extra column values
 
   tabela TabelaTopico @relation(fields: [tabela_id], references: [id], onDelete: Cascade)
 
@@ -312,7 +313,7 @@ model Questao {
   imagem_url String?
   tipo       TipoQuestao @default(MULTIPLA_ESCOLHA)
   explicacao String?     @db.Text
-  termo      String?     // termo coberto pela questão — gera "Lo que aprenderás"
+  termo      String? // termo coberto pela questão — gera "Lo que aprenderás"
   ordem      Int         @default(0)
 
   quiz   Quiz    @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
@@ -409,4 +410,59 @@ model ItemPasta {
   @@id([pasta_id, topico_id])
   @@index([topico_id])
   @@map("itens_pasta")
+}
+
+// ─── ATLAS 3D (ADR 0017) ───────────────────────────────
+
+// Biblioteca de modelos 3D (GLB), reutilizável em vários tópicos
+model Modelo3D {
+  id            String   @id @default(uuid())
+  titulo        String
+  descricao     String?
+  // Caminho do GLB no bucket `modelos-3d` (vazio até o upload)
+  arquivo_path  String?
+  tamanho_bytes Int?
+  // Licença e crédito do autor (CC-BY exige atribuição)
+  licenca       String?
+  creditos      String?
+  publicado     Boolean  @default(false)
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  pontos  PontoModelo3D[]
+  topicos TopicoModelo3D[]
+
+  @@map("modelos_3d")
+}
+
+// Ponto numerado sobre o modelo: posição na superfície, ângulo de câmera e texto explicativo
+model PontoModelo3D {
+  id        String  @id @default(uuid())
+  modelo_id String
+  ordem     Int     @default(0)
+  titulo    String
+  texto     String?
+  // Formato do model-viewer: "x y z" (metros), normal "x y z", órbita "theta phi raio", alvo "x y z"
+  posicao   String
+  normal    String?
+  orbita    String?
+  alvo      String?
+
+  modelo Modelo3D @relation(fields: [modelo_id], references: [id], onDelete: Cascade)
+
+  @@index([modelo_id, ordem])
+  @@map("pontos_modelo_3d")
+}
+
+model TopicoModelo3D {
+  topico_id String
+  modelo_id String
+  ordem     Int    @default(0)
+
+  topico Topico   @relation(fields: [topico_id], references: [id], onDelete: Cascade)
+  modelo Modelo3D @relation(fields: [modelo_id], references: [id], onDelete: Cascade)
+
+  @@id([topico_id, modelo_id])
+  @@index([modelo_id])
+  @@map("topico_modelos_3d")
 }

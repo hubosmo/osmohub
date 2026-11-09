@@ -5,6 +5,7 @@ import {
   LayoutPanelLeft,
   Gamepad2,
   HelpCircle,
+  Box,
   Users,
   ArrowLeft,
 } from "lucide-react";
@@ -15,6 +16,7 @@ const ADMIN_NAV = [
   { href: "/admin/content", label: "Contenido", icon: LayoutPanelLeft },
   { href: "/admin/simulaciones", label: "Simulaciones", icon: Gamepad2 },
   { href: "/admin/quizzes", label: "Quizzes", icon: HelpCircle },
+  { href: "/admin/modelos-3d", label: "Modelos 3D", icon: Box },
   { href: "/admin/usuarios", label: "Usuarios", icon: Users },
 ];
 

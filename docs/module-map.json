@@ -645,6 +645,32 @@
         "topico_simulacoes"
       ]
     },
+    "admin.modelos3d": {
+      "status": "in_progress",
+      "description": "Atlas 3D: biblioteca de modelos GLB no admin, com upload direto ao Storage e pré-visualização",
+      "files": [
+        "src/app/(admin)/admin/modelos-3d/page.tsx",
+        "src/app/(admin)/admin/modelos-3d/[id]/page.tsx",
+        "src/components/admin/panels/Modelo3DPanel.tsx",
+        "src/components/admin/Modelo3DUpload.tsx",
+        "src/components/student/ModeloViewer.tsx",
+        "src/lib/actions/content-modelos3d.ts",
+        "src/lib/db/modelos3d.ts",
+        "src/lib/modelos3d.ts",
+        "scripts/criar-bucket-modelos3d.mjs"
+      ],
+      "depends_on": [
+        "layout.admin",
+        "foundation.prisma"
+      ],
+      "used_by": [],
+      "tables": [
+        "modelos_3d",
+        "pontos_modelo_3d",
+        "topico_modelos_3d"
+      ],
+      "notes": "Pendentes: bucket modelos-3d e migration no Supabase, vínculo com o tópico, editor de pontos e visualização do aluno (ADR 0017)."
+    },
     "admin.quizzes": {
       "status": "done",
       "description": "Quiz builder standalone no admin — criação, edição, questões e vinculação a tópicos",
