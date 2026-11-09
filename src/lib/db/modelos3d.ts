@@ -16,6 +16,7 @@ export async function getModelo3dAdmin(id: string) {
     where: { id },
     include: {
       _count: { select: { pontos: true, topicos: true } },
+      pontos: { orderBy: { ordem: "asc" } },
     },
   });
 }
@@ -44,7 +45,14 @@ export async function getModelos3dDoTopico(topicoId: string) {
   const vinculos = await prisma.topicoModelo3D.findMany({
     where: { topico_id: topicoId, modelo: { publicado: true, arquivo_path: { not: null } } },
     orderBy: { ordem: "asc" },
-    select: { modelo: { select: { id: true, titulo: true, descricao: true, arquivo_path: true, licenca: true, creditos: true } } },
+    select: {
+      modelo: {
+        select: {
+          id: true, titulo: true, descricao: true, arquivo_path: true, licenca: true, creditos: true,
+          pontos: { orderBy: { ordem: "asc" }, select: { id: true, titulo: true, texto: true, posicao: true, normal: true, orbita: true, alvo: true } },
+        },
+      },
+    },
   });
   return vinculos.map((v) => v.modelo);
 }

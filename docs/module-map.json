@@ -656,6 +656,9 @@
         "src/components/student/ModeloViewer.tsx",
         "src/components/student/TopicAtlas3DSection.tsx",
         "src/components/admin/Modelo3DLinker.tsx",
+        "src/components/admin/PontosEditor.tsx",
+        "src/lib/pontos3d.ts",
+        "src/lib/actions/content-modelos3d-pontos.ts",
         "src/lib/actions/content-modelos3d.ts",
         "src/lib/db/modelos3d.ts",
         "src/lib/modelos3d.ts",
@@ -671,7 +674,7 @@
         "pontos_modelo_3d",
         "topico_modelos_3d"
       ],
-      "notes": "Vínculo com o tópico e seção do aluno prontos. Pendentes: bucket modelos-3d e migration no Supabase, editor de pontos e navegação por pontos (ADR 0017)."
+      "notes": "Biblioteca, vínculo com o tópico, editor de pontos e navegação do aluno prontos. Pendente: verificar no navegador com um GLB real; reordenar pontos (ADR 0017)."
     },
     "admin.quizzes": {
       "status": "done",

@@ -15,6 +15,7 @@ type ModelViewerAtributos = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLE
   "camera-target"?: string;
   "field-of-view"?: string;
   "interaction-prompt"?: string;
+  "interpolation-decay"?: string;
   "auto-rotate"?: boolean;
 };
 

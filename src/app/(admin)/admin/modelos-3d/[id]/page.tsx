@@ -39,6 +39,7 @@ export default async function Modelo3dEditPage({ params }: Props) {
         arquivo_url: modelo.arquivo_path ? urlPublicaDoArquivo(env.NEXT_PUBLIC_SUPABASE_URL, modelo.arquivo_path) : null,
         pontos: modelo._count.pontos,
         topicos: modelo._count.topicos,
+        listaPontos: modelo.pontos,
       }} />
     </div>
   );

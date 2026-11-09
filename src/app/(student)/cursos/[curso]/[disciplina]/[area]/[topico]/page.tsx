@@ -60,7 +60,7 @@ export default async function TopicoPage({ params }: PageProps) {
 
   // Atlas 3D: consulta separada; se as tabelas ainda não existem no banco, a seção simplesmente não aparece
   const modelos3d: ModeloParaAluno[] = (await getModelos3dDoTopico(topico.id).catch(() => [])).flatMap((m) =>
-    m.arquivo_path ? [{ id: m.id, titulo: m.titulo, descricao: m.descricao, licenca: m.licenca, creditos: m.creditos, url: urlPublicaDoArquivo(env.NEXT_PUBLIC_SUPABASE_URL, m.arquivo_path) }] : [],
+    m.arquivo_path ? [{ id: m.id, titulo: m.titulo, descricao: m.descricao, licenca: m.licenca, creditos: m.creditos, pontos: m.pontos, url: urlPublicaDoArquivo(env.NEXT_PUBLIC_SUPABASE_URL, m.arquivo_path) }] : [],
   );
 
   const hasQuiz = topico._count.quizzes > 0;

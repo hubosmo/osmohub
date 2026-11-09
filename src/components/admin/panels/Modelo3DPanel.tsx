@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AdminSaveForm } from "@/components/admin/AdminSaveForm";
 import { Modelo3DUpload } from "@/components/admin/Modelo3DUpload";
-import { ModeloViewer } from "@/components/student/ModeloViewer";
+import { PontosEditor, type PontoEditavel } from "@/components/admin/PontosEditor";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { atualizarModelo3d, excluirModelo3d } from "@/lib/actions/content-modelos3d";
 import { CREDITOS_MAX, DESCRICAO_MAX, LICENCAS_SUGERIDAS, LICENCA_MAX, TITULO_MAX, formatarTamanho } from "@/lib/modelos3d";
@@ -21,6 +21,7 @@ export type Modelo3DData = {
   arquivo_url: string | null;
   pontos: number;
   topicos: number;
+  listaPontos: PontoEditavel[];
 };
 
 const SECAO = { border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" };
@@ -37,10 +38,10 @@ export function Modelo3DPanel({ data }: { data: Modelo3DData }) {
   return (
     <div className="flex flex-col gap-4">
       <section className="rounded-xl p-4" style={SECAO}>
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Archivo 3D</h3>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Archivo 3D y puntos</h3>
         {data.arquivo_url ? (
           <div className="mb-3">
-            <ModeloViewer src={data.arquivo_url} alt={data.titulo} className="h-80" />
+            <PontosEditor modeloId={data.id} src={data.arquivo_url} titulo={data.titulo} pontos={data.listaPontos} />
             {data.tamanho_bytes && (
               <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>Tamaño: {formatarTamanho(data.tamanho_bytes)}</p>
             )}
