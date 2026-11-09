@@ -405,7 +405,7 @@ tabelas              → tabelas por tópico (titulo, tipo, cabecalhos JSON)
 linhas_tabela        → linhas de uma tabela (categoria, conteudo, valores_extra JSON)
 progresso_topicos    → video_assistido, artigo_lido, simulacoes_concluidas por (user, topico)
 tentativas_quiz      → histórico de quizzes do aluno (pontuação calculada no servidor)
-pastas               → pastas do aluno (pai_id, nivel 1..3, nome, descricao); RLS ligado, sem acesso direto do cliente
+pastas               → pastas do aluno (pai_id, nivel 1..3, niveis_max 1..3 escolhido na raiz, nome, descricao); RLS ligado, sem acesso direto do cliente
 itens_pasta          → referência pasta ↔ tópico + concluido (um tópico pode estar em várias pastas)
 simulacoes           → biblioteca de simulações reutilizáveis (tipo, config JSON)
 topico_simulacoes    → vinculo simulação ↔ tópico

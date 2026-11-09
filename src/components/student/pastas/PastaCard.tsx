@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeAwareCapa } from "@/components/student/ThemeAwareCapa";
 import { CapaPastaPadrao } from "./CapaPastaPadrao";
 
 interface PastaCardProps {
@@ -23,16 +24,30 @@ export function PastaCard({ href, nome, descricao, subpastas, temas, variante }:
     return (
       <Link
         href={href}
-        className="group flex flex-col rounded-2xl overflow-hidden transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+        className="group relative block aspect-[3/4] overflow-hidden rounded-2xl transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
         style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)" }}
       >
-        <CapaPastaPadrao className="h-40" iconSize={44} />
-        <div className="px-4 py-3">
-          <p className="text-base font-semibold leading-snug truncate" style={{ color: "var(--accent)" }}>{nome}</p>
+        <ThemeAwareCapa
+          capaUrlDark="/capa-mi-plan-escuro.png"
+          capaUrlLight="/capa-mi-plan-claro.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+        {/* Reflexo que varre a capa no hover (igual ao das capas de curso) */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 -translate-x-full skew-x-[-20deg] transition-transform duration-700 ease-in-out group-hover:translate-x-[200%]"
+          style={{ background: "linear-gradient(to right, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)", width: "60%" }}
+        />
+        {/* Escurecimento do rodapé: mesma cor das capas de curso, por tema */}
+        <div
+          className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-16"
+          style={{ background: "linear-gradient(to top, var(--capa-overlay) 0%, transparent 100%)" }}
+        >
+          <p className="text-base font-semibold leading-snug line-clamp-2 text-white">{nome}</p>
           {descricao && (
-            <p className="mt-1 text-xs leading-relaxed line-clamp-2" style={{ color: "var(--text-secondary)" }}>{descricao}</p>
+            <p className="mt-1 text-xs leading-relaxed line-clamp-2 text-white/80">{descricao}</p>
           )}
-          <p className="mt-2 text-[11px]" style={{ color: "var(--text-muted)" }}>{contagem(subpastas, temas)}</p>
+          <p className="mt-2 text-xs text-white/70">{contagem(subpastas, temas)}</p>
         </div>
       </Link>
     );

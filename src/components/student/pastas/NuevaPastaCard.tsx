@@ -18,7 +18,7 @@ export function NuevaPastaCard({ paiId, variante }: NuevaPastaCardProps) {
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className={`flex cursor-pointer items-center justify-center gap-2 text-sm font-semibold transition-colors hover:border-[var(--accent)] ${alta ? "min-h-56 flex-col rounded-2xl" : "min-h-32 rounded-xl"}`}
+        className={`flex cursor-pointer items-center justify-center gap-2 text-sm font-semibold transition-colors hover:border-[var(--accent)] ${alta ? "aspect-[3/4] flex-col rounded-2xl" : "min-h-32 rounded-xl"}`}
         style={{ border: "2px dashed var(--border)", color: "var(--text-secondary)", backgroundColor: "transparent" }}
       >
         <Plus className="h-6 w-6" style={{ color: "var(--accent)" }} aria-hidden="true" />

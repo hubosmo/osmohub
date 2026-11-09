@@ -7,10 +7,23 @@ export const MAX_ITENS_POR_PASTA = 200;
 export const NOME_MAX = 60;
 export const DESCRICAO_MAX = 300;
 
-// A pasta da raiz tem nível 1. Só se cria subpasta se o pai ainda não está no último nível.
-export function nivelDaNovaPasta(nivelDoPai: number | null): number | null {
+// A pasta da raiz tem nível 1. Cada árvore admite de 1 a NIVEL_MAXIMO níveis, escolhidos pelo aluno ao criar a raiz
+// (1 = a pasta guarda os temas direto, sem subpastas). A subpasta herda esse limite da raiz.
+export const NIVEIS_ESCOLHIVEIS = [1, 2, 3] as const;
+
+export function niveisValidos(niveis: number): boolean {
+  return Number.isInteger(niveis) && niveis >= 1 && niveis <= NIVEL_MAXIMO;
+}
+
+// nivelDoPai = null cria uma pasta na raiz (sempre possível). Com pai, só cabe se o pai ainda não está no último nível da árvore.
+export function nivelDaNovaPasta(nivelDoPai: number | null, niveisMaxDaArvore: number = NIVEL_MAXIMO): number | null {
   if (nivelDoPai === null) return 1;
-  return nivelDoPai < NIVEL_MAXIMO ? nivelDoPai + 1 : null;
+  return nivelDoPai < Math.min(niveisMaxDaArvore, NIVEL_MAXIMO) ? nivelDoPai + 1 : null;
+}
+
+// Uma pasta aceita subpastas enquanto não está no último nível da sua árvore
+export function aceitaSubpastas(nivel: number, niveisMax: number): boolean {
+  return nivelDaNovaPasta(nivel, niveisMax) !== null;
 }
 
 export const dadosPastaSchema = z.object({

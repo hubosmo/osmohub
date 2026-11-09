@@ -298,6 +298,8 @@ model Pasta {
   usuario_id    String
   pai_id        String?
   nivel         Int      @default(1)
+  // Quantos níveis a árvore desta pasta admite (1 a 3). Escolhido na criação da pasta da raiz e herdado pelas subpastas.
+  niveis_max    Int      @default(3)
   nome          String
   descricao     String?
   criado_em     DateTime @default(now())

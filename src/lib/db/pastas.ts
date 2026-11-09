@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, nivelDaNovaPasta, type DadosPasta } from "@/lib/pastas";
+import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, NIVEL_MAXIMO, nivelDaNovaPasta, niveisValidos, type DadosPasta } from "@/lib/pastas";
 
 // Toda função recebe o usuarioId da SESSÃO e o inclui no filtro: pasta de outro usuário se comporta como inexistente.
 
@@ -7,6 +7,7 @@ export type PastaResumo = {
   id: string;
   pai_id: string | null;
   nivel: number;
+  niveis_max: number;
   nome: string;
   descricao: string | null;
   _count: { itens: number; filhas: number };
@@ -17,7 +18,7 @@ export async function listarPastasDoUsuario(usuarioId: string): Promise<PastaRes
     where: { usuario_id: usuarioId },
     orderBy: { criado_em: "asc" },
     select: {
-      id: true, pai_id: true, nivel: true, nome: true, descricao: true,
+      id: true, pai_id: true, nivel: true, niveis_max: true, nome: true, descricao: true,
       _count: { select: { itens: true, filhas: true } },
     },
     take: MAX_PASTAS_POR_ALUNO,
@@ -28,23 +29,27 @@ export type ResultadoCriarPasta = { ok: true; id: string } | { ok: false; erro: 
 
 export async function criarPasta(
   usuarioId: string,
-  dados: DadosPasta & { paiId: string | null },
+  dados: DadosPasta & { paiId: string | null; niveis?: number },
 ): Promise<ResultadoCriarPasta> {
   const total = await prisma.pasta.count({ where: { usuario_id: usuarioId } });
   if (total >= MAX_PASTAS_POR_ALUNO) return { ok: false, erro: "limite" };
 
+  // Na raiz, o aluno escolhe quantos níveis a árvore admite; a subpasta herda o limite do pai
   let nivelDoPai: number | null = null;
+  let niveisMax = dados.niveis ?? NIVEL_MAXIMO;
   if (dados.paiId) {
-    const pai = await prisma.pasta.findFirst({ where: { id: dados.paiId, usuario_id: usuarioId }, select: { nivel: true } });
+    const pai = await prisma.pasta.findFirst({ where: { id: dados.paiId, usuario_id: usuarioId }, select: { nivel: true, niveis_max: true } });
     if (!pai) return { ok: false, erro: "pai" };
     nivelDoPai = pai.nivel;
+    niveisMax = pai.niveis_max;
   }
+  if (!niveisValidos(niveisMax)) return { ok: false, erro: "nivel" };
 
-  const nivel = nivelDaNovaPasta(nivelDoPai);
+  const nivel = nivelDaNovaPasta(nivelDoPai, niveisMax);
   if (nivel === null) return { ok: false, erro: "nivel" };
 
   const criada = await prisma.pasta.create({
-    data: { usuario_id: usuarioId, pai_id: dados.paiId, nivel, nome: dados.nome, descricao: dados.descricao },
+    data: { usuario_id: usuarioId, pai_id: dados.paiId, nivel, niveis_max: niveisMax, nome: dados.nome, descricao: dados.descricao },
     select: { id: true },
   });
   return { ok: true, id: criada.id };

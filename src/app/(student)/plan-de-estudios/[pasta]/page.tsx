@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth/session";
 import { listarItensDaPasta, listarPastasDoUsuario } from "@/lib/db/pastas";
 import { getStatusDosTopicos } from "@/lib/db/progresso";
-import { NIVEL_MAXIMO } from "@/lib/pastas";
+import { aceitaSubpastas } from "@/lib/pastas";
 import type { StatusTopico } from "@/lib/progresso";
 import { PlanoShell } from "@/components/student/pastas/PlanoShell";
 import { PastaCard } from "@/components/student/pastas/PastaCard";
@@ -50,7 +50,7 @@ export default async function PastaPage({ params }: PageProps) {
       </div>
       {pasta.descricao && <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>{pasta.descricao}</p>}
 
-      {pasta.nivel < NIVEL_MAXIMO && (
+      {aceitaSubpastas(pasta.nivel, pasta.niveis_max) && (
         <section className="mt-6 mb-10">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Subcarpetas</h2>
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>

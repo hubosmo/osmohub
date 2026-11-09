@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getUsuarioSincronizado } from "@/lib/auth/session";
 import { atualizarPasta, criarPasta, definirItemConcluido, definirTopicoNaPasta, excluirPasta } from "@/lib/db/pastas";
-import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, NIVEL_MAXIMO, dadosPastaSchema } from "@/lib/pastas";
+import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, NIVEL_MAXIMO, dadosPastaSchema, niveisValidos } from "@/lib/pastas";
 
 // Actions do aluno (Mi Plan). Cada uma usa o usuário da SESSÃO e a camada de dados filtra pelo dono: um id de
 // pasta de outro usuário se comporta como inexistente. Devolvem o erro em espanhol, nunca lançam.
@@ -16,21 +16,25 @@ const FALHA = "No se pudo completar la acción. Intenta de nuevo.";
 
 const revalidar = () => revalidatePath("/plan-de-estudios", "layout");
 
-export async function criarPastaAction(entrada: { paiId?: string | null; nome: string; descricao?: string }): Promise<ResultadoAcao> {
+export async function criarPastaAction(entrada: { paiId?: string | null; nome: string; descricao?: string; niveis?: number }): Promise<ResultadoAcao> {
   const dados = dadosPastaSchema.safeParse({ nome: entrada.nome, descricao: entrada.descricao });
   if (!dados.success) return { ok: false, erro: dados.error.issues[0].message };
 
   const paiId = entrada.paiId ?? null;
   if (paiId !== null && !idSchema.safeParse(paiId).success) return { ok: false, erro: FALHA };
 
+  // Só vale para pasta da raiz; subpasta herda o limite do pai
+  const niveis = entrada.niveis ?? NIVEL_MAXIMO;
+  if (paiId === null && !niveisValidos(niveis)) return { ok: false, erro: FALHA };
+
   const user = await getUsuarioSincronizado();
   if (!user) return { ok: false, erro: SEM_SESSAO };
 
-  const r = await criarPasta(user.id, { ...dados.data, paiId });
+  const r = await criarPasta(user.id, { ...dados.data, paiId, niveis });
   if (!r.ok) {
     const erros = {
       limite: `Alcanzaste el límite de ${MAX_PASTAS_POR_ALUNO} carpetas.`,
-      nivel: `Las carpetas admiten hasta ${NIVEL_MAXIMO} niveles.`,
+      nivel: "Esta carpeta no admite más subcarpetas.",
       pai: "La carpeta superior no existe.",
     };
     return { ok: false, erro: erros[r.erro] };

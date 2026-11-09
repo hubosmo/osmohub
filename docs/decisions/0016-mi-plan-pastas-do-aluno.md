@@ -11,6 +11,7 @@ O aluno precisa organizar o próprio estudo: criar pastas (com nome, descrição
 
 **Regras decididas com o produto:**
 - Até **3 níveis** de pastas: a pasta da raiz é o nível 1, e há no máximo dois níveis de subpastas dentro dela. Verificado no servidor.
+- **O aluno escolhe a profundidade ao criar a pasta da raiz** (atualizado em 2026-11-09): 1 nível (a pasta guarda os temas direto, sem subpastas), 2 ou 3. Fica gravado em `pastas.niveis_max` e as subpastas herdam o valor da raiz; o banco impede `nivel > niveis_max` (migration `20261109120000_pastas_niveis_max`). Pastas criadas antes ficam com 3. Mudar a profundidade depois da criação não existe ainda. O atalho de criar pasta pelo marcador do tópico usa 3.
 - Um tópico pode estar em **várias pastas** (a chave de `ItemPasta` é pasta + tópico).
 - Capa: **uma capa padrão para todos**, desenhada no código. Capa enviada pelo aluno fica para uma fase futura, em bucket separado, não listável, com limite de tamanho e de quantidade por aluno. Não se adiciona coluna de capa agora.
 - Cada item pode ser **marcado como concluído** manualmente pelo aluno. Isso é independente do status automático do tópico ([ADR 0015](0015-progresso-do-topico.md)); a pasta mostra os dois. Sem datas previstas (o campo `data_prevista` do modelo antigo sai).

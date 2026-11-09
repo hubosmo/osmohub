@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { LoadingButton } from "@/components/ui/LoadingButton";
 import { atualizarPastaAction, criarPastaAction } from "@/lib/actions/pastas";
-import { DESCRICAO_MAX, NOME_MAX } from "@/lib/pastas";
+import { DESCRICAO_MAX, NIVEIS_ESCOLHIVEIS, NOME_MAX } from "@/lib/pastas";
 
 export type ModoFormPasta =
   | { tipo: "criar"; paiId: string | null }
@@ -18,6 +18,12 @@ interface PastaFormModalProps {
   onCriada?: (id: string) => void;
 }
 
+const OPCOES_NIVEIS: Record<number, { titulo: string; detalhe: string }> = {
+  1: { titulo: "Solo esta carpeta", detalhe: "Guardas los temas directamente, sin subcarpetas." },
+  2: { titulo: "Carpeta y subcarpetas", detalhe: "Dos niveles: la carpeta y las subcarpetas dentro de ella." },
+  3: { titulo: "Hasta tres niveles", detalhe: "Subcarpetas dentro de subcarpetas, para organizar al detalle." },
+};
+
 const CAMPO = "w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)]";
 const ESTILO_CAMPO = { backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" };
 
@@ -26,6 +32,7 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
   const editando = modo.tipo === "editar";
   const [nome, setNome] = useState(editando ? modo.nome : "");
   const [descricao, setDescricao] = useState(editando ? (modo.descricao ?? "") : "");
+  const [niveis, setNiveis] = useState<number>(3);
   const [erro, setErro] = useState<string | null>(null);
   const [pendente, iniciar] = useTransition();
 
@@ -35,7 +42,7 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
     iniciar(async () => {
       const r = editando
         ? await atualizarPastaAction(modo.pastaId, { nome, descricao })
-        : await criarPastaAction({ paiId: modo.paiId, nome, descricao });
+        : await criarPastaAction({ paiId: modo.paiId, nome, descricao, niveis });
       if (!r.ok) {
         setErro(r.erro);
         return;
@@ -70,6 +77,29 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
         />
       </div>
 
+      {/* Só a pasta da raiz escolhe a profundidade; as subpastas herdam */}
+      {!editando && modo.paiId === null && (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-1 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>¿Cómo quieres organizarla?</legend>
+          {NIVEIS_ESCOLHIVEIS.map((n) => (
+            <label
+              key={n} htmlFor={`pasta-niveis-${n}`}
+              className="flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition-colors"
+              style={{ border: `1px solid ${niveis === n ? "var(--accent)" : "var(--border)"}`, backgroundColor: niveis === n ? "color-mix(in srgb, var(--accent) 8%, var(--bg-surface))" : "transparent" }}
+            >
+              <input
+                id={`pasta-niveis-${n}`} type="radio" name="pasta-niveis" value={n}
+                checked={niveis === n} onChange={() => setNiveis(n)} className="mt-1 accent-[var(--accent)]"
+              />
+              <span>
+                <span className="block text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{OPCOES_NIVEIS[n].titulo}</span>
+                <span className="block text-xs" style={{ color: "var(--text-secondary)" }}>{OPCOES_NIVEIS[n].detalhe}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+
       {erro && <p role="alert" className="text-xs" style={{ color: "var(--error)" }}>{erro}</p>}
 
       <div className="flex gap-3">
@@ -84,7 +114,7 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
 
 export function PastaFormModal({ open, onClose, modo, onCriada }: PastaFormModalProps) {
   return (
-    <Modal open={open} onClose={onClose} label={modo.tipo === "editar" ? "Editar carpeta" : "Nueva carpeta"}>
+    <Modal open={open} onClose={onClose} panelClassName="max-h-[90vh] overflow-y-auto" label={modo.tipo === "editar" ? "Editar carpeta" : "Nueva carpeta"}>
       <Formulario modo={modo} onClose={onClose} onCriada={onCriada} />
     </Modal>
   );
