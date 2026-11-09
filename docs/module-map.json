@@ -443,6 +443,7 @@
         "src/components/student/pastas/ItemPastaRow.tsx",
         "src/components/student/pastas/SalvarTopicoButton.tsx",
         "src/components/student/pastas/SalvarTopicoSlot.tsx",
+        "src/components/student/pastas/BuscadorTemasPasta.tsx",
         "src/components/student/StatusBadge.tsx"
       ],
       "depends_on": [
