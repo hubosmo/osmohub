@@ -39,6 +39,22 @@ export const dadosPastaSchema = z.object({
 export type DadosPasta = z.output<typeof dadosPastaSchema>;
 
 export type NoPasta = { id: string; pai_id: string | null };
+export type NoPastaComNivel = NoPasta & { nivel: number };
+
+// Ids da pasta e de todas as suas descendentes
+export function idsDaArvore(pastas: NoPasta[], raizId: string): string[] {
+  const ids = [raizId];
+  for (let i = 0; i < ids.length; i++) {
+    for (const p of pastas) if (p.pai_id === ids[i] && !ids.includes(p.id)) ids.push(p.id);
+  }
+  return ids;
+}
+
+// Nível mais fundo já usado na árvore da pasta: a profundidade da raiz não pode ficar abaixo disso
+export function nivelMaisFundoDaArvore(pastas: NoPastaComNivel[], raizId: string): number {
+  const ids = new Set(idsDaArvore(pastas, raizId));
+  return pastas.filter((p) => ids.has(p.id)).reduce((m, p) => Math.max(m, p.nivel), 1);
+}
 
 // Ordena em profundidade (cada pasta seguida das suas filhas) e informa a profundidade, para listar em árvore.
 // Irmãs mantêm a ordem de entrada; pasta cujo pai não está na lista é tratada como raiz.

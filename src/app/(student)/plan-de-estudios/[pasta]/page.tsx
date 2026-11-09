@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth/session";
 import { listarItensDaPasta, listarPastasDoUsuario } from "@/lib/db/pastas";
 import { getStatusDosTopicos } from "@/lib/db/progresso";
-import { aceitaSubpastas } from "@/lib/pastas";
+import { aceitaSubpastas, nivelMaisFundoDaArvore } from "@/lib/pastas";
 import type { StatusTopico } from "@/lib/progresso";
 import { PlanoShell } from "@/components/student/pastas/PlanoShell";
 import { PastaCard } from "@/components/student/pastas/PastaCard";
@@ -49,7 +49,10 @@ export default async function PastaPage({ params }: PageProps) {
     <PlanoShell migalhas={cadeia.map((p) => ({ nome: p.nome, href: `/plan-de-estudios/${p.id}` }))}>
       <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>{pasta.nome}</h1>
-        <PastaAcoes pastaId={pasta.id} nome={pasta.nome} descricao={pasta.descricao} voltarPara={voltarPara} />
+        <PastaAcoes
+          pastaId={pasta.id} nome={pasta.nome} descricao={pasta.descricao} voltarPara={voltarPara}
+          niveis={pasta.pai_id === null ? { atual: pasta.niveis_max, minimo: nivelMaisFundoDaArvore(todas, pasta.id) } : undefined}
+        />
       </div>
       {pasta.descricao && <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>{pasta.descricao}</p>}
 
@@ -61,6 +64,7 @@ export default async function PastaPage({ params }: PageProps) {
               <PastaCard
                 key={p.id} variante="horizontal" href={`/plan-de-estudios/${p.id}`}
                 nome={p.nome} descricao={p.descricao} subpastas={p._count.filhas} temas={p._count.itens}
+                menu={<PastaAcoes variante="menu" pastaId={p.id} nome={p.nome} descricao={p.descricao} />}
               />
             ))}
             <NuevaPastaCard paiId={pasta.id} variante="horizontal" />

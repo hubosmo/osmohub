@@ -8,7 +8,11 @@ import { DESCRICAO_MAX, NIVEIS_ESCOLHIVEIS, NOME_MAX } from "@/lib/pastas";
 
 export type ModoFormPasta =
   | { tipo: "criar"; paiId: string | null }
-  | { tipo: "editar"; pastaId: string; nome: string; descricao: string | null };
+  | {
+      tipo: "editar"; pastaId: string; nome: string; descricao: string | null;
+      // Só em pasta da raiz: profundidade atual e o nível mais fundo já em uso (não dá para reduzir abaixo dele)
+      niveis?: { atual: number; minimo: number };
+    };
 
 interface PastaFormModalProps {
   open: boolean;
@@ -32,7 +36,9 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
   const editando = modo.tipo === "editar";
   const [nome, setNome] = useState(editando ? modo.nome : "");
   const [descricao, setDescricao] = useState(editando ? (modo.descricao ?? "") : "");
-  const [niveis, setNiveis] = useState<number>(3);
+  const [niveis, setNiveis] = useState<number>(modo.tipo === "editar" ? (modo.niveis?.atual ?? 3) : 3);
+  const minimoNiveis = modo.tipo === "editar" ? (modo.niveis?.minimo ?? 1) : 1;
+  const escolheNiveis = modo.tipo === "editar" ? modo.niveis !== undefined : modo.paiId === null;
   const [erro, setErro] = useState<string | null>(null);
   const [pendente, iniciar] = useTransition();
 
@@ -41,7 +47,7 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
     setErro(null);
     iniciar(async () => {
       const r = editando
-        ? await atualizarPastaAction(modo.pastaId, { nome, descricao })
+        ? await atualizarPastaAction(modo.pastaId, { nome, descricao, niveis: modo.niveis ? niveis : undefined })
         : await criarPastaAction({ paiId: modo.paiId, nome, descricao, niveis });
       if (!r.ok) {
         setErro(r.erro);
@@ -78,25 +84,30 @@ function Formulario({ modo, onClose, onCriada }: Omit<PastaFormModalProps, "open
       </div>
 
       {/* Só a pasta da raiz escolhe a profundidade; as subpastas herdam */}
-      {!editando && modo.paiId === null && (
+      {escolheNiveis && (
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>¿Cómo quieres organizarla?</legend>
-          {NIVEIS_ESCOLHIVEIS.map((n) => (
+          {NIVEIS_ESCOLHIVEIS.map((n) => {
+            const bloqueado = n < minimoNiveis;
+            return (
             <label
               key={n} htmlFor={`pasta-niveis-${n}`}
-              className="flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition-colors"
+              className={`flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${bloqueado ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
               style={{ border: `1px solid ${niveis === n ? "var(--accent)" : "var(--border)"}`, backgroundColor: niveis === n ? "color-mix(in srgb, var(--accent) 8%, var(--bg-surface))" : "transparent" }}
             >
               <input
                 id={`pasta-niveis-${n}`} type="radio" name="pasta-niveis" value={n}
-                checked={niveis === n} onChange={() => setNiveis(n)} className="mt-1 accent-[var(--accent)]"
+                checked={niveis === n} onChange={() => setNiveis(n)} disabled={bloqueado} className="mt-1 accent-[var(--accent)]"
               />
               <span>
                 <span className="block text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{OPCOES_NIVEIS[n].titulo}</span>
-                <span className="block text-xs" style={{ color: "var(--text-secondary)" }}>{OPCOES_NIVEIS[n].detalhe}</span>
+                <span className="block text-xs" style={{ color: "var(--text-secondary)" }}>
+                  {bloqueado ? `No disponible: ya tienes subcarpetas en el nivel ${minimoNiveis}.` : OPCOES_NIVEIS[n].detalhe}
+                </span>
               </span>
             </label>
-          ))}
+            );
+          })}
         </fieldset>
       )}
 

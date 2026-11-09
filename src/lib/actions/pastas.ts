@@ -43,15 +43,19 @@ export async function criarPastaAction(entrada: { paiId?: string | null; nome: s
   return { ok: true, id: r.id };
 }
 
-export async function atualizarPastaAction(pastaId: string, entrada: { nome: string; descricao?: string }): Promise<ResultadoAcao> {
-  const dados = dadosPastaSchema.safeParse(entrada);
+export async function atualizarPastaAction(pastaId: string, entrada: { nome: string; descricao?: string; niveis?: number }): Promise<ResultadoAcao> {
+  const dados = dadosPastaSchema.safeParse({ nome: entrada.nome, descricao: entrada.descricao });
   if (!dados.success) return { ok: false, erro: dados.error.issues[0].message };
   if (!idSchema.safeParse(pastaId).success) return { ok: false, erro: FALHA };
 
   const user = await getUsuarioSincronizado();
   if (!user) return { ok: false, erro: SEM_SESSAO };
 
-  if (!(await atualizarPasta(user.id, pastaId, dados.data))) return { ok: false, erro: "La carpeta no existe." };
+  if (entrada.niveis !== undefined && !niveisValidos(entrada.niveis)) return { ok: false, erro: FALHA };
+
+  const r = await atualizarPasta(user.id, pastaId, { ...dados.data, niveis: entrada.niveis });
+  if (r === "pasta") return { ok: false, erro: "La carpeta no existe." };
+  if (r === "nivel") return { ok: false, erro: "No puedes reducir los niveles: ya tienes subcarpetas en un nivel más profundo." };
   revalidar();
   return { ok: true };
 }

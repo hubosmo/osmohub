@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, NIVEL_MAXIMO, nivelDaNovaPasta, niveisValidos, type DadosPasta } from "@/lib/pastas";
+import { MAX_ITENS_POR_PASTA, MAX_PASTAS_POR_ALUNO, NIVEL_MAXIMO, idsDaArvore, nivelDaNovaPasta, nivelMaisFundoDaArvore, niveisValidos, type DadosPasta } from "@/lib/pastas";
 
 // Toda função recebe o usuarioId da SESSÃO e o inclui no filtro: pasta de outro usuário se comporta como inexistente.
 
@@ -55,12 +55,35 @@ export async function criarPasta(
   return { ok: true, id: criada.id };
 }
 
-export async function atualizarPasta(usuarioId: string, pastaId: string, dados: DadosPasta): Promise<boolean> {
-  const r = await prisma.pasta.updateMany({
-    where: { id: pastaId, usuario_id: usuarioId },
-    data: { nome: dados.nome, descricao: dados.descricao },
-  });
-  return r.count > 0;
+export type ResultadoAtualizarPasta = "ok" | "pasta" | "nivel";
+
+// Edita nome e descrição. Em pasta da raiz, `niveis` muda a profundidade da árvore inteira: aumentar sempre pode;
+// reduzir só se nenhuma subpasta já usa um nível além do novo limite (nunca corta conteúdo).
+export async function atualizarPasta(
+  usuarioId: string,
+  pastaId: string,
+  dados: DadosPasta & { niveis?: number },
+): Promise<ResultadoAtualizarPasta> {
+  const pasta = await prisma.pasta.findFirst({ where: { id: pastaId, usuario_id: usuarioId }, select: { id: true, pai_id: true, niveis_max: true } });
+  if (!pasta) return "pasta";
+
+  const mudaProfundidade = dados.niveis !== undefined && pasta.pai_id === null && dados.niveis !== pasta.niveis_max;
+  if (!mudaProfundidade) {
+    await prisma.pasta.updateMany({ where: { id: pastaId, usuario_id: usuarioId }, data: { nome: dados.nome, descricao: dados.descricao } });
+    return "ok";
+  }
+
+  const niveis = dados.niveis as number;
+  if (!niveisValidos(niveis)) return "nivel";
+  const todas = await prisma.pasta.findMany({ where: { usuario_id: usuarioId }, select: { id: true, pai_id: true, nivel: true } });
+  if (niveis < nivelMaisFundoDaArvore(todas, pastaId)) return "nivel";
+
+  const ids = idsDaArvore(todas, pastaId);
+  await prisma.$transaction([
+    prisma.pasta.updateMany({ where: { id: { in: ids }, usuario_id: usuarioId }, data: { niveis_max: niveis } }),
+    prisma.pasta.updateMany({ where: { id: pastaId, usuario_id: usuarioId }, data: { nome: dados.nome, descricao: dados.descricao } }),
+  ]);
+  return "ok";
 }
 
 // As subpastas e os itens saem junto (cascata no banco); os tópicos não são tocados

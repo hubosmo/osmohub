@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ThemeAwareCapa } from "@/components/student/ThemeAwareCapa";
 import { CapaPastaPadrao } from "./CapaPastaPadrao";
 
@@ -10,6 +11,8 @@ interface PastaCardProps {
   temas: number;
   // "alta": card vertical das pastas da raiz (como os cursos); "horizontal": subpastas (como as disciplinas)
   variante: "alta" | "horizontal";
+  // Menu de opções (editar/eliminar), posicionado sobre o canto do card sem ficar dentro do link
+  menu?: ReactNode;
 }
 
 function contagem(subpastas: number, temas: number) {
@@ -19,9 +22,20 @@ function contagem(subpastas: number, temas: number) {
   return partes.join(" · ");
 }
 
-export function PastaCard({ href, nome, descricao, subpastas, temas, variante }: PastaCardProps) {
+function ComMenu({ menu, children }: { menu?: ReactNode; children: ReactNode }) {
+  if (!menu) return <>{children}</>;
+  return (
+    <div className="relative">
+      {children}
+      <div className="absolute right-2 top-2 z-20">{menu}</div>
+    </div>
+  );
+}
+
+export function PastaCard({ href, nome, descricao, subpastas, temas, variante, menu }: PastaCardProps) {
   if (variante === "alta") {
     return (
+      <ComMenu menu={menu}>
       <Link
         href={href}
         className="group relative block aspect-[3/4] overflow-hidden rounded-2xl transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
@@ -50,10 +64,12 @@ export function PastaCard({ href, nome, descricao, subpastas, temas, variante }:
           <p className="mt-2 text-xs text-white/70">{contagem(subpastas, temas)}</p>
         </div>
       </Link>
+      </ComMenu>
     );
   }
 
   return (
+    <ComMenu menu={menu}>
     <Link
       href={href}
       className="group flex rounded-xl overflow-hidden transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
@@ -70,5 +86,6 @@ export function PastaCard({ href, nome, descricao, subpastas, temas, variante }:
         <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{contagem(subpastas, temas)}</p>
       </div>
     </Link>
+    </ComMenu>
   );
 }

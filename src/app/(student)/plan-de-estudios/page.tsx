@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { FolderOpen } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/session";
 import { listarPastasDoUsuario } from "@/lib/db/pastas";
+import { nivelMaisFundoDaArvore } from "@/lib/pastas";
 import { PlanoShell } from "@/components/student/pastas/PlanoShell";
 import { PastaCard } from "@/components/student/pastas/PastaCard";
 import { NuevaPastaCard } from "@/components/student/pastas/NuevaPastaCard";
+import { PastaAcoes } from "@/components/student/pastas/PastaAcoes";
 
 export const metadata: Metadata = { title: "Mi plan" };
 
@@ -13,7 +15,8 @@ export default async function PlanDeEstudiosPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const raiz = (await listarPastasDoUsuario(user.id)).filter((p) => p.pai_id === null);
+  const todas = await listarPastasDoUsuario(user.id);
+  const raiz = todas.filter((p) => p.pai_id === null);
 
   return (
     <PlanoShell migalhas={[]}>
@@ -34,6 +37,7 @@ export default async function PlanDeEstudiosPage() {
           <PastaCard
             key={p.id} variante="alta" href={`/plan-de-estudios/${p.id}`}
             nome={p.nome} descricao={p.descricao} subpastas={p._count.filhas} temas={p._count.itens}
+            menu={<PastaAcoes variante="menu" pastaId={p.id} nome={p.nome} descricao={p.descricao} niveis={{ atual: p.niveis_max, minimo: nivelMaisFundoDaArvore(todas, p.id) }} />}
           />
         ))}
         <NuevaPastaCard paiId={null} variante="alta" />
