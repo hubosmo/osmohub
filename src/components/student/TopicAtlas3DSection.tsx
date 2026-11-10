@@ -39,26 +39,23 @@ function Cartao({ modelo, idPrimeiro }: { modelo: ModeloParaAluno; idPrimeiro?: 
           <ModeloViewer
             src={modelo.url} alt={modelo.titulo} className="h-[420px]"
             pontos={modelo.pontos} selecionadoId={pontoId} onSelecionar={setPontoId}
-          >
-            {ponto && (
+            legenda={ponto && (
+              // Caixa compacta ao lado do ponto: o título e o texto ficam perto do que o aluno está olhando
               <div
                 role="dialog" aria-label={ponto.titulo}
-                className="absolute inset-x-3 bottom-3 max-h-[60%] overflow-y-auto rounded-xl p-4 shadow-lg"
+                className="rounded-lg p-2.5 shadow-lg"
                 style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent)" }}
               >
-                <div className="flex items-start gap-2">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: "var(--accent)" }}>
-                    {modelo.pontos.findIndex((p) => p.id === ponto.id) + 1}
-                  </span>
-                  <h3 className="flex-1 text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{ponto.titulo}</h3>
+                <div className="flex items-start gap-1.5">
+                  <h3 className="flex-1 text-xs font-semibold leading-snug" style={{ color: "var(--text-primary)" }}>{ponto.titulo}</h3>
                   <button type="button" onClick={() => setPontoId(null)} aria-label="Cerrar explicación" className="shrink-0 cursor-pointer" style={{ color: "var(--text-muted)" }}>
-                    <X className="h-4 w-4" aria-hidden="true" />
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 </div>
-                {ponto.texto && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{ponto.texto}</p>}
+                {ponto.texto && <p className="mt-1 max-h-32 overflow-y-auto whitespace-pre-line text-xs leading-snug" style={{ color: "var(--text-secondary)" }}>{ponto.texto}</p>}
               </div>
             )}
-          </ModeloViewer>
+          />
           {modelo.pontos.length > 0 && (
             <ol className="flex flex-wrap gap-2" aria-label="Puntos del modelo">
               {modelo.pontos.map((p, i) => (

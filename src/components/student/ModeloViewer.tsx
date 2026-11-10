@@ -29,23 +29,43 @@ interface ModeloViewerProps {
   // Editor: com esta função, os pontos podem ser arrastados sobre a superfície; ela recebe a posição em cada movimento
   onMoverPonto?: (id: string, p: PosicaoNoModelo) => void;
   controleRef?: Ref<ModeloViewerControle>;
+  // Caixa de explicação exibida ao lado do ponto selecionado
+  legenda?: ReactNode;
   // Conteúdo sobreposto ao visualizador (ex.: caixa de texto do ponto)
   children?: ReactNode;
 }
 
 const LIMITE_ARRASTE_PX = 6;
+const LEGENDA_LARGURA = 220;
+// Distância mínima entre a legenda e a borda do visualizador
+const LEGENDA_FOLGA = 24;
+
+type PosicaoLegenda = { h: "dir" | "esq"; v: "topo" | "centro" | "base"; largura: number };
+
+// A legenda fica sobre o visualizador: cliques e roda do mouse dentro dela não devem girar nem dar zoom no modelo
+function isolarEventos(el: HTMLElement | null) {
+  if (!el) return;
+  const parar = (e: Event) => e.stopPropagation();
+  el.addEventListener("pointerdown", parar);
+  el.addEventListener("wheel", parar, { passive: true });
+  return () => {
+    el.removeEventListener("pointerdown", parar);
+    el.removeEventListener("wheel", parar);
+  };
+}
 // Gatilho local do decodificador Meshopt (ver o comentário do arquivo): não depende de CDN
 const DECODIFICADOR_MESHOPT = "/vendor/meshopt-ativar.js";
 
 // Visualizador 3D (<model-viewer>, Apache-2.0). A biblioteca só é baixada quando o componente aparece na tela
 // e o modelo só é buscado quando o aluno chega perto dele (loading="lazy").
 export function ModeloViewer({
-  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, onMoverPonto, controleRef, children,
+  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, onMoverPonto, controleRef, legenda, children,
 }: ModeloViewerProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [estado, setEstado] = useState<"carregando" | "pronto" | "erro">("carregando");
   // O modelo só recebe o `src` depois que o decodificador foi configurado: se o carregamento começasse antes, falharia
   const [pronta, setPronta] = useState(false);
+  const [posLegenda, setPosLegenda] = useState<PosicaoLegenda>({ h: "dir", v: "centro", largura: LEGENDA_LARGURA });
   const onColocarRef = useRef(onColocar);
   const modoColocarRef = useRef(modoColocar);
   const onMoverRef = useRef(onMoverPonto);
@@ -161,6 +181,34 @@ export function ModeloViewer({
     return () => el.removeEventListener("pointerdown", aoPressionarPonto, true);
   }, []);
 
+  // Legenda: escolhe o lado (direita ou esquerda do ponto) e o alinhamento vertical conforme o espaço que sobra no visualizador
+  const temLegenda = legenda != null;
+  useEffect(() => {
+    const mv = ref.current;
+    if (!mv || !selecionadoId || !temLegenda) return;
+    const calcular = () => {
+      const botao = mv.querySelector<HTMLElement>(`[data-ponto-id="${selecionadoId}"]`);
+      if (!botao) return;
+      const a = botao.getBoundingClientRect();
+      const c = mv.getBoundingClientRect();
+      const direita = c.right - a.right;
+      const esquerda = a.left - c.left;
+      const h = direita >= LEGENDA_LARGURA + LEGENDA_FOLGA || direita >= esquerda ? "dir" : "esq";
+      const espaco = h === "dir" ? direita : esquerda;
+      const largura = Math.round(Math.min(LEGENDA_LARGURA, Math.max(120, espaco - LEGENDA_FOLGA)) / 10) * 10;
+      const v = a.top - c.top < 90 ? "topo" : c.bottom - a.bottom < 90 ? "base" : "centro";
+      setPosLegenda((atual) => (atual.h === h && atual.v === v && atual.largura === largura ? atual : { h, v, largura }));
+    };
+    const quadro = requestAnimationFrame(calcular);
+    mv.addEventListener("camera-change", calcular);
+    window.addEventListener("resize", calcular);
+    return () => {
+      cancelAnimationFrame(quadro);
+      mv.removeEventListener("camera-change", calcular);
+      window.removeEventListener("resize", calcular);
+    };
+  }, [selecionadoId, temLegenda]);
+
   // Ponto selecionado: a câmera se orienta sozinha até a vista gravada (o model-viewer anima a transição)
   useEffect(() => {
     const mv = viewer();
@@ -191,27 +239,41 @@ export function ModeloViewer({
         style={{ width: "100%", height: "100%", minHeight: 320, display: "block", background: "transparent" }}
       >
         {pontos.map((p, i) => (
-          <button
-            key={p.id}
-            type="button"
-            slot={`hotspot-${p.id}`}
-            data-position={p.posicao}
-            data-normal={p.normal ?? undefined}
-            data-visibility-attribute="visible"
-            data-ponto-id={p.id}
-            aria-label={`Punto ${i + 1}`}
-            aria-pressed={p.id === selecionadoId}
-            onClick={() => onSelecionar?.(p.id)}
-            className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold opacity-30 transition-all data-visible:opacity-100 ${onMoverPonto ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${p.id === selecionadoId ? "scale-125" : ""}`}
-            style={{
-              touchAction: onMoverPonto ? "none" : undefined,
-              backgroundColor: p.id === selecionadoId ? "var(--accent)" : "var(--bg-surface)",
-              borderColor: "var(--accent)",
-              color: p.id === selecionadoId ? "white" : "var(--accent)",
-            }}
-          >
-            {i + 1}
-          </button>
+          // O elemento com `slot` é posicionado pelo model-viewer (e recebe data-visible); por isso o conteúdo vai num filho
+          <div key={p.id} slot={`hotspot-${p.id}`} className="group" data-position={p.posicao} data-normal={p.normal ?? undefined} data-visibility-attribute="visible">
+            <div className="relative">
+              <button
+                type="button"
+                data-ponto-id={p.id}
+                aria-label={`Punto ${i + 1}`}
+                aria-pressed={p.id === selecionadoId}
+                onClick={() => onSelecionar?.(p.id)}
+                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold opacity-30 transition-all group-data-[visible]:opacity-100 ${onMoverPonto ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${p.id === selecionadoId ? "scale-125" : ""}`}
+                style={{
+                  touchAction: onMoverPonto ? "none" : undefined,
+                  backgroundColor: p.id === selecionadoId ? "var(--accent)" : "var(--bg-surface)",
+                  borderColor: "var(--accent)",
+                  color: p.id === selecionadoId ? "white" : "var(--accent)",
+                }}
+              >
+                {i + 1}
+              </button>
+              {legenda && p.id === selecionadoId && (
+                // Legenda compacta ao lado do ponto (não cobre o ponto nem a região em foco); muda de lado quando falta espaço
+                <div
+                  ref={isolarEventos}
+                  className="absolute opacity-0 transition-opacity group-data-[visible]:opacity-100"
+                  style={{
+                    width: posLegenda.largura,
+                    ...(posLegenda.h === "dir" ? { left: "calc(100% + 14px)" } : { right: "calc(100% + 14px)" }),
+                    ...(posLegenda.v === "topo" ? { top: -4 } : posLegenda.v === "base" ? { bottom: -4 } : { top: "50%", transform: "translateY(-50%)" }),
+                  }}
+                >
+                  {legenda}
+                </div>
+              )}
+            </div>
+          </div>
         ))}
       </model-viewer>
       {estado === "carregando" && (
