@@ -5,6 +5,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TopLoader } from "@/components/layout/TopLoader";
 import { SplashScreen } from "@/components/brand/SplashScreen";
+import { SCRIPT_SPLASH_JA_VISTO } from "@/lib/splash";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -42,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="es-419" suppressHydrationWarning>
       <body className={montserrat.variable}>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_SPLASH_JA_VISTO }} />
         <TopLoader />
         <QueryProvider>
           <ThemeProvider>

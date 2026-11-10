@@ -406,3 +406,22 @@ iframe:fullscreen {
     max-height: 100svh;
   }
 }
+
+/* ── Tela de abertura (SplashScreen.tsx) ──
+   O overlay já vai no HTML do servidor, então cobre o primeiro quadro (sem piscar a tela de login).
+   Uma sessão que já viu a abertura recebe data-splash="visto" por um script antes da hidratação. */
+html[data-splash="visto"] .osmo-splash {
+  display: none;
+}
+/* Imagem de fundo só no celular: no desktop o fundo escuro liso continua, e a imagem nem é baixada */
+.osmo-splash-imagem {
+  display: none;
+  background-image: url("/inicio-movil.webp");
+  background-size: cover;
+  background-position: center;
+}
+@media (max-width: 1023px) {
+  .osmo-splash-imagem {
+    display: block;
+  }
+}
