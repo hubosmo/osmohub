@@ -4,6 +4,8 @@ import { useState, useRef, useTransition } from "react";
 import { Upload, Images, BookImage, X, Loader2, Check } from "lucide-react";
 import { uploadImagemQuiz, listarImagensGaleria } from "@/lib/actions/content-quiz-imagens";
 import { Modal } from "@/components/ui/Modal";
+import { COMPRESSAO_ATLAS, comprimirImagem } from "@/lib/comprimir-imagem";
+import { formatarTamanho } from "@/lib/modelos3d";
 
 interface GaleriaData {
   quiz: { id: string; url: string; nome: string }[];
@@ -25,6 +27,8 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [preview, setPreview] = useState<string | null>(null);
+  const [optimizando, setOptimizando] = useState(false);
+  const [infoOtimizacao, setInfoOtimizacao] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function openPicker() {
@@ -46,10 +50,22 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
     if (t !== "upload" && !galeria) loadGallery();
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreview(URL.createObjectURL(file));
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const original = e.target.files?.[0];
+    if (!original) return;
+    // Reduz antes do envio e deixa no input a versão leve, que é a que handleUpload lê
+    setOptimizando(true);
+    const { arquivo, antes, depois, reduziu } = await comprimirImagem(original, COMPRESSAO_ATLAS);
+    setOptimizando(false);
+    if (reduziu) {
+      const dt = new DataTransfer();
+      dt.items.add(arquivo);
+      if (fileRef.current) fileRef.current.files = dt.files;
+      setInfoOtimizacao(`Optimizada: ${formatarTamanho(antes)} → ${formatarTamanho(depois)}`);
+    } else {
+      setInfoOtimizacao(null);
+    }
+    setPreview(URL.createObjectURL(arquivo));
   }
 
   function handleUpload() {
@@ -63,6 +79,7 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
         onChange(url);
         setOpen(false);
         setPreview(null);
+        setInfoOtimizacao(null);
         if (fileRef.current) fileRef.current.value = "";
         // Refresh galeria
         const data = await listarImagensGaleria();
@@ -214,21 +231,21 @@ export function QuizImagePicker({ quizId, value, onChange, label, compact = fals
                   {preview ? "Cambiar archivo" : "Clic para seleccionar imagen"}
                 </span>
                 <span className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
-                  JPG, PNG, WebP — máx 5 MB
+                  {optimizando ? "Optimizando…" : infoOtimizacao ?? "JPG, PNG, WebP — se optimiza automáticamente"}
                 </span>
                 <input
                   ref={fileRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleFileChange}
+                  onChange={(e) => { void handleFileChange(e); }}
                 />
               </label>
 
               <button
                 type="button"
                 onClick={handleUpload}
-                disabled={!preview || isPending}
+                disabled={!preview || isPending || optimizando}
                 className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-40"
                 style={{ backgroundColor: "var(--accent)" }}
               >

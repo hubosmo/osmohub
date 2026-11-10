@@ -4,6 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import { Upload, Link2, X, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MiniEditor } from "@/components/editor/MiniEditor";
+import { COMPRESSAO_ATLAS, comprimirImagem } from "@/lib/comprimir-imagem";
+import { formatarTamanho } from "@/lib/modelos3d";
 
 type Props = {
   action: (formData: FormData) => Promise<void>;
@@ -15,15 +17,21 @@ export function ImageUploadForm({ action, compact = false }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [optimizando, setOptimizando] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) {
+  async function handleFile(original: File) {
+    if (!original.type.startsWith("image/")) {
       toast.error("Solo se aceptan archivos de imagen.");
       return;
     }
+    // Reduz a imagem antes do envio: o aluno recebe um arquivo leve e o carrossel não fica com quadros vazios
+    setOptimizando(true);
+    const { arquivo: file, antes, depois, reduziu } = await comprimirImagem(original, COMPRESSAO_ATLAS);
+    setOptimizando(false);
+    if (reduziu) toast.success(`Imagen optimizada: ${formatarTamanho(antes)} → ${formatarTamanho(depois)}`);
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -37,7 +45,7 @@ export function ImageUploadForm({ action, compact = false }: Props) {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    if (file) void handleFile(file);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -118,7 +126,7 @@ export function ImageUploadForm({ action, compact = false }: Props) {
                 Arrastra una imagen o <span style={{ color: "var(--accent)" }}>haz clic para seleccionar</span>
               </p>
               <p className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
-                JPG, PNG, WebP · máx. 5 MB
+                JPG, PNG, WebP · se optimiza automáticamente
               </p>
             </div>
           )}
@@ -128,7 +136,7 @@ export function ImageUploadForm({ action, compact = false }: Props) {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
           />
         </div>
       )}
@@ -160,11 +168,11 @@ export function ImageUploadForm({ action, compact = false }: Props) {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || optimizando}
           className="px-5 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-60"
           style={{ backgroundColor: "var(--accent)" }}
         >
-          {isPending ? "Subiendo…" : compact ? "Agregar" : "Agregar imagen"}
+          {isPending ? "Subiendo…" : optimizando ? "Optimizando…" : compact ? "Agregar" : "Agregar imagen"}
         </button>
       </div>
     </form>

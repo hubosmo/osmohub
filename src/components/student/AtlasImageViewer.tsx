@@ -72,6 +72,8 @@ export function AtlasImageViewer({ src, alt }: Props) {
         alt={alt}
         className="w-full h-auto block"
         draggable={false}
+        // Decodifica junto com o desenho: a imagem já pré-carregada aparece no primeiro quadro, sem piscar
+        decoding="sync"
         onLoad={() => setReady(true)}
         style={{ opacity: ready ? 1 : 0, transition: "opacity 0.2s ease" }}
       />

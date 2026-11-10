@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useImagePreload } from "@/hooks/useImagePreload";
-import { ChevronLeft, ChevronRight, AlignJustify } from "lucide-react";
+import { imagemPronta, preloadImage } from "@/lib/image-preload";
+import { ChevronLeft, ChevronRight, AlignJustify, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AtlasImageViewer } from "./AtlasImageViewer";
 import { CollapsibleCaption } from "./CollapsibleCaption";
@@ -24,18 +25,32 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
   const [showList, setShowList] = useState(false);
   const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Espera da imagem de destino: enquanto ela não está pronta, o slide não começa a deslizar
+  const [carregando, setCarregando] = useState<1 | -1 | null>(null);
+  const trocando = useRef(false);
   const total = imagens.length;
   const current = imagens[idx];
 
-  useImagePreload(total > 1
-    ? [imagens[idx < total - 1 ? idx + 1 : 0].url, imagens[idx > 0 ? idx - 1 : total - 1].url]
-    : []);
+  // Pré-carrega duas imagens para cada lado do slide atual (sem repetir nem incluir a própria)
+  const vizinhas = total > 1
+    ? [...new Set([1, 2, -1, -2].map((d) => (idx + d + total * 2) % total))].filter((i) => i !== idx).map((i) => imagens[i].url)
+    : [];
+  useImagePreload(vizinhas);
 
   if (total === 0) return null;
 
-  function navigate(newIdx: number, direction: 1 | -1) {
-    if (prevIdx !== null) return; // bloqueia durante animação
-    // Congela a altura atual para evitar colapso enquanto a nova imagem carrega
+  async function navigate(newIdx: number, direction: 1 | -1) {
+    if (prevIdx !== null || trocando.current) return; // bloqueia durante animação e durante a espera
+    trocando.current = true;
+    // Só anima com a imagem de destino carregada e decodificada: evita deslizar um quadro vazio
+    const alvo = imagens[newIdx].url;
+    if (!imagemPronta(alvo)) {
+      setCarregando(direction);
+      await preloadImage(alvo);
+      setCarregando(null);
+    }
+    trocando.current = false;
+    // Congela a altura atual para evitar colapso durante a animação
     if (containerRef.current) {
       setFrozenHeight(containerRef.current.offsetHeight);
     }
@@ -45,9 +60,9 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
     setShowList(false);
   }
 
-  function prev() { navigate(idx > 0 ? idx - 1 : total - 1, -1); }
-  function next() { navigate(idx < total - 1 ? idx + 1 : 0, 1); }
-  function goTo(i: number) { if (i !== idx) navigate(i, i > idx ? 1 : -1); }
+  function prev() { void navigate(idx > 0 ? idx - 1 : total - 1, -1); }
+  function next() { void navigate(idx < total - 1 ? idx + 1 : 0, 1); }
+  function goTo(i: number) { if (i !== idx) void navigate(i, i > idx ? 1 : -1); }
 
   const enterAnim = dir === 1 ? "atlas-enter-right" : "atlas-enter-left";
   const exitAnim  = dir === 1 ? "atlas-exit-left"  : "atlas-exit-right";
@@ -107,8 +122,9 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
               style={{ backgroundColor: "rgba(0,0,0,0.45)", color: "#fff" }}
               aria-label="Imagen anterior"
+              aria-busy={carregando !== null}
             >
-              <ChevronLeft className="h-4 w-4" />
+              {carregando === -1 ?<Loader2 className="h-4 w-4 animate-spin" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
             <button
               type="button"
@@ -116,8 +132,9 @@ export function AtlasCarousel({ titulo, legenda, modo_legenda, imagens }: Props)
               className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full transition-colors"
               style={{ backgroundColor: "rgba(0,0,0,0.45)", color: "#fff" }}
               aria-label="Imagen siguiente"
+              aria-busy={carregando !== null}
             >
-              <ChevronRight className="h-4 w-4" />
+              {carregando === 1 ?<Loader2 className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           </>
         )}
