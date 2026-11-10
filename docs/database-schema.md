@@ -393,6 +393,7 @@ model PontoModelo3D {   // ponto numerado sobre o modelo (formato do model-viewe
   normal    String?
   orbita    String? // "theta phi raio"
   alvo      String? // "x y z"
+  fov       Float?  // campo de visão da câmera em graus (zoom além do raio mínimo); nulo nos pontos antigos
   @@map("pontos_modelo_3d")
 }
 

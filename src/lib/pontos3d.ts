@@ -4,6 +4,8 @@ import { z } from "zod";
 export const MAX_PONTOS_POR_MODELO = 50;
 export const TITULO_PONTO_MAX = 80;
 export const TEXTO_PONTO_MAX = 1500;
+export const FOV_MIN = 1;
+export const FOV_MAX = 120;
 
 const NUM = "-?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[-+]?\\d+)?";
 // "x y z", com "m" opcional em cada valor (posição, normal e alvo da câmera)
@@ -36,6 +38,8 @@ export const dadosPontoSchema = z.object({
   normal: opcional(VETOR3, "Normal inválida."),
   orbita: opcional(ORBITA, "Vista de cámara inválida."),
   alvo: opcional(VETOR3, "Objetivo de cámara inválido."),
+  // Campo de visão da câmera (graus): é o que guarda o zoom mais próximo que o raio mínimo permite
+  fov: z.number().min(FOV_MIN, "Zoom inválido.").max(FOV_MAX, "Zoom inválido.").optional().nullable().transform((v) => v ?? null),
 });
 
 export type DadosPonto = z.output<typeof dadosPontoSchema>;

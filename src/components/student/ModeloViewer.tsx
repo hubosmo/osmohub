@@ -5,9 +5,11 @@ import type { ModelViewerElement } from "@google/model-viewer";
 import { Box, Loader2 } from "lucide-react";
 import { orbitaParaTexto, vetorParaTexto } from "@/lib/pontos3d";
 
-export type PontoNoModelo = { id: string; posicao: string; normal: string | null; orbita: string | null; alvo: string | null };
-export type VistaCamera = { orbita: string; alvo: string };
-export type ColocacaoNoModelo = VistaCamera & { posicao: string; normal: string };
+export type PontoNoModelo = { id: string; posicao: string; normal: string | null; orbita: string | null; alvo: string | null; fov: number | null };
+// A vista da câmera é órbita + alvo + campo de visão (o zoom mais próximo que o raio mínimo permite vem do campo de visão)
+export type VistaCamera = { orbita: string; alvo: string; fov: number | null };
+export type PosicaoNoModelo = { posicao: string; normal: string };
+export type ColocacaoNoModelo = VistaCamera & PosicaoNoModelo;
 
 // Controle imperativo: o editor do admin captura a câmera atual e move a câmera até um ponto
 export interface ModeloViewerControle {
@@ -24,42 +26,63 @@ interface ModeloViewerProps {
   // Editor: o próximo clique sobre o modelo (sem arrastar) devolve posição, normal e câmera
   modoColocar?: boolean;
   onColocar?: (c: ColocacaoNoModelo) => void;
+  // Editor: com esta função, os pontos podem ser arrastados sobre a superfície; ela recebe a posição em cada movimento
+  onMoverPonto?: (id: string, p: PosicaoNoModelo) => void;
   controleRef?: Ref<ModeloViewerControle>;
   // Conteúdo sobreposto ao visualizador (ex.: caixa de texto do ponto)
   children?: ReactNode;
 }
 
 const LIMITE_ARRASTE_PX = 6;
+// Gatilho local do decodificador Meshopt (ver o comentário do arquivo): não depende de CDN
+const DECODIFICADOR_MESHOPT = "/vendor/meshopt-ativar.js";
 
 // Visualizador 3D (<model-viewer>, Apache-2.0). A biblioteca só é baixada quando o componente aparece na tela
 // e o modelo só é buscado quando o aluno chega perto dele (loading="lazy").
 export function ModeloViewer({
-  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, controleRef, children,
+  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, onMoverPonto, controleRef, children,
 }: ModeloViewerProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [estado, setEstado] = useState<"carregando" | "pronto" | "erro">("carregando");
+  // O modelo só recebe o `src` depois que o decodificador foi configurado: se o carregamento começasse antes, falharia
+  const [pronta, setPronta] = useState(false);
   const onColocarRef = useRef(onColocar);
   const modoColocarRef = useRef(modoColocar);
+  const onMoverRef = useRef(onMoverPonto);
+  const onSelecionarRef = useRef(onSelecionar);
 
   useEffect(() => {
     onColocarRef.current = onColocar;
     modoColocarRef.current = modoColocar;
-  }, [onColocar, modoColocar]);
+    onMoverRef.current = onMoverPonto;
+    onSelecionarRef.current = onSelecionar;
+  }, [onColocar, modoColocar, onMoverPonto, onSelecionar]);
 
   const viewer = () => ref.current as unknown as ModelViewerElement | null;
 
   function capturarVista(): VistaCamera | null {
     const mv = viewer();
     if (!mv || typeof mv.getCameraOrbit !== "function") return null;
-    return { orbita: orbitaParaTexto(mv.getCameraOrbit()), alvo: vetorParaTexto(mv.getCameraTarget()) };
+    const fov = typeof mv.getFieldOfView === "function" ? mv.getFieldOfView() : null;
+    return {
+      orbita: orbitaParaTexto(mv.getCameraOrbit()),
+      alvo: vetorParaTexto(mv.getCameraTarget()),
+      fov: fov !== null && Number.isFinite(fov) ? Math.round(fov * 100) / 100 : null,
+    };
   }
   useImperativeHandle(controleRef, () => ({ capturarVista }));
 
   useEffect(() => {
     let ativo = true;
-    void import("@google/model-viewer").catch(() => {
-      if (ativo) setEstado("erro");
-    });
+    void import("@google/model-viewer")
+      .then(({ ModelViewerElement }) => {
+        // Modelos comprimidos com Meshopt (saída do gltf-transform) só abrem se o decodificador estiver configurado
+        ModelViewerElement.meshoptDecoderLocation = DECODIFICADOR_MESHOPT;
+        if (ativo) setPronta(true);
+      })
+      .catch(() => {
+        if (ativo) setEstado("erro");
+      });
     return () => { ativo = false; };
   }, []);
 
@@ -103,6 +126,41 @@ export function ModeloViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- capturarVista só lê o elemento; os demais valores vêm por ref
   }, []);
 
+  // Editor: arrastar um ponto sobre a superfície. O pressionar é interceptado na fase de captura para que o
+  // model-viewer não gire o modelo junto; o ponto segue o cursor e o clique simples continua selecionando.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const aoPressionarPonto = (e: PointerEvent) => {
+      if (!onMoverRef.current || modoColocarRef.current) return;
+      const alvo = e.target instanceof Element ? e.target.closest("[data-ponto-id]") : null;
+      const id = alvo?.getAttribute("data-ponto-id");
+      if (!id) return;
+      e.stopPropagation();
+      onSelecionarRef.current?.(id);
+      const origem = { x: e.clientX, y: e.clientY };
+      let arrastou = false;
+      const mover = (ev: PointerEvent) => {
+        if (!arrastou && Math.hypot(ev.clientX - origem.x, ev.clientY - origem.y) <= LIMITE_ARRASTE_PX) return;
+        arrastou = true;
+        const mv = viewer();
+        if (!mv || typeof mv.positionAndNormalFromPoint !== "function") return;
+        const acerto = mv.positionAndNormalFromPoint(ev.clientX, ev.clientY);
+        if (acerto) onMoverRef.current?.(id, { posicao: vetorParaTexto(acerto.position), normal: vetorParaTexto(acerto.normal) });
+      };
+      const soltar = () => {
+        window.removeEventListener("pointermove", mover);
+        window.removeEventListener("pointerup", soltar);
+        window.removeEventListener("pointercancel", soltar);
+      };
+      window.addEventListener("pointermove", mover);
+      window.addEventListener("pointerup", soltar);
+      window.addEventListener("pointercancel", soltar);
+    };
+    el.addEventListener("pointerdown", aoPressionarPonto, true);
+    return () => el.removeEventListener("pointerdown", aoPressionarPonto, true);
+  }, []);
+
   // Ponto selecionado: a câmera se orienta sozinha até a vista gravada (o model-viewer anima a transição)
   useEffect(() => {
     const mv = viewer();
@@ -110,6 +168,8 @@ export function ModeloViewer({
     if (!mv || !ponto) return;
     if (ponto.alvo) mv.cameraTarget = ponto.alvo;
     if (ponto.orbita) mv.cameraOrbit = ponto.orbita;
+    // Pontos antigos não têm zoom gravado: voltam ao enquadramento padrão em vez de herdar o zoom do ponto anterior
+    if (ponto.orbita) mv.fieldOfView = ponto.fov ? `${ponto.fov}deg` : "auto";
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só reage à troca do ponto selecionado
   }, [selecionadoId]);
 
@@ -120,7 +180,7 @@ export function ModeloViewer({
     >
       <model-viewer
         ref={ref}
-        src={src}
+        src={pronta ? src : undefined}
         alt={alt}
         camera-controls
         touch-action="pan-y"
@@ -138,11 +198,13 @@ export function ModeloViewer({
             data-position={p.posicao}
             data-normal={p.normal ?? undefined}
             data-visibility-attribute="visible"
+            data-ponto-id={p.id}
             aria-label={`Punto ${i + 1}`}
             aria-pressed={p.id === selecionadoId}
             onClick={() => onSelecionar?.(p.id)}
-            className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 text-xs font-bold opacity-30 transition-all data-visible:opacity-100 ${p.id === selecionadoId ? "scale-125" : ""}`}
+            className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold opacity-30 transition-all data-visible:opacity-100 ${onMoverPonto ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${p.id === selecionadoId ? "scale-125" : ""}`}
             style={{
+              touchAction: onMoverPonto ? "none" : undefined,
               backgroundColor: p.id === selecionadoId ? "var(--accent)" : "var(--bg-surface)",
               borderColor: "var(--accent)",
               color: p.id === selecionadoId ? "white" : "var(--accent)",

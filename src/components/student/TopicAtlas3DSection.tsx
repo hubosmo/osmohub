@@ -12,6 +12,7 @@ export type PontoParaAluno = {
   normal: string | null;
   orbita: string | null;
   alvo: string | null;
+  fov: number | null;
 };
 
 export type ModeloParaAluno = {
@@ -85,9 +86,12 @@ function Cartao({ modelo, idPrimeiro }: { modelo: ModeloParaAluno; idPrimeiro?: 
           className="group flex h-[260px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl transition-colors hover:border-[var(--accent)]"
           style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}
         >
-          <Box className="h-10 w-10 opacity-40" style={{ color: "var(--accent)" }} aria-hidden="true" />
-          <span className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
-            <Play className="h-4 w-4" aria-hidden="true" /> Ver en 3D
+          <Box className="h-10 w-10 opacity-40 transition-[opacity,transform] duration-200 group-hover:scale-110 group-hover:opacity-70" style={{ color: "var(--accent)" }} aria-hidden="true" />
+          <span
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-[filter,transform] duration-200 group-hover:brightness-110 group-active:scale-[0.98]"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            <Play className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" /> Ver en 3D
           </span>
         </button>
       )}

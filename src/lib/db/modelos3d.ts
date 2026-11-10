@@ -49,7 +49,7 @@ export async function getModelos3dDoTopico(topicoId: string) {
       modelo: {
         select: {
           id: true, titulo: true, descricao: true, arquivo_path: true, licenca: true, creditos: true,
-          pontos: { orderBy: { ordem: "asc" }, select: { id: true, titulo: true, texto: true, posicao: true, normal: true, orbita: true, alvo: true } },
+          pontos: { orderBy: { ordem: "asc" }, select: { id: true, titulo: true, texto: true, posicao: true, normal: true, orbita: true, alvo: true, fov: true } },
         },
       },
     },

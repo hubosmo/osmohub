@@ -447,6 +447,8 @@ model PontoModelo3D {
   normal    String?
   orbita    String?
   alvo      String?
+  // Campo de visão da câmera em graus (zoom além do raio mínimo); nulo nos pontos antigos
+  fov       Float?
 
   modelo Modelo3D @relation(fields: [modelo_id], references: [id], onDelete: Cascade)
 

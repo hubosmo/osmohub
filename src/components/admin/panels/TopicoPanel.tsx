@@ -272,7 +272,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
       )}
 
       {/* Simulaciones placeholder */}
-      <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", opacity: 0.6 }}>
+      <div className="mt-4 rounded-xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", opacity: 0.6 }}>
         <div className="flex items-center gap-2 mb-1">
           <Gamepad2 className="h-4 w-4" style={{ color: "var(--success)" }} />
           <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Simulaciones</span>
