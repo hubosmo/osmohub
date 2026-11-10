@@ -83,7 +83,7 @@ export default async function TopicoPage({ params }: PageProps) {
   return (
     // Escapa o padding do StudentLayout (px-4 lg:px-8 py-6)
     <div className="-mx-4 lg:-mx-8 -mt-6">
-      <TopicTour />
+      <TopicTour incluirAtlas3d={modelos3d.length > 0} />
       <LastTopicTracker data={{
         topicoId: topico.id,
         path: topicoPath,

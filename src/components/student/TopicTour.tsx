@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, ChevronLeft } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
 import { useLocalStorageValue } from "@/hooks/useStoredValue";
@@ -17,7 +17,7 @@ const SCROLL_TOP_OFFSET = BREADCRUMB_H + BREADCRUMB_GAP + SPOT_PAD;
 
 interface TargetRect { top: number; left: number; width: number; height: number; radius: number }
 
-const STEPS = [
+const PASOS_BASE = [
   {
     titulo: "Objetivos de aprendizaje",
     descripcion:
@@ -50,7 +50,23 @@ const STEPS = [
   },
 ];
 
-export function TopicTour() {
+const PASO_ATLAS_3D = {
+  titulo: "Atlas 3D",
+  descripcion:
+    "Explora el modelo en 3D: gíralo, acércalo y toca los puntos numerados para ver cada estructura con su descripción.",
+  targetId: "atlas3d-tour",
+};
+
+// El paso del atlas 3D solo existe cuando el tema tiene modelos; va justo después del atlas de imágenes
+function montarPasos(incluirAtlas3d: boolean) {
+  if (!incluirAtlas3d) return PASOS_BASE;
+  const i = PASOS_BASE.findIndex((p) => p.targetId === "atlas-tour");
+  const pos = i === -1 ? PASOS_BASE.findIndex((p) => p.targetId === "cuestionario-tour") : i + 1;
+  return [...PASOS_BASE.slice(0, pos), PASO_ATLAS_3D, ...PASOS_BASE.slice(pos)];
+}
+
+export function TopicTour({ incluirAtlas3d = false }: { incluirAtlas3d?: boolean }) {
+  const STEPS = useMemo(() => montarPasos(incluirAtlas3d), [incluirAtlas3d]);
   const isClient = useIsClient();
   const [tourSeen, markTourSeen] = useLocalStorageValue(TOUR_KEY);
   const visible = isClient && tourSeen === null;
@@ -92,7 +108,7 @@ export function TopicTour() {
       height: Math.min(bottom - top, maxH),
       radius,
     });
-  }, []);
+  }, [STEPS]);
 
   // Desktop only: lock scroll with scrollbar-width compensation to prevent layout shift.
   function lockScroll() {
@@ -137,7 +153,7 @@ export function TopicTour() {
       if (!isMobile) lockScroll();
       requestAnimationFrame(() => syncRect(step));
     }, 450);
-  }, [step, visible, syncRect, isMobile]);
+  }, [step, visible, syncRect, isMobile, STEPS]);
 
   // On mobile: keep rect in sync while user scrolls (no scroll lock)
   useEffect(() => {
