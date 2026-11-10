@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 type Props = {
-  html: string;
+  // Conteúdo expandido: HTML (legendas do editor) ou elementos React (ex.: pontos do modelo 3D).
+  // Sem nenhum dos dois, a barra aparece só com o título, sem expandir.
+  html?: string;
+  children?: ReactNode;
   title?: string;
   meta?: string;
 };
@@ -22,7 +25,7 @@ function extractTitle(html: string): { title: string; tag: "heading" | "para" | 
   return { title: "Leyenda", tag: "none" };
 }
 
-export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
+export function CollapsibleCaption({ html = "", children, title: titleProp, meta }: Props) {
   const [open, setOpen] = useState(false);
   const { title: extractedTitle, tag } = extractTitle(html);
   const title = titleProp ?? extractedTitle;
@@ -32,6 +35,16 @@ export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
     : tag === "para" && !titleProp
       ? html.replace(/<p[^>]*>.*?<\/p>/i, "")
       : html;
+
+  // Sem conteúdo para expandir: só a barra com o título (mesmo visual, sem botão)
+  if (!html && children == null) {
+    return (
+      <div className="flex items-center gap-2 px-5 py-2.5" style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}>
+        <span className="flex-1 min-w-0 truncate text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{title}</span>
+        {meta && <span className="text-xs shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>{meta}</span>}
+      </div>
+    );
+  }
 
   return (
     <div style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)" }}>
@@ -53,13 +66,20 @@ export function CollapsibleCaption({ html, title: titleProp, meta }: Props) {
       </button>
 
       {/* Content */}
-      {open && (
+      {open && (children != null ? (
+        <div
+          className="px-5 pb-4 pt-3 text-xs leading-relaxed border-t"
+          style={{ color: "var(--text-secondary)", borderColor: "var(--border)" }}
+        >
+          {children}
+        </div>
+      ) : (
         <div
           className="rich-content px-5 pb-4 text-xs leading-relaxed border-t"
           style={{ color: "var(--text-secondary)", borderColor: "var(--border)" }}
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
-      )}
+      ))}
     </div>
   );
 }

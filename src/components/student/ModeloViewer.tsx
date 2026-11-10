@@ -31,6 +31,8 @@ interface ModeloViewerProps {
   controleRef?: Ref<ModeloViewerControle>;
   // Caixa de explicação exibida ao lado do ponto selecionado
   legenda?: ReactNode;
+  // Sem borda nem cantos arredondados próprios: para quando o visualizador fica dentro de outro cartão
+  semBorda?: boolean;
   // Conteúdo sobreposto ao visualizador (ex.: caixa de texto do ponto)
   children?: ReactNode;
 }
@@ -59,7 +61,7 @@ const DECODIFICADOR_MESHOPT = "/vendor/meshopt-ativar.js";
 // Visualizador 3D (<model-viewer>, Apache-2.0). A biblioteca só é baixada quando o componente aparece na tela
 // e o modelo só é buscado quando o aluno chega perto dele (loading="lazy").
 export function ModeloViewer({
-  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, onMoverPonto, controleRef, legenda, children,
+  src, alt, className, pontos = [], selecionadoId = null, onSelecionar, modoColocar = false, onColocar, onMoverPonto, controleRef, legenda, semBorda = false, children,
 }: ModeloViewerProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [estado, setEstado] = useState<"carregando" | "pronto" | "erro">("carregando");
@@ -213,18 +215,19 @@ export function ModeloViewer({
   useEffect(() => {
     const mv = viewer();
     const ponto = pontos.find((p) => p.id === selecionadoId);
-    if (!mv || !ponto) return;
+    // Só depois do carregamento: um ponto escolhido antes (ex.: pela lista) é aplicado quando o modelo fica pronto
+    if (!mv || !ponto || estado !== "pronto") return;
     if (ponto.alvo) mv.cameraTarget = ponto.alvo;
     if (ponto.orbita) mv.cameraOrbit = ponto.orbita;
     // Pontos antigos não têm zoom gravado: voltam ao enquadramento padrão em vez de herdar o zoom do ponto anterior
     if (ponto.orbita) mv.fieldOfView = ponto.fov ? `${ponto.fov}deg` : "auto";
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- só reage à troca do ponto selecionado
-  }, [selecionadoId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só reage à troca do ponto selecionado e ao fim do carregamento
+  }, [selecionadoId, estado]);
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl ${className ?? ""}`}
-      style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", cursor: modoColocar ? "crosshair" : undefined }}
+      className={`relative overflow-hidden ${semBorda ? "" : "rounded-xl"} ${className ?? ""}`}
+      style={{ border: semBorda ? undefined : "1px solid var(--border)", backgroundColor: "var(--bg-elevated)", cursor: modoColocar ? "crosshair" : undefined }}
     >
       <model-viewer
         ref={ref}
