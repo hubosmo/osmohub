@@ -109,41 +109,40 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden"
+      className={`min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden ${isMobile ? "py-6" : "py-12"}`}
       style={{ backgroundColor: "var(--bg-base)" }}
     >
-      {/* Decoração lateral — só desktop */}
-      {!isMobile && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src="/Burbujas%20anat%C3%B3micas%20llenas%20de%20ternura.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute pointer-events-none select-none"
-          style={{
-            width: "55vw",
-            height: "auto",
-            opacity: 0.25,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            maskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
-            WebkitMaskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
-          }}
-        />
-      )}
+      {/* Imagem de fundo: no celular fica maior que a tela para ainda aparecer atrás do card menor */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/Burbujas%20anat%C3%B3micas%20llenas%20de%20ternura.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute pointer-events-none select-none"
+        style={{
+          width: isMobile ? "170vw" : "55vw",
+          maxWidth: "none",
+          height: "auto",
+          opacity: 0.25,
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          maskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
+          WebkitMaskImage: "radial-gradient(ellipse 75% 80% at 50% 50%, black 55%, transparent 92%)",
+        }}
+      />
 
       {pct >= PONTUACAO_APROVACAO && <ConfettiEffect />}
 
       <div
-        className="w-full max-w-sm rounded-2xl p-8 text-center shadow-xl"
+        className={`w-full rounded-2xl text-center shadow-xl ${isMobile ? "max-w-[18rem] p-5" : "max-w-sm p-8"}`}
         style={{ border: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", position: "relative", zIndex: 50 }}
       >
         {/* Saudação personalizada */}
-        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
+        <p className={`font-bold uppercase tracking-widest ${isMobile ? "text-[10px] mb-2" : "text-xs mb-3"}`} style={{ color: "var(--text-muted)" }}>
           Cuestionario completado
         </p>
-        <h2 className="text-2xl font-black leading-snug mb-5" style={{ color: "var(--text-primary)" }}>
+        <h2 className={`font-black leading-snug ${isMobile ? "text-xl mb-3" : "text-2xl mb-5"}`} style={{ color: "var(--text-primary)" }}>
           {phrase.heading}{" "}
           <span style={{ color: "var(--accent)" }}>{firstName}!</span>
         </h2>
@@ -151,7 +150,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
         {/* Ring de progresso SVG */}
         <div className="flex justify-center mb-3">
           <div className="relative inline-flex items-center justify-center">
-            <svg width={112} height={112} viewBox="0 0 112 112">
+            <svg width={isMobile ? 84 : 112} height={isMobile ? 84 : 112} viewBox="0 0 112 112">
               <circle cx={56} cy={56} r={R} fill="none" stroke="var(--border)" strokeWidth={7} />
               <circle
                 cx={56} cy={56} r={R}
@@ -167,25 +166,25 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
             </svg>
             <div className="absolute flex items-center justify-center">
               {pct >= PONTUACAO_APROVACAO
-                ? <Trophy className="h-8 w-8" style={{ color: "var(--success)" }} />
-                : <X      className="h-8 w-8" style={{ color: "var(--error)" }} />}
+                ? <Trophy className={isMobile ? "h-6 w-6" : "h-8 w-8"} style={{ color: "var(--success)" }} />
+                : <X      className={isMobile ? "h-6 w-6" : "h-8 w-8"} style={{ color: "var(--error)" }} />}
             </div>
           </div>
         </div>
 
         {/* Percentagem */}
-        <p className="text-4xl font-black mb-1 tabular-nums" style={{ color: "var(--text-primary)" }}>
+        <p className={`font-black mb-1 tabular-nums ${isMobile ? "text-3xl" : "text-4xl"}`} style={{ color: "var(--text-primary)" }}>
           {pct}%
         </p>
 
         {/* Frase de desempenho */}
-        <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+        <p className={`text-sm leading-relaxed ${isMobile ? "mb-4" : "mb-6"}`} style={{ color: "var(--text-secondary)" }}>
           {phrase.sub}
         </p>
 
         {/* Stats */}
         <div
-          className="flex justify-around mb-8 py-4 rounded-xl"
+          className={`flex justify-around rounded-xl ${isMobile ? "mb-4 py-3" : "mb-8 py-4"}`}
           style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)" }}
         >
           <div className="text-center">
@@ -209,7 +208,7 @@ export function QuizFinishedPhase({ pct, correctCount, wrongCount, totalTime, on
         <div className="flex flex-col gap-2">
           <button
             onClick={onRetry}
-            className="w-full py-3 rounded-xl font-bold text-sm text-white transition-opacity hover:opacity-90"
+            className={`w-full rounded-xl font-bold text-sm text-white ${isMobile ? "py-2.5" : "py-3"} transition-opacity hover:opacity-90`}
             style={{ backgroundColor: "var(--accent)" }}
           >
             Volver a intentar
