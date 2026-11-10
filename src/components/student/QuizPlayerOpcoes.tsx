@@ -245,13 +245,16 @@ function imgOpcaoStyle(
 // Cards grandes para ESCOLHA_IMAGEM
 function ImageOpcoesLarge({ opcoes, answerState, selectedId, onAnswer, wrongIds, hideCorrect, isMobile }: OpcaoProps & { isMobile?: boolean }) {
   const cols = opcoes.length === 3 ? 3 : 2;
+  // Celular: 2 e 3 imagens ficam uma abaixo da outra (2 um pouco maiores); 4 ou mais ficam em grade de 2 colunas
+  const empilhar = isMobile && (opcoes.length === 2 || opcoes.length === 3);
+  const larguraEmpilhada = opcoes.length === 2 ? "72%" : "48%";
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: isMobile ? "0.75rem" : "1rem",
-      }}
+      style={
+        empilhar
+          ? { display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }
+          : { display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: isMobile ? "0.75rem" : "1rem" }
+      }
     >
       {opcoes.map((op) => (
         <button
@@ -259,7 +262,11 @@ function ImageOpcoesLarge({ opcoes, answerState, selectedId, onAnswer, wrongIds,
           onClick={() => onAnswer(op)}
           disabled={answerState !== "idle" || (wrongIds?.has(op.id) ?? false)}
           className="rounded-2xl overflow-hidden text-left transition-all flex flex-col"
-          style={{ ...imgOpcaoStyle(op, answerState, selectedId, wrongIds, hideCorrect), backgroundColor: "var(--bg-surface)" }}
+          style={{
+            ...imgOpcaoStyle(op, answerState, selectedId, wrongIds, hideCorrect),
+            backgroundColor: "var(--bg-surface)",
+            ...(empilhar ? { width: larguraEmpilhada } : {}),
+          }}
         >
           <div className="w-full overflow-hidden">
             {op.imagem_url ? (

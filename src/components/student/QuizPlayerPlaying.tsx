@@ -89,10 +89,14 @@ export function QuizPlayingPhase({
         className="sticky top-14 z-20 flex items-center gap-3 px-4 py-3"
         style={{ backgroundColor: "var(--bg-base)", borderBottom: "1px solid var(--border)" }}
       >
-        <p className="flex-1 text-sm leading-snug" style={{ color: isReviewing ? "var(--text-muted)" : q.tipo === "ESCOLHA_IMAGEM" ? "var(--accent)" : "var(--text-muted)" }}>
+        {/* Celular: o enunciado de todos os tipos fica aqui (o layout o oculta); desktop mostra o enunciado no card da esquerda */}
+        <p
+          className="flex-1 text-sm leading-snug max-h-36 overflow-y-auto"
+          style={{ color: isReviewing || !(isMobile || q.tipo === "ESCOLHA_IMAGEM") ? "var(--text-muted)" : "var(--accent)" }}
+        >
           {isReviewing
             ? "← Revisando respuesta anterior."
-            : q.tipo === "ESCOLHA_IMAGEM" ? q.enunciado : "Responde la pregunta aquí abajo."}
+            : isMobile || q.tipo === "ESCOLHA_IMAGEM" ? q.enunciado : "Responde la pregunta aquí abajo."}
         </p>
       </div>
 
