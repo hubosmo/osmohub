@@ -1,3 +1,5 @@
+import { bunnyThumbnailUrl, parseBunnyUrl } from "./bunny";
+
 export async function resolveVideoThumbnail(url: string | null | undefined, saved: string | null | undefined): Promise<string | null> {
   if (saved) return saved;
   if (!url) return null;
@@ -13,5 +15,8 @@ export async function resolveVideoThumbnail(url: string | null | undefined, save
       return data[0]?.thumbnail_large ?? null;
     } catch { return null; }
   }
+  // Bunny Stream
+  const bunny = parseBunnyUrl(url);
+  if (bunny) return bunnyThumbnailUrl(bunny.videoId);
   return null;
 }

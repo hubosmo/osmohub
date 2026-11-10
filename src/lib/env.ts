@@ -15,6 +15,10 @@ const envSchema = z.object({
   MUX_TOKEN_SECRET: z.string().min(1).optional(),
   MUX_WEBHOOK_SECRET: z.string().min(1).optional(),
 
+  // Bunny Stream (vídeo): chave da biblioteca e domínio de entrega (ex.: vz-xxxx.b-cdn.net), só no servidor
+  BUNNY_STREAM_API_KEY: z.string().min(1).optional(),
+  BUNNY_CDN_HOSTNAME: z.string().min(1).optional(),
+
   // App
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),

@@ -23,7 +23,7 @@
 | **Página de tópico** | Vídeo, Artigo (Tiptap), Atlas (imagens + carrossel), Tabelas, Cuestionario (card + configuração de sessão) |
 | **Quiz — aluno** | Sessão em tela cheia (`QuizPlayer`): timer em contagem regressiva, 1 ou 2 tentativas, navegação para questões já respondidas, filtro por termo, tela de resultado personalizada, retorno ao tópico de origem |
 | **Quiz — admin** | `/admin/quizzes` (lista) e `/admin/quizzes/[id]` (builder: questões, opções, imagens, termos, publicar), vínculo N:N a tópicos (`QuizLinker`) |
-| **Tour de onboarding** | TopicTour (5 passos, localStorage, estilo Kenhub) |
+| **Tour de onboarding** | TopicTour (5 passos, +1 de Atlas 3D quando o tópico tem modelos, localStorage, estilo Kenhub) |
 | **Admin — conteúdo** | CRUD Cursos, Disciplinas, Áreas, Tópicos, Atlas, Tabelas, Vídeo (embed), Artigo |
 | **Hooks/utils** | useIsMobile, LastTopicTracker, MobileIndiceBar, TopicSearch |
 
@@ -95,7 +95,7 @@
   └── Lista de tópicos com badges (vídeo, artigo, duração)
     ↓ clica em tópico
 [/cursos/[curso]/[disciplina]/[area]/[topico]]  →  TopicoPage
-  ├── TopicTour (1ª visita — floating card 5 passos)
+  ├── TopicTour (1ª visita — floating card 5 passos, +Atlas 3D se houver modelos)
   ├── LastTopicTracker (salva no banco para ContinuarUnidad)
   ├── Breadcrumb sticky (top:0)
   ├── MobileIndiceBar (índice de seções — mobile)
@@ -275,7 +275,8 @@ src/lib/quiz-scoring.ts        → avaliarTentativa: pontuação a partir do gab
 src/lib/auth/session.ts         → getSessionUser: usuário da sessão, com cache por requisição
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
 src/lib/utils.ts                → cn() (classes) e toggleInSet() (alterna item num Set sem mutar)
-src/lib/video/thumbnail.ts      → resolveVideoThumbnail: miniatura de vídeo YouTube/Vimeo (servidor)
+src/lib/video/thumbnail.ts      → resolveVideoThumbnail: miniatura de vídeo YouTube/Vimeo/Bunny (servidor)
+src/lib/video/bunny.ts          → parseBunnyUrl, bunnyThumbnailUrl, fetchBunnyDuration (duração via API do Bunny ao salvar o vídeo)
 src/lib/motion.ts               → tokens de animação (framer-motion)
 src/lib/auth/admin.ts           → isAdminUser, getAdminUser, requireAdmin (autorização, ADR 0011)
 src/middleware.ts               → exige login em rotas de aluno/admin (falha fechada); papel NÃO é checado aqui
@@ -387,6 +388,8 @@ layout.admin → admin.content → [panels] → [server actions] → [lib/db]
 | `MUX_TOKEN_ID` | API Mux |
 | `MUX_TOKEN_SECRET` | API Mux |
 | `MUX_WEBHOOK_SECRET` | Verificação de webhook Mux |
+| `BUNNY_STREAM_API_KEY` | Chave da biblioteca Bunny Stream (só servidor): lê a duração do vídeo ao salvar |
+| `BUNNY_CDN_HOSTNAME` | Domínio de entrega da biblioteca Bunny (ex.: vz-xxxx.b-cdn.net): monta a URL da capa |
 
 ---
 

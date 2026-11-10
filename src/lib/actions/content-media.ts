@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
+import { fetchBunnyDuration, parseBunnyUrl } from "@/lib/video/bunny";
 
 function s(v: FormDataEntryValue | null) {
   return String(v ?? "").trim();
@@ -22,7 +23,10 @@ export async function upsertVideoContent(topicoId: string, formData: FormData) {
   const descricao = s(formData.get("descricao")) || null;
   const legenda = s(formData.get("legenda")) || null;
   const durRaw = parseInt(s(formData.get("duracao_seg")));
-  const duracao_seg = isNaN(durRaw) || durRaw <= 0 ? null : durRaw;
+  let duracao_seg = isNaN(durRaw) || durRaw <= 0 ? null : durRaw;
+  // Vídeo do Bunny sem duração digitada: busca na API do Bunny
+  const bunny = parseBunnyUrl(youtube_url);
+  if (bunny && duracao_seg === null) duracao_seg = await fetchBunnyDuration(bunny.libraryId, bunny.videoId);
   await prisma.video.upsert({
     where: { topico_id: topicoId },
     create: { topico_id: topicoId, titulo, youtube_url, descricao, legenda, duracao_seg },
