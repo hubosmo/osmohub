@@ -16,7 +16,8 @@ export function GET() {
           borderRadius: "112px",
         }}
       >
-        <svg viewBox="0 0 76 76" width={364} height={364} xmlns="http://www.w3.org/2000/svg">
+        {/* O Android usa este ícone na abertura do app: o desenho ocupa ~46% do quadrado (era ~58%), com mais margem em volta */}
+        <svg viewBox="0 0 76 76" width={262} height={262} xmlns="http://www.w3.org/2000/svg">
           <path d="M 7 38 A 31 31 0 1 1 38 69" stroke="#00A6FF" strokeWidth={7} strokeLinecap="round" fill="none" />
           <path d="M 38 55 A 17 17 0 0 1 21 38" stroke="#00A6FF" strokeWidth={7} strokeLinecap="round" fill="none" />
           <circle cx={38} cy={38} r={7} fill="#00A6FF" />

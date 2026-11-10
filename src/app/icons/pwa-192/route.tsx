@@ -16,7 +16,8 @@ export function GET() {
           borderRadius: "42px",
         }}
       >
-        <svg viewBox="0 0 76 76" width={136} height={136} xmlns="http://www.w3.org/2000/svg">
+        {/* Mesma proporção do ícone de 512 px: o desenho menor deixa a abertura do app mais discreta */}
+        <svg viewBox="0 0 76 76" width={98} height={98} xmlns="http://www.w3.org/2000/svg">
           <path d="M 7 38 A 31 31 0 1 1 38 69" stroke="#00A6FF" strokeWidth={7} strokeLinecap="round" fill="none" />
           <path d="M 38 55 A 17 17 0 0 1 21 38" stroke="#00A6FF" strokeWidth={7} strokeLinecap="round" fill="none" />
           <circle cx={38} cy={38} r={7} fill="#00A6FF" />
