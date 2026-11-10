@@ -7,7 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Plataforma educativa de ciencias con videos, artículos interactivos y simulaciones.",
     start_url: "/login",
     display: "standalone",
-    orientation: "portrait",
+    // "any": o aluno gira o celular para ver o vídeo em tela cheia na horizontal ("portrait" travava a rotação no app instalado)
+    orientation: "any",
     background_color: "#0F1117",
     theme_color: "#00A6FF",
     icons: [
