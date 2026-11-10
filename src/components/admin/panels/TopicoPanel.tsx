@@ -169,7 +169,7 @@ export function TopicoPanel({ data }: { data: TopicoData }) {
               <DuracaoInput defaultSecs={data.video?.duracao_seg ?? null} />
             </div>
             <div>
-              <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>URL del video (YouTube o Vimeo)</label>
+              <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-muted)" }}>URL del video (YouTube, Vimeo o Bunny)</label>
               <input name="youtube_url" type="url" defaultValue={data.video?.youtube_url ?? ""}
                 placeholder="https://vimeo.com/123456789"
                 className="w-full h-9 px-3 rounded-lg text-sm outline-none"

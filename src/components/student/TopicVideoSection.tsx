@@ -14,6 +14,9 @@ function toVideoEmbed(url: string): string {
   if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
   const vimeo = url.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/);
   if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?color=6C63FF&title=0&byline=0&portrait=0`;
+  // Bunny Stream: o link de compartilhar (/play/) e o de incorporar (/embed/) levam ao mesmo player
+  const bunny = url.match(/(?:iframe|player)\.mediadelivery\.net\/(?:embed|play)\/(\d+)\/([0-9a-fA-F-]{36})/);
+  if (bunny) return `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}?autoplay=false`;
   return url;
 }
 
