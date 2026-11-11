@@ -175,6 +175,8 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #F1F5F9 !important;
   caret-color: #F1F5F9;
   transition: background-color 5000s ease-in-out 0s;
+  /* O Chrome pinta o campo de azul-claro ao sugerir/preencher; o inset com a cor do campo cobre isso e deixa o texto legível */
+  box-shadow: 0 0 0 1000px var(--auth-input-bg, transparent) inset !important;
 }
 
 :root[data-theme="light"] input:-webkit-autofill,
@@ -186,16 +188,11 @@ input:-webkit-autofill:active {
   caret-color: #1E293B;
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) input:-webkit-autofill,
-  :root:not([data-theme="dark"]) input:-webkit-autofill:hover,
-  :root:not([data-theme="dark"]) input:-webkit-autofill:focus,
-  :root:not([data-theme="dark"]) input:-webkit-autofill:active {
-    color-scheme: light;
-    -webkit-text-fill-color: #1E293B !important;
-    caret-color: #1E293B;
-  }
-}
+/*
+  Sem bloco prefers-color-scheme: o tema do app é independente do SO.
+  Escuro = sem atributo em <html>; claro = data-theme="light" (ThemeProvider).
+  Um bloco "SO claro" aqui pintava o texto escuro dentro do campo escuro.
+*/
 
 /* ── Artigo / Editor Tiptap ────────────────────────────── */
 

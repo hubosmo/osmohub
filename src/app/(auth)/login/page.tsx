@@ -49,7 +49,7 @@ export default function LoginPage() {
             id="email"
             label="Correo electrónico"
             type="email"
-            placeholder="tu@correo.com"
+            placeholder="gavin@hooli.com"
             autoComplete="email"
             value={email}
             onChange={setEmail}

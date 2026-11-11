@@ -64,8 +64,14 @@ export function AuthInput({
             border: `1.5px solid ${borderDefault}`,
             color: textColor,
             colorScheme: isDark ? "dark" : "light",
-            fontSize: "0.875rem",
+            // Lido pelo CSS do autofill (globals.css): cobre o fundo azul-claro que o Chrome aplica ao sugerir/preencher
+            ...({ "--auth-input-bg": inputBg } as React.CSSProperties),
+            // Senha oculta: fonte maior só para os pontos ficarem visíveis; a altura do campo não muda (lineHeight fixo)
+            fontSize: isPassword && !showPassword ? "1.25rem" : "0.875rem",
+            letterSpacing: isPassword && !showPassword ? "0.1em" : undefined,
             lineHeight: "1.25rem",
+            // Altura fixa (linha 1.25rem + padding 2×0.75rem + borda 2×1.5px): a fonte maior dos pontos não pode crescer o campo
+            height: "calc(2.75rem + 3px)",
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = "#00A6FF";
