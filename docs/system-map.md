@@ -169,6 +169,7 @@ src/components/layout/
   Header.tsx            → header alternativo (legado)
   Sidebar.tsx           → sidebar colapsável desktop
   AdminLayout.tsx       → layout admin (sidebar + conteúdo)
+  AdminSidebar.tsx      → menu lateral do admin, recolhível (ícones só; escolha salva em localStorage "osmo-admin-sidebar")
   ThemeToggle.tsx       → botão dark/light
   TopLoader.tsx         → barra de progresso de navegação
   PageTransition.tsx    → fade-in entre páginas (sem AnimatePresence, ver ADR 0007)

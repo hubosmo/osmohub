@@ -186,6 +186,7 @@
       "description": "Layout do painel admin com sidebar admin",
       "files": [
         "src/components/layout/AdminLayout.tsx",
+        "src/components/layout/AdminSidebar.tsx",
         "src/app/(admin)/layout.tsx"
       ],
       "depends_on": [
