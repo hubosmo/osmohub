@@ -685,6 +685,7 @@
         "src/app/(student)/novedades/page.tsx",
         "src/components/layout/header/NovedadesBell.tsx",
         "src/components/student/novedades/NovedadItem.tsx",
+        "src/components/student/novedades/NovedadesLista.tsx",
         "src/lib/actions/content-novedades.ts",
         "src/lib/actions/novedades.ts",
         "src/lib/db/novedades.ts",

@@ -3,6 +3,9 @@
 export const TIPOS_NOVEDAD = ["VIDEO", "ATLAS", "ATLAS_3D", "CUESTIONARIO", "ARTICULO", "TABLAS", "TEMA"] as const;
 export type TipoNovedad = (typeof TIPOS_NOVEDAD)[number];
 
+// Quantas novedades a página /novedades carrega por vez (botão "Ver más")
+export const NOVEDADES_POR_PAGINA = 20;
+
 export const ETIQUETAS_NOVEDAD = ["NUEVO", "MEJORA"] as const;
 export type EtiquetaNovedad = (typeof ETIQUETAS_NOVEDAD)[number];
 

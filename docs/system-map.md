@@ -441,7 +441,7 @@ opcoes               → opções de uma questão (texto, imagem_url, correta)
 
 ## Novedades (ADR 0018)
 
-- Aluno: sino no header (`layout/header/NovedadesBell.tsx`, desktop na barra utilitária e celular ao lado do hambúrguer) e página `/novedades` (até 100). Itens desenhados por `student/novedades/NovedadItem.tsx`. O layout do aluno carrega `getNovedadesDelAlumno` e, se as tabelas não existem, o sino fica vazio.
+- Aluno: sino no header (`layout/header/NovedadesBell.tsx`, desktop na barra utilitária e celular ao lado do hambúrguer) e página `/novedades` (20 por vez, botão "Ver más" via `cargarMasNovedades` e `NovedadesLista`). Itens desenhados por `student/novedades/NovedadItem.tsx`. O layout do aluno carrega `getNovedadesDelAlumno` e, se as tabelas não existem, o sino fica vazio.
 - Admin: `/admin/novedades` (formulário: tipo, etiqueta, título, resumo, tema; lista com excluir). Actions em `lib/actions/content-novedades.ts` (admin); `lib/actions/novedades.ts` → `marcarNovedadesVistasAction` (aluno).
 - Regras puras (tipos, rótulos, âncora da seção, formato de data) em `lib/novedades.ts`; consultas em `lib/db/novedades.ts`.
 - Tabelas: `novedades`, `novedades_vistas` (última abertura do sino por aluno).
