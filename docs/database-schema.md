@@ -405,3 +405,29 @@ model TopicoModelo3D {  // N:N tópico ↔ modelo
   @@map("topico_modelos_3d")
 }
 ```
+
+## Novedades
+
+```prisma
+enum NovedadTipo { VIDEO ATLAS ATLAS_3D CUESTIONARIO ARTICULO TABLAS TEMA }
+enum NovedadEtiqueta { NUEVO MEJORA }
+
+model Novedad {
+  id           String @id @default(uuid())
+  tipo         NovedadTipo
+  etiqueta     NovedadEtiqueta
+  titulo       String
+  resumen      String?
+  topico_id    String?   // opcional; onDelete SetNull
+  publicado_em DateTime @default(now())
+  criado_em    DateTime @default(now())
+  @@index([publicado_em])
+  @@map("novedades")
+}
+
+model NovedadVista {  // última abertura do sino, uma linha por aluno
+  usuario_id String   @id
+  visto_em   DateTime @default(now())
+  @@map("novedades_vistas")
+}
+```

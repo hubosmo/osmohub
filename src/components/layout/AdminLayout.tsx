@@ -6,6 +6,7 @@ import {
   Gamepad2,
   HelpCircle,
   Box,
+  Megaphone,
   Users,
   ArrowLeft,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const ADMIN_NAV = [
   { href: "/admin/simulaciones", label: "Simulaciones", icon: Gamepad2 },
   { href: "/admin/quizzes", label: "Quizzes", icon: HelpCircle },
   { href: "/admin/modelos-3d", label: "Modelos 3D", icon: Box },
+  { href: "/admin/novedades", label: "Novedades", icon: Megaphone },
   { href: "/admin/usuarios", label: "Usuarios", icon: Users },
 ];
 

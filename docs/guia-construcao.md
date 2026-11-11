@@ -333,3 +333,15 @@ Fase 6 → Fase 7 → Fase 3.3 (completo) → Fase 8 → Fase 9 → Fase 10 → 
 
 > Construir a área do aluno antes do admin permite testar o produto real mais cedo.
 > O admin é construído em paralelo ou logo depois, alimentando o conteúdo real.
+
+---
+
+## Fase 9c — Novedades
+
+> Feed manual de novidades de conteúdo. Desenho em [ADR 0018](decisions/0018-novedades-feed-manual.md).
+
+- [x] Modelos `Novedad`, `NovedadVista` e migration `20261111180000_novedades` (gerada, ainda não aplicada no Supabase)
+- [x] Admin: `/admin/novedades` (publicar e excluir)
+- [x] Sino no header (desktop e celular) com ponto azul e página `/novedades`
+- [ ] Aplicar a migration no Supabase (`npm run db:deploy`) e testar no navegador
+- [ ] Fase 2: selo "Nuevo/Actualizado" nas seções e cartões; "Publicar como novedad" dentro do painel de cada seção

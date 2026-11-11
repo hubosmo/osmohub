@@ -60,3 +60,4 @@ O que passa a valer no código. Riscos e pendências.
 | [0015](0015-progresso-do-topico.md) | Progresso do tópico: artigo lido e quiz aprovado | Aceita |
 | [0016](0016-mi-plan-pastas-do-aluno.md) | Mi Plan: pastas pessoais do aluno | Aceita |
 | [0017](0017-atlas-3d-biblioteca-de-modelos.md) | Atlas 3D: biblioteca de modelos separada, vinculada aos tópicos | Aceita |
+| [0018](0018-novedades-feed-manual.md) | Novedades: feed manual de novidades de conteúdo | Aceita |

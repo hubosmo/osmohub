@@ -34,7 +34,7 @@
 | Hospedagem de vídeo própria | Decisão em [ADR 0009](decisions/0009-hospedagem-de-video.md) (Mux vs Cloudflare Stream) |
 | Simulações interativas | DragAndDrop, Matching, FillInBlank, etc. (pasta `components/simulations/` vazia) |
 | Quiz: modo simulado | `modo` e `tempo_limite_seg` do quiz existem no schema mas não são lidos; as tentativas já são gravadas ([ADR 0014](decisions/0014-tentativas-de-quiz-pontuacao-no-servidor.md)) |
-| Progresso do aluno: vídeo e visões agregadas | Artigo lido e quiz aprovado já definem o status do tópico ([ADR 0015](decisions/0015-progresso-do-topico.md)). Faltam medir o vídeo (depende do [ADR 0009](decisions/0009-hospedagem-de-video.md)) e mostrar o status na lista da área, no dashboard e em "Meu progreso" |
+| Progresso do aluno: vídeo e visões agregadas | Vídeo assistido (80 %), artigo lido e quiz aprovado já definem o status do tópico ([ADR 0015](decisions/0015-progresso-do-topico.md)). Falta mostrar o status na lista da área, no dashboard e em "Meu progreso" |
 | Plano de estudos (Mi plan) | pastas.ts, components/student/pastas/ |
 | Biblioteca (busca) | lib/db/busca.ts |
 | Revisão de segurança restante | Queries de `lib/db/admin.ts` sem guarda própria. RLS e Storage foram verificados e corrigidos em 2026-11-06 (ver [ADR 0011](decisions/0011-autorizacao-admin-em-camadas.md)) |
@@ -208,6 +208,8 @@ src/components/student/
   TopicHeader.tsx         → título, bookmark, selo de status (Incompleta, En progreso, Completa), objetivos (id "objetivo" do tour)
   TopicSections.tsx       → seções numeradas (vídeo, artigo, atlas, quiz, tabelas); define os ids de âncora do tour
   ArtigoLidoTracker.tsx   → marca o artigo como lido quando o fim fica visível por 2 s
+  StatusBadgeConDica.tsx  → selo de status com dica (hover/foco/toque) listando o que falta para completar
+  VideoAssistidoTracker.tsx → soma o tempo reproduzido (YouTube/Vimeo/Bunny via postMessage) e marca o vídeo como assistido aos 80 %
   TopicPrevNext.tsx       → "Continúa tu aprendizaje": tópico anterior e seguinte (id "continua" do tour)
   TopicQuizSection.tsx    → cards de quiz do tópico + modal de configuração de sessão
   QuizPlayer.tsx          → orquestra a sessão (estado, timer, histórico, tentativas)
@@ -270,7 +272,8 @@ src/hooks/useImagePreload.ts    → pré-carrega uma lista de URLs de imagem
 src/hooks/useStoredValue.ts     → useLocalStorageValue / useSessionStorageValue: valor persistido no navegador, sem setState em efeito (ADR 0013)
 src/hooks/useIsClient.ts        → false no servidor/hidratação, true depois
 src/lib/image-preload.ts        → preloadImage(src): carrega e decodifica
-src/lib/progresso.ts           → PONTUACAO_APROVACAO e calcularStatusTopico (regra pura do status do tópico)
+src/lib/progresso.ts           → PONTUACAO_APROVACAO, FRACAO_VIDEO_ASSISTIDO, partesDoTopico e calcularStatusTopico (regra pura do status do tópico)
+src/lib/video/provedor.ts      → provedorDoVideo (youtube | vimeo | bunny | null): quais vídeos entram no progresso
 src/lib/quiz-scoring.ts        → avaliarTentativa: pontuação a partir do gabarito (função pura)
 src/lib/auth/session.ts         → getSessionUser: usuário da sessão, com cache por requisição
 src/lib/safe-redirect.ts        → safeInternalPath(valor, fallback): valida destino de redirect
@@ -302,7 +305,7 @@ src/lib/actions/
   content-atlas.ts           → imagens standalone + grupos de imagens
   content-tabelas.ts         → tabelas e linhas
   content-media.ts           → vídeo e artigo (upsert, deletar, salvar)
-  progresso.ts               → marcarArtigoLido (ação do aluno)
+  progresso.ts               → marcarArtigoLido, marcarVideoAssistido (ações do aluno)
   quiz-tentativas.ts         → registrarTentativaQuiz (ação do aluno: grava a tentativa; pontuação calculada no servidor)
   content-quizzes.ts         → quiz, questões, opções, vínculo com tópico
   content-quiz-imagens.ts    → upload de imagem do quiz e galeria unificada (quiz + atlas)
@@ -325,7 +328,7 @@ src/lib/db/
   admin.ts      → queries admin (listagem, contagens, árvore completa)
   modelos3d.ts  → listarModelos3d, getModelo3dAdmin (Atlas 3D)
   quizzes.ts    → listarQuizzes, getQuizAdmin, getQuizzesDoTopico, getQuizParaSessao, listarImagensDisponiveis
-  progresso.ts  → getProgressoTopico, registrarArtigoLido, existeTopicoPublicado
+  progresso.ts  → getProgressoTopico, registrarArtigoLido, registrarVideoAssistido, existeTopicoPublicado
   tentativas.ts → registrarTentativa, getResumoTentativas (última, melhor e total do aluno por quiz)
   users.ts      → sincronizarUsuario: mantém `users` alinhada com o Supabase Auth (usado por login e cadastro; não lança erro)
 ```
@@ -435,3 +438,10 @@ opcoes               → opções de uma questão (texto, imagem_url, correta)
 - Admin: `/admin/modelos-3d` (lista) e `/admin/modelos-3d/[id]` (arquivo + pré-visualização + dados). O GLB sobe direto do navegador ao bucket `modelos-3d` com URL assinada (`Modelo3DUpload` → `autorizarUploadModelo3d` / `confirmarUploadModelo3d`).
 - Visualizador: `student/ModeloViewer.tsx` (`<model-viewer>`, carrega a biblioteca só no cliente).
 - Tabelas: `modelos_3d`, `pontos_modelo_3d`, `topico_modelos_3d`. Vínculo com o tópico: `Modelo3DLinker` no painel do tópico (admin). Aluno: seção "Explora en 3D" (`TopicAtlas3DSection`), alimentada por `getModelos3dDoTopico` numa consulta separada que falha em silêncio (se as tabelas não existem, a seção some e a página do tópico segue normal). Pontos: `PontosEditor` (admin: gira o modelo, clica na superfície para criar o ponto; depois arrasta o ponto para movê-lo, ajusta giro e zoom e pulsa «Guardar punto»: grava posição, normal e a câmera da tela, incluindo o campo de visão `fov`, e é exatamente o que o aluno vê ao clicar no ponto; título e texto por ponto; excluir) com actions em `content-modelos3d-pontos.ts`; `ModeloViewer` desenha os pontos numerados e move a câmera até o ponto escolhido (aluno e admin usam o mesmo componente). Regras de formato em `lib/pontos3d.ts`.
+
+## Novedades (ADR 0018)
+
+- Aluno: sino no header (`layout/header/NovedadesBell.tsx`, desktop na barra utilitária e celular ao lado do hambúrguer) e página `/novedades` (até 100). Itens desenhados por `student/novedades/NovedadItem.tsx`. O layout do aluno carrega `getNovedadesDelAlumno` e, se as tabelas não existem, o sino fica vazio.
+- Admin: `/admin/novedades` (formulário: tipo, etiqueta, título, resumo, tema; lista com excluir). Actions em `lib/actions/content-novedades.ts` (admin); `lib/actions/novedades.ts` → `marcarNovedadesVistasAction` (aluno).
+- Regras puras (tipos, rótulos, âncora da seção, formato de data) em `lib/novedades.ts`; consultas em `lib/db/novedades.ts`.
+- Tabelas: `novedades`, `novedades_vistas` (última abertura do sino por aluno).

@@ -374,7 +374,8 @@
         "src/components/student/TopicQuizSection.tsx",
         "src/components/editor/ArtigoRenderer.tsx",
         "src/lib/video/thumbnail.ts",
-        "src/components/student/ArtigoLidoTracker.tsx"
+        "src/components/student/ArtigoLidoTracker.tsx",
+        "src/components/student/VideoAssistidoTracker.tsx"
       ],
       "depends_on": [
         "layout.student",
@@ -392,7 +393,7 @@
         "grupos_imagens",
         "tabelas"
       ],
-      "notes": "A página só orquestra; as seções ficam em Topic*.tsx. Vídeo (YouTube/Vimeo embed), artigo (Tiptap), atlas, tabelas e quiz prontos. O selo de status e os vistos do índice refletem artigo lido e quiz aprovado (ADR 0015). Pendentes: simulações e medir o vídeo."
+      "notes": "A página só orquestra; as seções ficam em Topic*.tsx. Vídeo (YouTube/Vimeo embed), artigo (Tiptap), atlas, tabelas e quiz prontos. O selo de status e os vistos do índice refletem vídeo assistido (80 %), artigo lido e quiz aprovado (ADR 0015). Pendente: simulações."
     },
     "student.progresso": {
       "status": "planned",
@@ -676,6 +677,31 @@
       ],
       "notes": "Biblioteca, vínculo com o tópico, editor de pontos e navegação do aluno prontos. Pendente: verificar no navegador com um GLB real; reordenar pontos (ADR 0017)."
     },
+    "admin.novedades": {
+      "status": "in_progress",
+      "description": "Novedades: feed manual de novidades de conteúdo (admin publica, aluno vê no sino do header e em /novedades)",
+      "files": [
+        "src/app/(admin)/admin/novedades/page.tsx",
+        "src/app/(student)/novedades/page.tsx",
+        "src/components/layout/header/NovedadesBell.tsx",
+        "src/components/student/novedades/NovedadItem.tsx",
+        "src/lib/actions/content-novedades.ts",
+        "src/lib/actions/novedades.ts",
+        "src/lib/db/novedades.ts",
+        "src/lib/novedades.ts"
+      ],
+      "depends_on": [
+        "layout.admin",
+        "layout.student",
+        "foundation.prisma"
+      ],
+      "used_by": [],
+      "tables": [
+        "novedades",
+        "novedades_vistas"
+      ],
+      "notes": "Migration gerada e ainda não aplicada no Supabase (ADR 0018). Pendente: selos Nuevo/Actualizado e publicar a partir do painel de cada seção."
+    },
     "admin.quizzes": {
       "status": "done",
       "description": "Quiz builder standalone no admin — criação, edição, questões e vinculação a tópicos",
@@ -772,12 +798,14 @@
     },
     "lib.db.progresso": {
       "status": "in_progress",
-      "description": "Progresso do aluno por tópico: artigo lido e quiz aprovado definem o status",
+      "description": "Progresso do aluno por tópico: vídeo assistido, artigo lido e quiz aprovado definem o status",
       "files": [
         "src/lib/db/progresso.ts",
         "src/lib/actions/progresso.ts",
         "src/lib/progresso.ts",
-        "src/components/student/ArtigoLidoTracker.tsx"
+        "src/lib/video/provedor.ts",
+        "src/components/student/ArtigoLidoTracker.tsx",
+        "src/components/student/VideoAssistidoTracker.tsx"
       ],
       "notes": "Implementado: artigo_lido (fim do artigo visível por 2 s) e status Incompleta, En progreso, Completa com calcularStatusTopico (ADR 0015). Pendentes: video_assistido, simulacoes_concluidas e consultas agregadas (lista da área, dashboard, Meu progreso).",
       "depends_on": [

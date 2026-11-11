@@ -21,9 +21,10 @@ model User {
   criado_em        DateTime @default(now())
   atualizado_em    DateTime @updatedAt
 
-  progresso  ProgressoTopico[]
-  tentativas TentativaQuiz[]
-  pastas     Pasta[]
+  progresso        ProgressoTopico[]
+  tentativas       TentativaQuiz[]
+  pastas           Pasta[]
+  novedades_vistas NovedadVista?
 
   @@map("users")
 }
@@ -125,6 +126,7 @@ model Topico {
   progresso      ProgressoTopico[]
   itens_pasta    ItemPasta[]
   modelos_3d     TopicoModelo3D[]
+  novedades      Novedad[]
 
   @@unique([area_id, slug])
   @@map("topicos")
@@ -467,4 +469,48 @@ model TopicoModelo3D {
   @@id([topico_id, modelo_id])
   @@index([modelo_id])
   @@map("topico_modelos_3d")
+}
+
+// ─── NOVEDADES ─────────────────────────────────────────
+// Feed manual de novidades de conteúdo, publicado pelo admin (ADR 0018).
+
+enum NovedadTipo {
+  VIDEO
+  ATLAS
+  ATLAS_3D
+  CUESTIONARIO
+  ARTICULO
+  TABLAS
+  TEMA
+}
+
+enum NovedadEtiqueta {
+  NUEVO
+  MEJORA
+}
+
+model Novedad {
+  id           String          @id @default(uuid())
+  tipo         NovedadTipo
+  etiqueta     NovedadEtiqueta
+  titulo       String
+  resumen      String?
+  topico_id    String?
+  publicado_em DateTime        @default(now())
+  criado_em    DateTime        @default(now())
+
+  topico Topico? @relation(fields: [topico_id], references: [id], onDelete: SetNull)
+
+  @@index([publicado_em])
+  @@map("novedades")
+}
+
+// Quando o aluno abriu o sino de novedades pela última vez (tabela à parte para não alterar `users`)
+model NovedadVista {
+  usuario_id String   @id
+  visto_em   DateTime @default(now())
+
+  usuario User @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("novedades_vistas")
 }
