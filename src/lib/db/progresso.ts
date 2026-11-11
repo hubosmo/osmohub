@@ -1,12 +1,22 @@
 import { prisma } from "@/lib/db/prisma";
 import { PONTUACAO_APROVACAO, calcularStatusTopico, type StatusTopico } from "@/lib/progresso";
+import { provedorDoVideo } from "@/lib/video/provedor";
 
-export async function getProgressoTopico(usuarioId: string, topicoId: string): Promise<{ artigoLido: boolean }> {
+export async function getProgressoTopico(usuarioId: string, topicoId: string): Promise<{ artigoLido: boolean; videoAssistido: boolean }> {
   const row = await prisma.progressoTopico.findUnique({
     where: { usuario_id_topico_id: { usuario_id: usuarioId, topico_id: topicoId } },
-    select: { artigo_lido: true },
+    select: { artigo_lido: true, video_assistido: true },
   });
-  return { artigoLido: row?.artigo_lido ?? false };
+  return { artigoLido: row?.artigo_lido ?? false, videoAssistido: row?.video_assistido ?? false };
+}
+
+export async function registrarVideoAssistido(usuarioId: string, topicoId: string) {
+  return prisma.progressoTopico.upsert({
+    where: { usuario_id_topico_id: { usuario_id: usuarioId, topico_id: topicoId } },
+    create: { usuario_id: usuarioId, topico_id: topicoId, video_assistido: true },
+    update: { video_assistido: true },
+    select: { topico_id: true },
+  });
 }
 
 export async function registrarArtigoLido(usuarioId: string, topicoId: string) {
@@ -32,6 +42,8 @@ export async function getStatusDosTopicos(usuarioId: string, topicoIds: string[]
       where: { id: { in: topicoIds } },
       select: {
         id: true,
+        video_ativo: true,
+        video: { select: { youtube_url: true } },
         artigo_ativo: true,
         artigo: { select: { id: true } },
         quizzes: { select: { quiz: { select: { id: true, publicado: true } } } },
@@ -39,7 +51,7 @@ export async function getStatusDosTopicos(usuarioId: string, topicoIds: string[]
     }),
     prisma.progressoTopico.findMany({
       where: { usuario_id: usuarioId, topico_id: { in: topicoIds } },
-      select: { topico_id: true, artigo_lido: true },
+      select: { topico_id: true, video_assistido: true, artigo_lido: true },
     }),
   ]);
 
@@ -55,14 +67,17 @@ export async function getStatusDosTopicos(usuarioId: string, topicoIds: string[]
   }
 
   const lidos = new Set(progresso.filter((p) => p.artigo_lido).map((p) => p.topico_id));
+  const assistidos = new Set(progresso.filter((p) => p.video_assistido).map((p) => p.topico_id));
   const resultado: Record<string, StatusTopico | null> = {};
   for (const t of topicos) {
     const publicados = t.quizzes.map((q) => q.quiz).filter((q) => q.publicado);
     resultado[t.id] = calcularStatusTopico({
-      temArtigo: t.artigo_ativo && t.artigo !== null,
-      artigoLido: lidos.has(t.id),
+      temVideo: t.video_ativo && provedorDoVideo(t.video?.youtube_url) !== null,
+      videoAssistido: assistidos.has(t.id),
       temQuiz: publicados.length > 0,
       quizAprovado: publicados.some((q) => (melhorPorQuiz.get(q.id) ?? 0) >= PONTUACAO_APROVACAO),
+      temArtigo: t.artigo_ativo && t.artigo !== null,
+      artigoLido: lidos.has(t.id),
     });
   }
   return resultado;

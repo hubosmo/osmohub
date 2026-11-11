@@ -1,5 +1,7 @@
 import { PlayCircle } from "lucide-react";
 import { CollapsibleCaption } from "./CollapsibleCaption";
+import { VideoAssistidoTracker } from "./VideoAssistidoTracker";
+import { provedorDoVideo } from "@/lib/video/provedor";
 
 type VideoProps = {
   titulo: string;
@@ -11,7 +13,8 @@ type VideoProps = {
 
 function toVideoEmbed(url: string): string {
   const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  // enablejsapi=1: permite ouvir o progresso do player (vídeo assistido, ver VideoAssistidoTracker)
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?enablejsapi=1`;
   const vimeo = url.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/);
   if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?color=6C63FF&title=0&byline=0&portrait=0`;
   // Bunny Stream: o link de compartilhar (/play/) e o de incorporar (/embed/) levam ao mesmo player
@@ -26,8 +29,9 @@ function formatDuration(seg: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function TopicVideoSection({ video, playerId }: { video: VideoProps | null; playerId?: string }) {
+export function TopicVideoSection({ video, playerId, topicoId, jaAssistido = false }: { video: VideoProps | null; playerId?: string; topicoId?: string; jaAssistido?: boolean }) {
   const embedUrl = video?.youtube_url ? toVideoEmbed(video.youtube_url) : null;
+  const provedor = provedorDoVideo(video?.youtube_url);
 
   return (
     <div className="flex flex-col gap-5">
@@ -49,6 +53,7 @@ export function TopicVideoSection({ video, playerId }: { video: VideoProps | nul
               allowFullScreen
               title={video?.titulo ?? "Video"}
             />
+            {topicoId && provedor && <VideoAssistidoTracker topicoId={topicoId} provedor={provedor} jaAssistido={jaAssistido} />}
           </div>
 
           {video?.legenda ? (

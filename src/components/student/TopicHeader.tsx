@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Target } from "lucide-react";
-import type { StatusTopico } from "@/lib/progresso";
-import { StatusBadge } from "@/components/student/StatusBadge";
+import type { ParteDoTopico, StatusTopico } from "@/lib/progresso";
+import { StatusBadgeConDica } from "@/components/student/StatusBadgeConDica";
 import { RichOrPlain } from "@/components/student/RichOrPlain";
 
 interface TopicHeaderProps {
@@ -10,11 +10,13 @@ interface TopicHeaderProps {
   descricaoCurta?: string | null;
   // null: o tópico não tem parte mensurável (artigo ou quiz), então não mostra status
   status?: StatusTopico | null;
+  // Partes que compõem o status, para explicar ao aluno o que falta para completar o tema
+  partes?: ParteDoTopico[];
   // Botão de guardar o tópico em uma carpeta de Mi plan
   acaoGuardar?: ReactNode;
 }
 
-export function TopicHeader({ titulo, objetivo, descricaoCurta, status = null, acaoGuardar }: TopicHeaderProps) {
+export function TopicHeader({ titulo, objetivo, descricaoCurta, status = null, partes = [], acaoGuardar }: TopicHeaderProps) {
   return (
     <>
       {/* Título + bookmark */}
@@ -25,9 +27,9 @@ export function TopicHeader({ titulo, objetivo, descricaoCurta, status = null, a
         {acaoGuardar}
       </div>
 
-      {/* Badge de status: artigo lido e quiz aprovado */}
+      {/* Badge de status + explicação do que falta (vídeo assistido, artigo lido, quiz aprovado) */}
       <div className="mb-8">
-        {status && <StatusBadge status={status} />}
+        {status && <StatusBadgeConDica status={status} partes={partes} />}
       </div>
 
       {/* Objetivos de aprendizaje */}

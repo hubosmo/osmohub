@@ -6,7 +6,8 @@ import { getProgressoTopico } from "@/lib/db/progresso";
 import { getModelos3dDoTopico } from "@/lib/db/modelos3d";
 import { env } from "@/lib/env";
 import { urlPublicaDoArquivo } from "@/lib/modelos3d";
-import { PONTUACAO_APROVACAO, calcularStatusTopico } from "@/lib/progresso";
+import { PONTUACAO_APROVACAO, calcularStatusTopico, partesDoTopico } from "@/lib/progresso";
+import { provedorDoVideo } from "@/lib/video/provedor";
 import { getSessionUser } from "@/lib/auth/session";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { MobileIndiceBar } from "@/components/student/MobileIndiceBar";
@@ -47,16 +48,19 @@ export default async function TopicoPage({ params }: PageProps) {
     : {};
 
   // Progresso: artigo lido e quiz aprovado
-  const progresso = user ? await getProgressoTopico(user.id, topico.id).catch(() => ({ artigoLido: false })) : { artigoLido: false };
+  const semProgresso = { artigoLido: false, videoAssistido: false };
+  const progresso = user ? await getProgressoTopico(user.id, topico.id).catch(() => semProgresso) : semProgresso;
   const quizzesPublicados = (topico.quizzes ?? []).map((j) => j.quiz).filter((q) => q.publicado);
   const quizAprovado = quizzesPublicados.some((q) => (resumoQuizzes[q.id]?.melhor ?? 0) >= PONTUACAO_APROVACAO);
-  const temArtigo = !!(topico.artigo_ativo && topico.artigo);
-  const statusTopico = calcularStatusTopico({
-    temArtigo,
-    artigoLido: progresso.artigoLido,
+  const partesProgresso = {
+    temVideo: topico.video_ativo && provedorDoVideo(topico.video?.youtube_url) !== null,
+    videoAssistido: progresso.videoAssistido,
     temQuiz: quizzesPublicados.length > 0,
     quizAprovado,
-  });
+    temArtigo: !!(topico.artigo_ativo && topico.artigo),
+    artigoLido: progresso.artigoLido,
+  };
+  const statusTopico = calcularStatusTopico(partesProgresso);
 
   // Atlas 3D: consulta separada; se as tabelas ainda não existem no banco, a seção simplesmente não aparece
   const modelos3d: ModeloParaAluno[] = (await getModelos3dDoTopico(topico.id).catch(() => [])).flatMap((m) =>
@@ -72,7 +76,7 @@ export default async function TopicoPage({ params }: PageProps) {
 
   // Seções ativas — só aparecem se o toggle estiver ligado no admin
   const sections: TopicSection[] = [
-    ...(topico.video_ativo ? [{ id: "video", label: "Mira el video", icon: <PlayCircle className="h-4 w-4" /> }] : []),
+    ...(topico.video_ativo ? [{ id: "video", label: "Mira el video", icon: <PlayCircle className="h-4 w-4" />, done: partesProgresso.temVideo ? progresso.videoAssistido : undefined }] : []),
     ...(topico.artigo_ativo && topico.artigo ? [{ id: "articulo", label: "Lee el artículo", icon: <BookOpen className="h-4 w-4" />, done: progresso.artigoLido }] : []),
     ...(hasImages ? [{ id: "atlas", label: "Navega por el atlas", icon: <ImageIcon className="h-4 w-4" /> }] : []),
     ...(modelos3d.length > 0 ? [{ id: "atlas3d", label: "Explora en 3D", icon: <Box className="h-4 w-4" /> }] : []),
@@ -126,8 +130,8 @@ export default async function TopicoPage({ params }: PageProps) {
           className="flex-1 min-w-0 py-8 lg:pl-10 lg:border-l"
           style={{ borderColor: "var(--border)" }}
         >
-          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} acaoGuardar={<SalvarTopicoSlot usuarioId={user?.id ?? null} topicoId={topico.id} />} />
-          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} modelos3d={modelos3d} />
+          <TopicHeader titulo={topico.titulo} objetivo={topico.objetivo} descricaoCurta={topico.descricao_curta} status={statusTopico} partes={partesDoTopico(partesProgresso)} acaoGuardar={<SalvarTopicoSlot usuarioId={user?.id ?? null} topicoId={topico.id} />} />
+          <TopicSections sections={sections} topico={topico} backUrl={topicoPath} resumoQuizzes={resumoQuizzes} artigoLido={progresso.artigoLido} videoAssistido={progresso.videoAssistido} modelos3d={modelos3d} />
           <TopicPrevNext areaPath={areaPath} prevTopico={prevTopico} nextTopico={nextTopico} />
         </div>
       </div>

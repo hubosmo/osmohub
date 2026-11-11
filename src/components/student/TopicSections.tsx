@@ -19,10 +19,11 @@ interface TopicSectionsProps {
   backUrl: string;
   resumoQuizzes?: Record<string, ResumoTentativas>;
   artigoLido?: boolean;
+  videoAssistido?: boolean;
   modelos3d?: ModeloParaAluno[];
 }
 
-export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigoLido = false, modelos3d = [] }: TopicSectionsProps) {
+export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigoLido = false, videoAssistido = false, modelos3d = [] }: TopicSectionsProps) {
   return (
     <div className="flex flex-col gap-12">
       {sections.map((section, idx) => (
@@ -41,7 +42,7 @@ export function TopicSections({ sections, topico, backUrl, resumoQuizzes, artigo
           </div>
 
           {/* Conteúdo — IDs prefixados com "-tour" para o TopicTour não conflitar com os IDs de âncora das seções */}
-          {section.id === "video" && <TopicVideoSection video={topico.video} playerId="video-tour" />}
+          {section.id === "video" && <TopicVideoSection video={topico.video} playerId="video-tour" topicoId={topico.id} jaAssistido={videoAssistido} />}
           {section.id === "articulo" && (
             topico.artigo?.content
               ? (
