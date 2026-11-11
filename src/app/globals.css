@@ -398,14 +398,8 @@ iframe:fullscreen {
   width: 100vw;
   height: 100vh;
 }
-/* No mobile em landscape, ajusta altura mínima do container */
-@media screen and (orientation: landscape) and (max-height: 600px) {
-  .video-aspect-box {
-    aspect-ratio: unset;
-    height: calc(100vw * 9 / 16);
-    max-height: 100svh;
-  }
-}
+/* Em landscape a caixa do vídeo mantém o 16/9 da própria largura (inline em TopicVideoSection).
+   Uma regra antiga calculava a altura pela largura da TELA (100vw) e deixava a caixa maior que o vídeo. */
 
 /* ── Tela de abertura (SplashScreen.tsx) ──
    O overlay já vai no HTML do servidor, então cobre o primeiro quadro (sem piscar a tela de login).
